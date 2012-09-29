@@ -20,7 +20,7 @@
  */
 #include "filesystem/File.h"
 #include "utils/StdString.h"
-#include <taglib/tiostream.h>
+#include <tiostream.h>
 
 namespace MUSIC_INFO
 {
