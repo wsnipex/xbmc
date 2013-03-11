@@ -4,6 +4,7 @@ SRCS=HTTPImageHandler.cpp \
      HTTPWebinterfaceAddonsHandler.cpp \
      HTTPWebinterfaceHandler.cpp \
      IHTTPRequestHandler.cpp \
+     HTTPSpecialHandler.cpp \
 
 LIB=httprequesthandlers.a
 

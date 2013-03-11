@@ -47,6 +47,7 @@ enum HTTPResponseType
   HTTPError,
   HTTPRedirect,
   HTTPFileDownload,
+  HTTPSpecialDownload,
   HTTPMemoryDownloadNoFreeNoCopy,
   HTTPMemoryDownloadNoFreeCopy,
   HTTPMemoryDownloadFreeNoCopy,
