@@ -368,6 +368,7 @@ CApplication::CApplication(void)
   , m_WebServer(*new CWebServer)
   , m_httpImageHandler(*new CHTTPImageHandler)
   , m_httpVfsHandler(*new CHTTPVfsHandler)
+  , m_httpSpecialHandler(*new CHTTPSpecialHandler)
 #ifdef HAS_JSONRPC
   , m_httpJsonRpcHandler(*new CHTTPJsonRpcHandler)
 #endif
@@ -442,6 +443,7 @@ CApplication::~CApplication(void)
   delete &m_WebServer;
   delete &m_httpImageHandler;
   delete &m_httpVfsHandler;
+  delete &m_httpSpecialHandler;
 #ifdef HAS_JSONRPC
   delete &m_httpJsonRpcHandler;
 #endif
@@ -1215,6 +1217,7 @@ bool CApplication::Initialize()
 #ifdef HAS_WEB_SERVER
   CWebServer::RegisterRequestHandler(&m_httpImageHandler);
   CWebServer::RegisterRequestHandler(&m_httpVfsHandler);
+  CWebServer::RegisterRequestHandler(&m_httpSpecialHandler);
 #ifdef HAS_JSONRPC
   CWebServer::RegisterRequestHandler(&m_httpJsonRpcHandler);
 #endif
@@ -3561,6 +3564,7 @@ void CApplication::Stop(int exitCode)
 #ifdef HAS_WEB_SERVER
   CWebServer::UnregisterRequestHandler(&m_httpImageHandler);
   CWebServer::UnregisterRequestHandler(&m_httpVfsHandler);
+  CWebServer::UnregisterRequestHandler(&m_httpSpecialHandler);
 #ifdef HAS_JSONRPC
   CWebServer::UnregisterRequestHandler(&m_httpJsonRpcHandler);
   CJSONRPC::Cleanup();
