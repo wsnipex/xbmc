@@ -51,15 +51,20 @@ int CHTTPSpecialHandler::HandleHTTPRequest(const HTTPRequest &request)
       if (m_path.substr(0, 10) == "special://")
       {
     	CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: File is readable and path = special://");
-    	if (ext == "log" || ext == "xmlxx")
+    	if (ext == ".log" || ext == ".xml")
     	{
     	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: extension is %s", ext.c_str());
+    	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: file length %lld", file->GetLength());
     	  //XFILE::CFile *file = (XFILE::CFile *)m_path;
 
-          char *buf;
+          char buf[file->GetLength()];
+    	  //char buf[];
     	  //if((unsigned int)pos != file->GetPosition())
-    	  //  file->Seek(pos);
+    	  //file->Seek(0);
     	  unsigned res = file->Read(buf, file->GetLength());
+          //unsigned res = file->Read(buf, 2048);
+    	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: readfile res %d", res);
+    	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: buf %s", buf);
     	  if(res == 0)
     	    return -1;
 
@@ -68,14 +73,15 @@ int CHTTPSpecialHandler::HandleHTTPRequest(const HTTPRequest &request)
     	  regex.RegFind(buf);
     	  std::string user = regex.GetReplaceString ("\\1");
     	  std::string pass = regex.GetReplaceString ("\\2");
-    	  std::string tmpbuf = buf;
-    	  StringUtils::Replace(tmpbuf, "://"+ user + ":" + pass + "@", "://xxx:xxx@");
-    	  //memcpy(buf,tmpbuf.c_str(),max);
-    	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: tmpbuf %s", tmpbuf.c_str());
-    	  m_response = tmpbuf;
+    	  m_response = buf;
+    	  StringUtils::Replace(m_response, "://"+ user + ":" + pass + "@", "://xxx:xxx@");
+    	  //memcpy(m_response, tmpbuf.c_str(), file->GetLength());
+    	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: m_response %s", m_response.c_str());
+    	  //m_response = tmpbuf;
     	  m_responseCode = MHD_HTTP_OK;
           //m_responseType = HTTPFileDownload;
     	  m_responseType = HTTPMemoryDownloadFreeNoCopy;
+    	  delete[] buf;
     	}
     	else
     	{
