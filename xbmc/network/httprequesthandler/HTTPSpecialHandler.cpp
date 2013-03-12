@@ -57,7 +57,7 @@ int CHTTPSpecialHandler::HandleHTTPRequest(const HTTPRequest &request)
     	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: file length %lld", file->GetLength());
     	  //XFILE::CFile *file = (XFILE::CFile *)m_path;
 
-          char buf[file->GetLength()];
+          char buf[file->GetLength()+10];
     	  //char buf[];
     	  //if((unsigned int)pos != file->GetPosition())
     	  //file->Seek(0);
