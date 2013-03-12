@@ -54,29 +54,54 @@ int CHTTPSpecialHandler::HandleHTTPRequest(const HTTPRequest &request)
     	if (ext == ".log" || ext == ".xml")
     	{
     	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: extension is %s", ext.c_str());
-    	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: file length %lld", file->GetLength());
+    	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: file length %ld", file->GetLength());
 
+    	  m_response = "";
+    	  /*
           char* buf = new char[file->GetLength()+1];
-    	  unsigned res = file->Read(buf, file->GetLength());
+          unsigned res = file->Read(buf, file->GetLength());
 
     	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: readfile res %d", res);
     	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: buf %s", buf);
     	  if(res == 0)
     	    return -1;
 
-          CRegExp regex;
+    	  CRegExp regex;
     	  regex.RegComp("://(.*):(.*)@");
     	  regex.RegFind(buf);
     	  std::string user = regex.GetReplaceString ("\\1");
     	  std::string pass = regex.GetReplaceString ("\\2");
     	  std::string replace = string("://") + string(user) + ":" + string(pass) + "@";
     	  m_response = buf;
-    	  //StringUtils::Replace(m_response, "://"+ user + ":" + pass + "@", "://xxx:xxx@");
     	  StringUtils::Replace(m_response, replace, "://xxx:xxx@");
     	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: m_response %s", m_response.c_str());
+    	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: after m_response");
+    	  //strcpy(m_response, x);
+    	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: buf[-1] %s", buf[-1]);
     	  m_responseCode = MHD_HTTP_OK;
           m_responseType = HTTPMemoryDownloadNoFreeNoCopy;
     	  delete[] buf;
+    	  buf = NULL;
+    	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: response size %ld", m_response.size());
+    	  */
+    	  char buf[1024];
+    	  while (file->ReadString(buf, 1023))
+    	  {
+    	    m_response += buf;
+    	  }
+    	  //CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: m_response before regex %s", m_response.c_str());
+    	  CRegExp regex;
+    	  regex.RegComp("://(.*):(.*)@");
+    	  regex.RegFind(m_response);
+    	  std::string user = regex.GetReplaceString ("\\1");
+    	  std::string pass = regex.GetReplaceString ("\\2");
+    	  std::string replace = string("://") + string(user) + ":" + string(pass) + "@";
+    	  StringUtils::Replace(m_response, replace, "://xxx:xxx@");
+    	  //CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: m_response %s", m_response.c_str());
+
+    	  m_responseCode = MHD_HTTP_OK;
+          m_responseType = HTTPMemoryDownloadNoFreeNoCopy;
+
     	}
     	else
     	{
