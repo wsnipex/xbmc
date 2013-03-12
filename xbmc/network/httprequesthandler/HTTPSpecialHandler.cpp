@@ -55,14 +55,10 @@ int CHTTPSpecialHandler::HandleHTTPRequest(const HTTPRequest &request)
     	{
     	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: extension is %s", ext.c_str());
     	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: file length %lld", file->GetLength());
-    	  //XFILE::CFile *file = (XFILE::CFile *)m_path;
 
-          char buf[file->GetLength()+10];
-    	  //char buf[];
-    	  //if((unsigned int)pos != file->GetPosition())
-    	  //file->Seek(0);
+          char buf[file->GetLength()];
     	  unsigned res = file->Read(buf, file->GetLength());
-          //unsigned res = file->Read(buf, 2048);
+
     	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: readfile res %d", res);
     	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: buf %s", buf);
     	  if(res == 0)
@@ -75,12 +71,9 @@ int CHTTPSpecialHandler::HandleHTTPRequest(const HTTPRequest &request)
     	  std::string pass = regex.GetReplaceString ("\\2");
     	  m_response = buf;
     	  StringUtils::Replace(m_response, "://"+ user + ":" + pass + "@", "://xxx:xxx@");
-    	  //memcpy(m_response, tmpbuf.c_str(), file->GetLength());
     	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: m_response %s", m_response.c_str());
-    	  //m_response = tmpbuf;
     	  m_responseCode = MHD_HTTP_OK;
-          //m_responseType = HTTPFileDownload;
-    	  m_responseType = HTTPMemoryDownloadFreeNoCopy;
+          m_responseType = HTTPMemoryDownloadNoFreeNoCopy;
     	  delete[] buf;
     	}
     	else
