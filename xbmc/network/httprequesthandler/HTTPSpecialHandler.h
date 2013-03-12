@@ -33,9 +33,14 @@ public:
 
   virtual std::string GetHTTPResponseFile() const { return m_path; }
   static int ResolveUrl(const std::string &url, std::string &path);
+  virtual void* GetHTTPResponseData() const { return (void *)m_response.c_str(); };
+  virtual size_t GetHTTPResonseDataLength() const { return m_response.size(); }
 
   virtual int GetPriority() const { return 2; }
 
 private:
   CStdString m_path;
+  CStdString m_request;
+  CStdString m_response;
+
 };
