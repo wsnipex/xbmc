@@ -56,7 +56,7 @@ int CHTTPSpecialHandler::HandleHTTPRequest(const HTTPRequest &request)
     	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: extension is %s", ext.c_str());
     	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: file length %lld", file->GetLength());
 
-          char buf[file->GetLength()];
+          char* buf = new char[file->GetLength()+1];
     	  unsigned res = file->Read(buf, file->GetLength());
 
     	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: readfile res %d", res);
@@ -69,8 +69,10 @@ int CHTTPSpecialHandler::HandleHTTPRequest(const HTTPRequest &request)
     	  regex.RegFind(buf);
     	  std::string user = regex.GetReplaceString ("\\1");
     	  std::string pass = regex.GetReplaceString ("\\2");
+    	  std::string replace = string("://") + string(user) + ":" + string(pass) + "@";
     	  m_response = buf;
-    	  StringUtils::Replace(m_response, "://"+ user + ":" + pass + "@", "://xxx:xxx@");
+    	  //StringUtils::Replace(m_response, "://"+ user + ":" + pass + "@", "://xxx:xxx@");
+    	  StringUtils::Replace(m_response, replace, "://xxx:xxx@");
     	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: m_response %s", m_response.c_str());
     	  m_responseCode = MHD_HTTP_OK;
           m_responseType = HTTPMemoryDownloadNoFreeNoCopy;
