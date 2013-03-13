@@ -39,7 +39,7 @@ bool CHTTPSpecialHandler::CheckHTTPRequest(const HTTPRequest &request)
 int CHTTPSpecialHandler::HandleHTTPRequest(const HTTPRequest &request)
 {
   CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: RequestUrl %s", request.url.c_str());
-  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: RequestUrl size %d", request.url.size());
+  //CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: RequestUrl size %d", request.url.size());
 
   if (request.url.size() >= 4)
   {
@@ -48,37 +48,56 @@ int CHTTPSpecialHandler::HandleHTTPRequest(const HTTPRequest &request)
     else
       m_path = request.url.substr(9);
 
-    CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: m_path is %s", m_path.c_str());
-	CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: file is %s", m_path.c_str());
+    CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: file is %s", m_path.c_str());
 
     CStdString ext = URIUtils::GetExtension(request.url);
     ext = ext.ToLower();
     XFILE::CFile *file = new XFILE::CFile();
 
     if (XFILE::CFile::Exists(m_path) && file->Open(m_path, READ_CACHED))
+    //if (XFILE::CFile::Exists(m_path) && file->Open(m_path, READ_NO_CACHE))
     {
       if (m_path.substr(0, 10) == "special://")
       {
-    	CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: File is readable and path = special://");
     	if (ext == ".log" || ext == ".xml")
     	{
     	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: extension is %s", ext.c_str());
-    	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: file length %ld", file->GetLength());
+    	  //CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: file length %ld", file->GetLength());
 
     	  m_response = "";
+    	  std::string line;
+    	  std::string user;
+    	  std::string pass;
+    	  std::string replace;
+
+    	  CRegExp regex1, regex2;
+    	  regex1.RegComp("://(.*):(.*)@");
+    	  regex2.RegComp("<[^<>]*pass[^<>]*>([^<]+)</.*pass.*>");
     	  while (file->ReadString(m_buf, 1023))
     	  {
-    	    m_response += m_buf;
+    	    line = m_buf;
+    	    if (regex1.RegFind(line))
+            {
+          	  user = regex1.GetReplaceString("\\1");
+          	  pass = regex1.GetReplaceString("\\2");
+          	  replace = string("://") + string(user) + ":" + string(pass) + "@";
+          	  StringUtils::Replace(line, replace, "://xxx:xxx@");
+
+            }
+            if (regex2.RegFind(line))
+			{
+              replace = regex2.GetReplaceString("\\1");
+			  if (replace.length() > 0)
+                StringUtils::Replace(line, replace, "xxx");
+			  //CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: replace %s", replace.c_str());
+			}
+            m_response += line;
+            line = "";
+            replace = "";
     	  }
+
     	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: Readfile buf length %ld", m_response.size());
     	  //CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: m_response before regex %s", m_response.c_str());
-    	  CRegExp regex;
-    	  regex.RegComp("://(.*):(.*)@");
-    	  regex.RegFind(m_response);
-    	  std::string user = regex.GetReplaceString ("\\1");
-    	  std::string pass = regex.GetReplaceString ("\\2");
-    	  std::string replace = string("://") + string(user) + ":" + string(pass) + "@";
-    	  StringUtils::Replace(m_response, replace, "://xxx:xxx@");
     	  //CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: m_response %s", m_response.c_str());
 
     	  m_responseCode = MHD_HTTP_OK;
