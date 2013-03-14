@@ -39,19 +39,23 @@ bool CHTTPSpecialHandler::CheckHTTPRequest(const HTTPRequest &request)
 int CHTTPSpecialHandler::HandleHTTPRequest(const HTTPRequest &request)
 {
   CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: RequestUrl %s", request.url.c_str());
-  //CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: RequestUrl size %d", request.url.size());
 
   if (request.url.size() >= 4)
   {
-    if (request.url.substr(0, 4) == "/log" && request.url.size() <= 5)
+    CStdString ext = URIUtils::GetExtension(request.url);
+    ext = ext.ToLower();
+
+	if (request.url.substr(0, 4) == "/log" && request.url.size() <= 5)
+	{
       m_path = "special://temp/xbmc.log";
+      ext = ".log";
+	}
     else
       m_path = request.url.substr(9);
 
     CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: file is %s", m_path.c_str());
 
-    CStdString ext = URIUtils::GetExtension(request.url);
-    ext = ext.ToLower();
+
     XFILE::CFile *file = new XFILE::CFile();
 
     if (XFILE::CFile::Exists(m_path) && file->Open(m_path, READ_CACHED))
@@ -73,6 +77,7 @@ int CHTTPSpecialHandler::HandleHTTPRequest(const HTTPRequest &request)
     	  CRegExp regex1, regex2;
     	  regex1.RegComp("://(.*):(.*)@");
     	  regex2.RegComp("<[^<>]*pass[^<>]*>([^<]+)</.*pass.*>");
+
     	  while (file->ReadString(m_buf, 1023))
     	  {
     	    line = m_buf;
@@ -94,12 +99,24 @@ int CHTTPSpecialHandler::HandleHTTPRequest(const HTTPRequest &request)
             m_response += line;
             line = "";
             replace = "";
+            memset(m_buf,'0',sizeof(m_buf));
     	  }
 
     	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: Readfile buf length %ld", m_response.size());
-    	  //CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: m_response before regex %s", m_response.c_str());
     	  //CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: m_response %s", m_response.c_str());
 
+    	  //const char *mime = request.webserver->CreateMimeTypeFromExtension(ext.c_str());
+    	  const char *mime;
+    	  if (strcmp(ext, ".htm") == 0 || strcmp(ext, ".html") == 0)
+            "text/html";
+    	  if (strcmp(ext, ".xml") == 0)
+            mime = "text/xml";
+    	  if (strcmp(ext, ".log") == 0)
+            mime = "text/plain";
+    	  if (mime)
+    	    m_responseHeaderFields.insert(pair<string, string>("Content-Type", mime));
+
+          m_request.clear();
     	  m_responseCode = MHD_HTTP_OK;
           m_responseType = HTTPMemoryDownloadNoFreeNoCopy;
 
