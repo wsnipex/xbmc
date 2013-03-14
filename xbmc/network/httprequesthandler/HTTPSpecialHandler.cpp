@@ -65,8 +65,8 @@ int CHTTPSpecialHandler::HandleHTTPRequest(const HTTPRequest &request)
 
     XFILE::CFile *file = new XFILE::CFile();
 
-    //if (XFILE::CFile::Exists(m_path) && file->Open(m_path, READ_CACHED))
-    if (XFILE::CFile::Exists(m_path) && file->Open(m_path, READ_NO_CACHE))
+    if (XFILE::CFile::Exists(m_path) && file->Open(m_path, READ_CACHED))
+    //if (XFILE::CFile::Exists(m_path) && file->Open(m_path, READ_NO_CACHE))
     {
       if (m_path.substr(0, 10) == "special://")
       {
@@ -112,7 +112,7 @@ int CHTTPSpecialHandler::HandleHTTPRequest(const HTTPRequest &request)
     	  }
 
     	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: Readfile buf length %ld", m_response.size());
-    	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: m_response %s", m_response.c_str());
+
 
     	  const char *mime = request.webserver->CreateMimeTypeFromExtension(ext.c_str());
           if (mime)
@@ -121,8 +121,10 @@ int CHTTPSpecialHandler::HandleHTTPRequest(const HTTPRequest &request)
           file->Close();
     	  delete file;
           m_request.clear();
+
+          //CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: m_response %s", m_response.c_str());
     	  m_responseCode = MHD_HTTP_OK;
-          m_responseType = HTTPMemoryDownloadNoFreeNoCopy;
+          m_responseType = HTTPMemoryDownloadNoFreeCopy;
 
     	}
     	else
