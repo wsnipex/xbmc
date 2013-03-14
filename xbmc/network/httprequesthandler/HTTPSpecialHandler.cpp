@@ -33,7 +33,7 @@ using namespace std;
 
 bool CHTTPSpecialHandler::CheckHTTPRequest(const HTTPRequest &request)
 {
-  return (request.url.find("/special") == 0 || request.url.find("/log") == 0);
+  return (request.url.find("/special/") == 0 || request.url.find("/log") == 0);
 }
 
 
@@ -45,106 +45,91 @@ then check if it's a .log or .xml. if not, you can just let libmicrohttpd do a f
 */
 int CHTTPSpecialHandler::HandleHTTPRequest(const HTTPRequest &request)
 {
+  CStdString ext;
   CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: RequestUrl %s", request.url.c_str());
 
-  if (request.url.size() >= 4)
+  if (request.url.substr(0, 19) == "/special/special://")
   {
-    CStdString ext = URIUtils::GetExtension(request.url);
+    m_path = request.url.substr(9);
+    ext = URIUtils::GetExtension(request.url);
     ext = ext.ToLower();
+  }
+  else if (request.url.substr(0, 4) == "/log" && request.url.size() <= 5)
+  {
+    m_path = "special://temp/xbmc.log";
+    ext = ".log";
+  }
+  else
+  {
+    // we should not land here
+    CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: substring %s", request.url.substr(0, 19).c_str());
+    m_response = "400 Bad Request";
+    m_responseCode = MHD_HTTP_BAD_REQUEST;
+    m_responseType = HTTPError;
+    return MHD_YES;
+  }
 
-	if (request.url.substr(0, 4) == "/log" && request.url.size() <= 5)
-	{
-      m_path = "special://temp/xbmc.log";
-      ext = ".log";
-	}
-    else
-      m_path = request.url.substr(9);
+  //CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: file is %s", m_path.c_str());
 
-    CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: file is %s", m_path.c_str());
-
-
-    XFILE::CFile *file = new XFILE::CFile();
-
-    if (XFILE::CFile::Exists(m_path) && file->Open(m_path, READ_CACHED))
-    //if (XFILE::CFile::Exists(m_path) && file->Open(m_path, READ_NO_CACHE))
+  XFILE::CFile *file = new XFILE::CFile();
+  if (XFILE::CFile::Exists(m_path) && file->Open(m_path, READ_CACHED))
+  //if (XFILE::CFile::Exists(m_path) && file->Open(m_path, READ_NO_CACHE))
+  {
+    if (ext == ".log" || ext == ".xml")
     {
-      if (m_path.substr(0, 10) == "special://")
+      m_response = "";
+      memset(m_buf,'\0',sizeof(m_buf));
+      std::string line = "";
+      std::string user;
+      std::string pass;
+      std::string replace;
+
+      CRegExp regex1, regex2;
+      regex1.RegComp("://(.*):(.*)@");
+      regex2.RegComp("<[^<>]*pass[^<>]*>([^<]+)</.*pass.*>");
+
+      while (file->ReadString(m_buf, 1023))
       {
-    	if (ext == ".log" || ext == ".xml")
-    	{
-    	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: extension is %s", ext.c_str());
-    	  //CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: file length %ld", file->GetLength());
-
-    	  m_response = "";
-          memset(m_buf,'\0',sizeof(m_buf));
-    	  std::string line = "";
-    	  std::string user;
-    	  std::string pass;
-    	  std::string replace;
-
-    	  CRegExp regex1, regex2;
-    	  regex1.RegComp("://(.*):(.*)@");
-    	  regex2.RegComp("<[^<>]*pass[^<>]*>([^<]+)</.*pass.*>");
-
-    	  while (file->ReadString(m_buf, 1023))
-    	  {
-    		//CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: m_buf %s", m_buf);
-    	    line = m_buf;
-    	    //CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: line %s", line.c_str());
-    	    if (regex1.RegFind(line))
-            {
-          	  user = regex1.GetReplaceString("\\1");
-          	  pass = regex1.GetReplaceString("\\2");
-          	  replace = string("://") + string(user) + ":" + string(pass) + "@";
-          	  StringUtils::Replace(line, replace, "://xxx:xxx@");
-
-            }
-            if (regex2.RegFind(line))
-			{
-              replace = regex2.GetReplaceString("\\1");
-			  if (replace.length() > 0)
-                StringUtils::Replace(line, replace, "xxx");
-			}
-            m_response += line;
-            //line = "";
-            //replace = "";
-            memset(m_buf,'\0',sizeof(m_buf));
-    	  }
-
-    	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: Readfile buf length %ld", m_response.size());
-
-
-    	  const char *mime = request.webserver->CreateMimeTypeFromExtension(ext.c_str());
-          if (mime)
-            m_responseHeaderFields.insert(pair<string, string>("Content-Type", mime));
-
-          file->Close();
-    	  delete file;
-          m_request.clear();
-
-          //CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: m_response %s", m_response.c_str());
-    	  m_responseCode = MHD_HTTP_OK;
-          m_responseType = HTTPMemoryDownloadNoFreeCopy;
-
-    	}
-    	else
-    	{
-    	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: extension is %s", ext.c_str());
-          m_responseCode = MHD_HTTP_OK;
-          m_responseType = HTTPFileDownload;
-    	}
+        line = m_buf;
+        if (regex1.RegFind(line))
+        {
+          user = regex1.GetReplaceString("\\1");
+          pass = regex1.GetReplaceString("\\2");
+          replace = string("://") + string(user) + ":" + string(pass) + "@";
+          StringUtils::Replace(line, replace, "://xxx:xxx@");
+        }
+        if (regex2.RegFind(line))
+        {
+          replace = regex2.GetReplaceString("\\1");
+          if (replace.length() > 0)
+            StringUtils::Replace(line, replace, "xxx");
+        }
+        m_response += line;
+        memset(m_buf,'\0',sizeof(m_buf));
       }
-      else
-      {
-        m_responseCode = MHD_HTTP_UNAUTHORIZED;
-        m_responseType = HTTPError;
-      }
+
+      const char *mime = request.webserver->CreateMimeTypeFromExtension(ext.c_str());
+      if (mime)
+        m_responseHeaderFields.insert(pair<string, string>("Content-Type", mime));
+
+      file->Close();
+      delete file;
+      m_request.clear();
+
+      //CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: m_response %s", m_response.c_str());
+      m_responseCode = MHD_HTTP_OK;
+      m_responseType = HTTPMemoryDownloadNoFreeCopy;
+    }
+    else
+    {
+      m_responseCode = MHD_HTTP_OK;
+      m_responseType = HTTPFileDownload;
     }
   }
   else
   {
-    m_responseCode = MHD_HTTP_BAD_REQUEST;
-    m_responseType = HTTPError;
+      m_responseCode = MHD_HTTP_NOT_FOUND;
+      m_responseType = HTTPError;
   }
   return MHD_YES;
 }
