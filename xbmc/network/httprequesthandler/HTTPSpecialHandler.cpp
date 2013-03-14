@@ -97,9 +97,9 @@ int CHTTPSpecialHandler::HandleHTTPRequest(const HTTPRequest &request)
 			  //CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: replace %s", replace.c_str());
 			}
             m_response += line;
-            line = "";
-            replace = "";
-            memset(m_buf,'0',sizeof(m_buf));
+            //line = "";
+            //replace = "";
+            //memset(m_buf,'0',sizeof(m_buf));
     	  }
 
     	  CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: Readfile buf length %ld", m_response.size());
