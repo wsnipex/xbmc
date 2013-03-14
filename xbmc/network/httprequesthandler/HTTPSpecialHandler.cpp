@@ -36,6 +36,13 @@ bool CHTTPSpecialHandler::CheckHTTPRequest(const HTTPRequest &request)
   return (request.url.find("/special") == 0 || request.url.find("/log") == 0);
 }
 
+
+/*
+first check if it's a "special://" path
+if not return an error (as you already do)
+then check if the file exists
+then check if it's a .log or .xml. if not, you can just let libmicrohttpd do a file download
+*/
 int CHTTPSpecialHandler::HandleHTTPRequest(const HTTPRequest &request)
 {
   CLog::Log(LOGDEBUG, "CHTTPSpecialHandler::HandleHTTPRequest: RequestUrl %s", request.url.c_str());
