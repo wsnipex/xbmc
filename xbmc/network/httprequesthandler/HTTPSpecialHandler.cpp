@@ -58,8 +58,8 @@ int CHTTPSpecialHandler::HandleHTTPRequest(const HTTPRequest &request)
 
     XFILE::CFile *file = new XFILE::CFile();
 
-    if (XFILE::CFile::Exists(m_path) && file->Open(m_path, READ_CACHED))
-    //if (XFILE::CFile::Exists(m_path) && file->Open(m_path, READ_NO_CACHE))
+    //if (XFILE::CFile::Exists(m_path) && file->Open(m_path, READ_CACHED))
+    if (XFILE::CFile::Exists(m_path) && file->Open(m_path, READ_NO_CACHE))
     {
       if (m_path.substr(0, 10) == "special://")
       {
@@ -76,7 +76,7 @@ int CHTTPSpecialHandler::HandleHTTPRequest(const HTTPRequest &request)
     	  std::string replace;
 
     	  CRegExp regex1, regex2;
-    	  regex1.RegComp(".+://(.*):(.*)@.+");
+    	  regex1.RegComp("://(.*):(.*)@");
     	  regex2.RegComp("<[^<>]*pass[^<>]*>([^<]+)</.*pass.*>");
 
     	  while (file->ReadString(m_buf, 1023))
