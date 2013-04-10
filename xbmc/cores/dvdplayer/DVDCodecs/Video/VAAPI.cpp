@@ -146,6 +146,9 @@ CSurfaceGL::~CSurfaceGL()
 
 CDecoder::CDecoder()
 {
+  // Buffer size passed to VPP Init
+  m_buffer_size     = 9;
+
   m_refs            = 0;
   m_surfaces_count  = 0;
   m_config          = 0;
@@ -379,7 +382,7 @@ bool CDecoder::Open(AVCodecContext *avctx, enum PixelFormat fmt, unsigned int su
     return false;
 
   m_vppth = new CVPPThread(m_display, avctx->width, avctx->height);
-  m_vppth->Init(m_refs); // Ignore result, VPPThread just passes frames if init failed
+  m_vppth->Init(m_buffer_size); // Ignore result, VPPThread just passes frames if init failed
   m_vppth->Start();
 
   m_hwaccel->display     = m_display->get();
@@ -413,7 +416,7 @@ bool CDecoder::EnsureContext(AVCodecContext *avctx)
 
   int vpp_buf = 0;
   if(CVPP::Supported())
-    vpp_buf = 4;
+    vpp_buf = m_buffer_size >> 1;
 
   return EnsureSurfaces(avctx, m_refs + m_renderbuffers_count + vpp_buf + 3);
 }
@@ -503,7 +506,7 @@ int CDecoder::Decode(AVCodecContext* avctx, AVFrame* frame)
 
   int ret = 0;
 
-  if(m_vppth->GetInputQueueSize() < 4 && m_vppth->GetOutputQueueSize() < 8)
+  if(m_vppth->GetInputQueueSize() < (m_buffer_size >> 2) && m_vppth->GetOutputQueueSize() < (m_buffer_size >> 1))
     ret |= VC_BUFFER;
   if(m_vppth->GetOutputQueueSize() > 0)
     ret |= VC_PICTURE;
@@ -585,7 +588,7 @@ bool CVPPThread::Init(int num_refs)
   if(!m_vpp->InitVpp())
     return false;
 
-  if(!m_vpp->InitDeintBob(num_refs + 16))
+  if(!m_vpp->InitDeintBob(num_refs))
     return false;
 
   return true;
@@ -769,8 +772,8 @@ void CVPPThread::Process()
     if(currentFrame.valid)
     {
       bool isInterlaced = currentFrame.DVDPic.iFlags & DVP_FLAG_INTERLACED;
-      //if(currentFrame.DVDPic.iFlags & DVP_FLAG_DROPDEINT)
-      //  isInterlaced = false;
+      if(currentFrame.DVDPic.iFlags & DVP_FLAG_DROPDEINT)
+        isInterlaced = false;
 
       EDEINTERLACEMODE   mode = CMediaSettings::Get().GetCurrentVideoSettings().m_DeinterlaceMode;
       EINTERLACEMETHOD method = CMediaSettings::Get().GetCurrentVideoSettings().m_InterlaceMethod;

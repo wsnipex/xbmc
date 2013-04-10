@@ -194,6 +194,8 @@ protected:
   VASurfaceID            m_surfaces[m_surfaces_max];
   unsigned               m_renderbuffers_count;
 
+  int                    m_buffer_size;
+
   int                    m_refs;
   std::list<CSurfacePtr> m_surfaces_used;
   std::list<CSurfacePtr> m_surfaces_free;
