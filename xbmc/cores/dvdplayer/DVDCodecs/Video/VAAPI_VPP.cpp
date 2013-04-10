@@ -330,7 +330,7 @@ CSurfacePtr CVPP::getFreeSurface()
 #ifdef VPP_AVAIL
     for(int i = 0; i < m_bobTargetCount; ++i)
     {
-        if(m_bobTargets[i].use_count() == 1)
+        if(m_bobTargets[i].unique())
         {
             return m_bobTargets[i];
         }

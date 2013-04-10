@@ -207,8 +207,8 @@ int CDecoder::GetBuffer(AVCodecContext *avctx, AVFrame *pic)
   else
   {
     // To avoid stutter, we scan the free surface pool (provided by decoder) for surfaces
-    // that are 100% not in use by renderer or vpp. The pointers to these surfaces have a use_count of 1.
-    for (; it != m_surfaces_free.end() && it->use_count() > 1; ++it) {}
+    // that are 100% not in use by renderer or vpp. The pointers to these surfaces are unique(use_count() == 1).
+    for (; it != m_surfaces_free.end() && !it->unique(); ++it) {}
 
     // If we have zero free surface from decoder OR all free surfaces are in use by renderer, we allocate a new surface
     if (it == m_surfaces_free.end())
