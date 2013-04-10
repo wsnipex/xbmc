@@ -139,6 +139,8 @@ public:
   int GetInputQueueSize();
   int GetOutputQueueSize();
 
+  void Flush();
+
 protected:
   void OnStartup();
   void OnExit();
@@ -151,6 +153,8 @@ protected:
   CVPP *m_vpp;
 
   bool m_stop;
+
+  CCriticalSection m_work_lock;
 
   CCriticalSection m_input_queue_lock;
   XbmcThreads::ConditionVariable m_input_cond;
@@ -173,9 +177,11 @@ public:
   virtual int  Decode    (AVCodecContext* avctx, AVFrame* frame);
   virtual bool GetPicture(AVCodecContext* avctx, AVFrame* frame, DVDVideoPicture* picture);
   virtual int  Check     (AVCodecContext* avctx);
+  virtual void Reset     ();
   virtual void Close();
   virtual const std::string Name() { return "vaapi"; }
   virtual CCriticalSection* Section() { if(m_display) return m_display.get(); else return NULL; }
+  virtual bool CanSkipDeint() { return true; }
 
   int   GetBuffer(AVCodecContext *avctx, AVFrame *pic);
   void  RelBuffer(AVCodecContext *avctx, AVFrame *pic);

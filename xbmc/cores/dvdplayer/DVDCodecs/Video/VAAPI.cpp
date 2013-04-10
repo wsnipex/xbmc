@@ -531,6 +531,11 @@ bool CDecoder::GetPicture(AVCodecContext* avctx, AVFrame* frame, DVDVideoPicture
   return true;
 }
 
+void CDecoder::Reset()
+{
+  m_vppth->Flush();
+}
+
 int CDecoder::Check(AVCodecContext* avctx)
 {
   if (m_display == NULL)
@@ -713,6 +718,19 @@ int CVPPThread::GetOutputQueueSize()
   return m_output_queue.size();
 }
 
+void CVPPThread::Flush()
+{
+  CSingleLock lock(m_work_lock);
+
+  m_input_queue_lock.lock();
+  m_input_queue = std::queue<CVPPDecodedPicture>();
+  m_input_queue_lock.unlock();
+
+  m_output_queue_lock.lock();
+  m_output_queue = std::queue<CVPPRenderPicture>();
+  m_output_queue_lock.unlock();
+}
+
 void CVPPThread::DoDeinterlacing(const CVPPDecodedPicture &frame, bool topField)
 {
   if(!m_vpp->DeintBobReady())
@@ -744,11 +762,16 @@ void CVPPThread::Process()
 {
   CVPPDecodedPicture currentFrame = CVPPDecodedPicture();
 
+  m_work_lock.lock();
+
   while(!m_stop)
   {
     if(currentFrame.valid)
     {
       bool isInterlaced = currentFrame.DVDPic.iFlags & DVP_FLAG_INTERLACED;
+      //if(currentFrame.DVDPic.iFlags & DVP_FLAG_DROPDEINT)
+      //  isInterlaced = false;
+
       EDEINTERLACEMODE   mode = CMediaSettings::Get().GetCurrentVideoSettings().m_DeinterlaceMode;
       EINTERLACEMETHOD method = CMediaSettings::Get().GetCurrentVideoSettings().m_InterlaceMethod;
 
@@ -756,6 +779,7 @@ void CVPPThread::Process()
        && (mode == VS_DEINTERLACEMODE_FORCE || (mode == VS_DEINTERLACEMODE_AUTO && isInterlaced)))
       {
         bool topField = currentFrame.DVDPic.iFlags & DVP_FLAG_TOP_FIELD_FIRST;
+
         DoDeinterlacing(currentFrame, topField);
         DoDeinterlacing(currentFrame, !topField);
       }
@@ -770,8 +794,13 @@ void CVPPThread::Process()
     }
 
     currentFrame = CVPPDecodedPicture();
+
+    m_work_lock.unlock();
     currentFrame = GetCurrentFrame();
+    m_work_lock.lock();
   }
+
+  m_work_lock.unlock();
 }
 
 #endif
