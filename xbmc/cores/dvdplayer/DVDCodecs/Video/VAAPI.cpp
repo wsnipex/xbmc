@@ -20,7 +20,6 @@
 #include "system.h"
 #ifdef HAVE_LIBVA
 #include "windowing/WindowingFactory.h"
-#include "settings/MediaSettings.h"
 #include "settings/Settings.h"
 #include "cores/dvdplayer/DVDClock.h"
 #include "VAAPI.h"
@@ -775,8 +774,8 @@ void CVPPThread::Process()
       if(currentFrame.DVDPic.iFlags & DVP_FLAG_DROPDEINT)
         isInterlaced = false;
 
-      EDEINTERLACEMODE   mode = CMediaSettings::Get().GetCurrentVideoSettings().m_DeinterlaceMode;
-      EINTERLACEMETHOD method = CMediaSettings::Get().GetCurrentVideoSettings().m_InterlaceMethod;
+      EDEINTERLACEMODE   mode = g_settings.m_currentVideoSettings.m_DeinterlaceMode;
+      EINTERLACEMETHOD method = g_settings.m_currentVideoSettings.m_InterlaceMethod;
 
       if (m_vpp->DeintBobReady() && (method == VS_INTERLACEMETHOD_VAAPI_AUTO || method == VS_INTERLACEMETHOD_AUTO)
        && (mode == VS_DEINTERLACEMODE_FORCE || (mode == VS_DEINTERLACEMODE_AUTO && isInterlaced)))
