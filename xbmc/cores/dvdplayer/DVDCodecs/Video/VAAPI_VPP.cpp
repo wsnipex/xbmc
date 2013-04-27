@@ -321,7 +321,7 @@ CSurfacePtr CVPP::DeintBob(const CSurfacePtr& input, bool topField)
 
     return bobTarget;
 #else
-    return VA_INVALID_ID;
+    return CSurfacePtr();
 #endif
 }
 
