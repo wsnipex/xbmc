@@ -35,6 +35,11 @@
 
 #include <algorithm>
 
+#ifndef VA_SURFACE_ATTRIB_SETTABLE
+#define vaCreateSurfaces(d, f, w, h, s, ns, a, na) \
+    vaCreateSurfaces(d, w, h, f, ns, s)
+#endif
+
 using namespace VAAPI;
 
 bool CVPP::isSupported = true;
