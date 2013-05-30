@@ -121,7 +121,11 @@ CAESinkDirectSound::CAESinkDirectSound() :
   m_CacheLen      (0    ),
   m_dwChunkSize   (0    ),
   m_dwBufferLen   (0    ),
-  m_BufferTimeouts(0    )
+  m_BufferTimeouts(0    ),
+  m_AvgBytesPerSec(0    ),
+  m_dwFrameSize   (0    ),
+  m_LastCacheCheck(0    ),
+  m_running       (false)
 {
   m_channelLayout.Reset();
 }
@@ -143,7 +147,7 @@ bool CAESinkDirectSound::Initialize(AEAudioFormat &format, std::string &device)
   std::string deviceFriendlyName;
   DirectSoundEnumerate(DSEnumCallback, &DSDeviceList);
 
-  for (std::list<DSDevice>::iterator itt = DSDeviceList.begin(); itt != DSDeviceList.end(); itt++)
+  for (std::list<DSDevice>::iterator itt = DSDeviceList.begin(); itt != DSDeviceList.end(); ++itt)
   {
     if ((*itt).lpGuid)
     {
@@ -322,7 +326,7 @@ void CAESinkDirectSound::Deinitialize()
   m_dwBufferLen = 0;
 }
 
-bool CAESinkDirectSound::IsCompatible(const AEAudioFormat format, const std::string device)
+bool CAESinkDirectSound::IsCompatible(const AEAudioFormat format, const std::string &device)
 {
   if (!m_initialized || m_isDirtyDS)
     return false;
@@ -384,7 +388,8 @@ unsigned int CAESinkDirectSound::AddPackets(uint8_t *data, unsigned int frames, 
   {
     if (m_isDirtyDS)
       return INT_MAX;
-    Sleep(total * 1000 / m_AvgBytesPerSec);
+    else
+      return 0;
   }
 
   while (len)
@@ -471,7 +476,6 @@ void CAESinkDirectSound::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList, bo
   IMMDeviceEnumerator* pEnumerator = NULL;
   IMMDeviceCollection* pEnumDevices = NULL;
 
-  WAVEFORMATEX*          pwfxex = NULL;
   HRESULT                hr;
 
   /* See if we are on Windows XP */
@@ -484,7 +488,7 @@ void CAESinkDirectSound::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList, bo
     std::list<DSDevice> DSDeviceList;
     DirectSoundEnumerate(DSEnumCallback, &DSDeviceList);
 
-    for(std::list<DSDevice>::iterator itt = DSDeviceList.begin(); itt != DSDeviceList.end(); itt++)
+    for(std::list<DSDevice>::iterator itt = DSDeviceList.begin(); itt != DSDeviceList.end(); ++itt)
     {
       if (UuidToString((*itt).lpGuid, &cszGUID) != RPC_S_OK)
         continue;  /* could not convert GUID to string - skip device */
@@ -637,6 +641,7 @@ void CAESinkDirectSound::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList, bo
       {
         deviceInfoList.erase(itt);
         deviceInfoList.insert(deviceInfoList.begin(), devInfo);
+        break;
       }
     }
   }
@@ -749,8 +754,6 @@ unsigned int CAESinkDirectSound::GetSpace()
 
 void CAESinkDirectSound::AEChannelsFromSpeakerMask(DWORD speakers)
 {
-  int j = 0;
-
   m_channelLayout.Reset();
 
   for (int i = 0; i < DS_SPEAKER_COUNT; i++)

@@ -66,7 +66,11 @@ static unsigned int ALSASampleRateList[] =
 };
 
 CAESinkALSA::CAESinkALSA() :
-  m_pcm(NULL)
+  m_pcm(NULL),
+  m_bufferSize(0),
+  m_formatSampleRateMul(0.0),
+  m_passthrough(false),
+  m_timeout(0)
 {
   /* ensure that ALSA has been initialized */
   if (!snd_config)
@@ -210,7 +214,7 @@ bool CAESinkALSA::Initialize(AEAudioFormat &format, std::string &device)
   return true;
 }
 
-bool CAESinkALSA::IsCompatible(const AEAudioFormat format, const std::string device)
+bool CAESinkALSA::IsCompatible(const AEAudioFormat format, const std::string &device)
 {
   return (
       /* compare against the requested format and the real format */
@@ -523,11 +527,7 @@ unsigned int CAESinkALSA::AddPackets(uint8_t *data, unsigned int frames, bool ha
   }
 
   if ((unsigned int)ret < frames)
-  {
-    ret = snd_pcm_wait(m_pcm, m_timeout);
-    if (ret < 0)
-      HandleError("snd_pcm_wait", ret);
-  }
+    return 0;
 
   ret = snd_pcm_writei(m_pcm, (void*)data, frames);
   if (ret < 0)

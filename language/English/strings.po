@@ -5123,7 +5123,12 @@ msgctxt "#13437"
 msgid "Allow hardware acceleration (XVBA)"
 msgstr ""
 
-#empty strings from id 13438 to 13499
+#: xbmc/settings/GUISettings.cpp
+msgctxt "#13438"
+msgid "Enable HQ Scalers for scalings above %"
+msgstr ""
+
+#empty strings from id 13439 to 13499
 
 msgctxt "#13500"
 msgid "A/V sync method"

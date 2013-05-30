@@ -688,6 +688,8 @@ void CGUISettings::Initialize()
 #endif
   AddInt(vp, "videoplayer.rendermethod", 13415, RENDER_METHOD_AUTO, renderers, SPIN_CONTROL_TEXT);
 
+  AddInt(vp, "videoplayer.hqscalers", 13438, 0, 0, 10, 100, SPIN_CONTROL_INT);
+
 #ifdef HAVE_LIBVDPAU
   AddBool(vp, "videoplayer.usevdpau", 13425, true);
   AddBool(vp, "videoplayer.usevdpaumixer", 13436, true);
