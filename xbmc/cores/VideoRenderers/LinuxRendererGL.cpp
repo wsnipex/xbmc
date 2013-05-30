@@ -54,6 +54,7 @@
 #include <va/va_x11.h>
 #include <va/va_glx.h>
 #include "cores/dvdplayer/DVDCodecs/Video/VAAPI.h"
+#include "cores/dvdplayer/DVDCodecs/Video/VAAPI_VPP.h"
 
 #define USE_VAAPI_GLX_BIND                                \
     (VA_MAJOR_VERSION == 0 &&                             \
@@ -3659,6 +3660,11 @@ bool CLinuxRendererGL::Supports(EINTERLACEMETHOD method)
   if(m_renderMethod & RENDER_VAAPI)
   {
 #ifdef HAVE_LIBVA
+    if(method == VS_INTERLACEMETHOD_VAAPI_AUTO)
+    {
+      return VAAPI::CVPP::Supported();
+    }
+
     VAAPI::CDisplayPtr disp = m_buffers[m_iYV12RenderBuffer].vaapi.display;
     if(disp)
     {
@@ -3755,6 +3761,14 @@ EINTERLACEMETHOD CLinuxRendererGL::AutoInterlaceMethod()
 
   if(m_renderMethod & RENDER_VDPAU)
     return VS_INTERLACEMETHOD_NONE;
+
+  if(m_renderMethod & RENDER_VAAPI)
+  {
+#ifdef HAVE_LIBVA
+    if(VAAPI::CVPP::Supported())
+      return VS_INTERLACEMETHOD_VAAPI_AUTO;
+#endif
+  }
 
   if(Supports(VS_INTERLACEMETHOD_RENDER_BOB))
     return VS_INTERLACEMETHOD_RENDER_BOB;

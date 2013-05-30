@@ -23,11 +23,16 @@
 
 #include "DllAvCodec.h"
 #include "DVDVideoCodecFFmpeg.h"
+#include "threads/Thread.h"
+#include "threads/Condition.h"
+#include "threads/CriticalSection.h"
+
 #include <libavcodec/vaapi.h>
 #include <va/va.h>
 #include <va/va_x11.h>
 #include <va/va_glx.h>
 #include <list>
+#include <queue>
 #include <boost/shared_ptr.hpp>
 
 
@@ -97,6 +102,69 @@ struct CHolder
   {}
 };
 
+class CVPP;
+
+struct CVPPDecodedPicture
+{
+  CVPPDecodedPicture():valid(false) {}
+
+  bool valid;
+  DVDVideoPicture DVDPic;
+  CSurfacePtr surface;
+};
+
+struct CVPPRenderPicture
+{
+  CVPPRenderPicture():valid(false) {}
+
+  bool valid;
+  DVDVideoPicture DVDPic;
+  CSurfacePtr surface;
+};
+
+class CVPPThread : private CThread
+{
+public:
+  CVPPThread(CDisplayPtr& display, int width, int height);
+  ~CVPPThread();
+
+  bool Init(int num_refs);
+  void Start();
+  void Dispose();
+
+  void InsertNewFrame(CVPPDecodedPicture &new_frame);
+  void WaitForOutput(unsigned long msec = 0);
+  CVPPRenderPicture GetOutputPicture();
+
+  int GetInputQueueSize();
+  int GetOutputQueueSize();
+
+  void Flush();
+
+protected:
+  void OnStartup();
+  void OnExit();
+  void Process();
+
+  void InsertOutputFrame(CVPPRenderPicture &new_frame);
+  CVPPDecodedPicture GetCurrentFrame();
+  void DoDeinterlacing(const CVPPDecodedPicture &frame, bool topField);
+
+  CVPP *m_vpp;
+
+  bool m_stop;
+
+  CCriticalSection m_work_lock;
+
+  CCriticalSection m_input_queue_lock;
+  XbmcThreads::ConditionVariable m_input_cond;
+  std::queue<CVPPDecodedPicture> m_input_queue;
+
+  CCriticalSection m_output_queue_lock;
+  XbmcThreads::ConditionVariable m_output_cond;
+  std::queue<CVPPRenderPicture> m_output_queue;
+};
+
 class CDecoder
   : public CDVDVideoCodecFFmpeg::IHardwareDecoder
 {
@@ -109,9 +177,11 @@ public:
   virtual int  Decode    (AVCodecContext* avctx, AVFrame* frame);
   virtual bool GetPicture(AVCodecContext* avctx, AVFrame* frame, DVDVideoPicture* picture);
   virtual int  Check     (AVCodecContext* avctx);
+  virtual void Reset     ();
   virtual void Close();
   virtual const std::string Name() { return "vaapi"; }
   virtual CCriticalSection* Section() { if(m_display) return m_display.get(); else return NULL; }
+  virtual bool CanSkipDeint() { return true; }
 
   int   GetBuffer(AVCodecContext *avctx, AVFrame *pic);
   void  RelBuffer(AVCodecContext *avctx, AVFrame *pic);
@@ -124,6 +194,8 @@ protected:
   VASurfaceID            m_surfaces[m_surfaces_max];
   unsigned               m_renderbuffers_count;
 
+  int                    m_buffer_size;
+
   int                    m_refs;
   std::list<CSurfacePtr> m_surfaces_used;
   std::list<CSurfacePtr> m_surfaces_free;
@@ -133,6 +205,8 @@ protected:
   VAContextID    m_context;
 
   vaapi_context *m_hwaccel;
+
+  CVPPThread    *m_vppth;
 
   CHolder        m_holder; // silly struct to pass data to renderer
 };
