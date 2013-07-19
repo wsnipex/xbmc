@@ -2398,7 +2398,8 @@ OUTPUT_FILES="Makefile \
     xbmc/android/loader/Makefile \
     xbmc/android/jni/Makefile \
     xbmc/utils/Makefile \
-    xbmc/main/Makefile"
+    xbmc/main/Makefile \
+    project/cmake/xbmc-config.cmake"
 
 if test "$use_skin_touched" = "yes"; then
 OUTPUT_FILES="$OUTPUT_FILES addons/skin.touched/media/Makefile"
