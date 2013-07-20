@@ -199,30 +199,10 @@ LIB_DIRS=\
 	lib/cpluff \
 	lib/xbmc-dll-symbols
 
-ifeq (@USE_MYSQL@,1)
-LIB_DIRS += lib/cmyth
-CMYTH=cmyth
-endif
-
-SS_DIRS=
-ifneq (@DISABLE_RSXS@,1)
-  SS_DIRS+= xbmc/screensavers/rsxs-0.9/xbmc
-endif
-
-VIS_DIRS=xbmc/visualizations/OpenGLSpectrum \
-         xbmc/visualizations/WaveForm
-
-ifneq (@DISABLE_FISHBMC@,1)
-  VIS_DIRS+= xbmc/visualizations/fishBMC
-endif
-
-ifneq (@DISABLE_PROJECTM@,1)
-  VIS_DIRS+= xbmc/visualizations/XBMCProjectM
-endif
-
-ifneq (@DISABLE_GOOM@,1)
-  VIS_DIRS+=xbmc/visualizations/Goom
-endif
+#ifeq (@USE_MYSQL@,1)
+#LIB_DIRS += lib/cmyth
+#CMYTH=cmyth
+#endif
 
 LIBADDON_DIRS=\
 	lib/addons/library.xbmc.addon \
@@ -344,16 +324,6 @@ ifeq (@USE_OPENGLES@,1)
 EGLHELPERS=xbmc/visualizations/EGLHelpers/eglhelpers.a
 endif
 
-$(VIS_DIRS): force exports $(EGLHELPERS)
-	$(MAKE) -C $@
-
-$(SS_DIRS): force exports
-	$(MAKE) -C $@
-
-visualizations: $(VIS_DIRS)
-
-screensavers: $(SS_DIRS)
-
 libaddon: exports
 	$(MAKE) -C lib/addons/library.xbmc.addon
 	$(MAKE) -C lib/addons/library.xbmc.codec
@@ -397,19 +367,14 @@ endif
 imagelib: dllloader
 	$(MAKE) -C lib/cximage-6.0
 
-pvraddons: exports
-ifeq (@USE_PVR_ADDONS@,1)
-	$(MAKE) -C pvr-addons
-endif
-
 codecs: papcodecs dvdpcodecs
 
 libs: libhdhomerun imagelib libexif system/libcpluff-@ARCH@.so $(CMYTH)
 
-externals: codecs libs visualizations screensavers libaddon pvraddons
+externals: codecs libs libaddon
 
 xcode_depends: \
-	codecs libs visualizations screensavers eventclients skins libaddon \
+	codecs libs eventclients skins libaddon \
 	lib/libsquish/libsquish.a \
 	lib/libRTV/librtv.a \
 	lib/libXDAAP/libxdaap.a \
@@ -518,9 +483,7 @@ endif
 
 install-arch:
 	@# Arch dependent files
-ifeq (@USE_PVR_ADDONS@,1)
-	$(MAKE) -C pvr-addons install
-endif
+
 ifeq ($(findstring freebsd,@ARCH@), freebsd)
 	@find -E system addons -type f -not -iregex ".*svn.*" \
 		-iregex ".*@ARCH@.*|.*\.vis|.*\.xbs" \
@@ -620,21 +583,12 @@ clean-papcodecs:
 	for d in $(PAPCODECS_DIRS); do if test -f $$d/Makefile; then $(MAKE) -C $$d clean; fi; done
 clean-libs:
 	for d in $(LIB_DIRS); do if test -f $$d/Makefile; then $(MAKE) -C $$d clean; fi; done
-clean-screensavers:
-	for d in $(SS_DIRS); do if test -f $$d/Makefile; then $(MAKE) -C $$d clean; fi; done
-clean-visualisations:
-	for d in $(VIS_DIRS); do if test -f $$d/Makefile; then $(MAKE) -C $$d clean; fi; done
 clean-libaddons:
 	for d in $(LIBADDON_DIRS); do if test -f $$d/Makefile; then $(MAKE) -C $$d clean; fi; done
-clean-pvraddons:
-ifeq (@USE_PVR_ADDONS@,1)
-	if test -f pvr-addons/Makefile; then $(MAKE) -C pvr-addons clean; fi;
-endif
 
 clean-codecs: clean-dvdpcodecs clean-papcodecs
 
-clean-externals: clean-codecs clean-eventclients clean-xbmctex clean-libs \
-	clean-screensavers clean-visualisations clean-libaddons clean-pvraddons
+clean-externals: clean-codecs clean-eventclients clean-xbmctex clean-libs clean-libaddons
 
 ifeq (1,@GTEST_CONFIGURED@)
 check: testsuite
