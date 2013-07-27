@@ -28,9 +28,10 @@ all: .installed-$(PLATFORM)
 	@for f in $(BINDINGS); do \
 	  cp -f $(XBMCROOT)/$$f $(PREFIX)/include/xbmc ; \
 	done
-	@mkdir -p $(PREFIX)/lib/xbmc
-	@cat $(XBMCROOT)/project/cmake/xbmc-config.cmake.in | sed -e 's|@prefix@|$(PREFIX)|' > $(PREFIX)/lib/xbmc/xbmc-config.cmake
-	@cp -f $(XBMCROOT)/project/cmake/xbmc-addon-helpers.cmake $(PREFIX)/lib/xbmc
+	@mkdir -p $(NATIVEPREFIX)/lib/xbmc
+	@cat $(XBMCROOT)/project/cmake/xbmc-config.cmake.in | sed -e 's|@prefix@|$(PREFIX)|' -e 's|@ARCH_DEFINES@|$(ARCH_DEFINES)|' > $(NATIVEPREFIX)/lib/xbmc/xbmc-config.cmake
+	@cp -f $(XBMCROOT)/project/cmake/xbmc-addon-helpers.cmake $(NATIVEPREFIX)/lib/xbmc
+	@cp -f $(XBMCROOT)/project/cmake/AddOptions.cmake $(NATIVEPREFIX)/lib/xbmc
 	@touch $@
 
 clean:

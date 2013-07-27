@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -116,13 +116,15 @@ CDVDAudioCodecPcm::CDVDAudioCodecPcm() : CDVDAudioCodec()
   m_codecID = AV_CODEC_ID_NONE;
   m_iOutputChannels = 0;
 
-  memset(m_decodedData, 0, sizeof(m_decodedData));
+  m_decodedData = NULL;
+  m_decodedDataBufSize = 0;
   memset(table, 0, sizeof(table));
 }
 
 CDVDAudioCodecPcm::~CDVDAudioCodecPcm()
 {
   Dispose();
+  delete m_decodedData;
 }
 
 bool CDVDAudioCodecPcm::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
@@ -172,8 +174,14 @@ int CDVDAudioCodecPcm::Decode(uint8_t* pData, int iSize)
     src = pData;
     int buf_size = iSize;
 
-    if (iSize > AVCODEC_MAX_AUDIO_FRAME_SIZE / 2)
-        iSize = AVCODEC_MAX_AUDIO_FRAME_SIZE / 2;
+    if (iSize > m_decodedDataBufSize)
+    {
+        delete m_decodedData;
+        samples = m_decodedData = new short[iSize];
+        if(!m_decodedData)
+            return -1;
+        m_decodedDataBufSize = iSize;
+    }
 
     switch (m_codecID)
     {

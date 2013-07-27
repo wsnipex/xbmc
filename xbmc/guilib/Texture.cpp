@@ -1,22 +1,22 @@
 /*
-*      Copyright (C) 2005-2013 Team XBMC
-*      http://www.xbmc.org
-*
-*  This Program is free software; you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation; either version 2, or (at your option)
-*  any later version.
-*
-*  This Program is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-*  GNU General Public License for more details.
-*
-*  You should have received a copy of the GNU General Public License
-*  along with XBMC; see the file COPYING.  If not, see
-*  <http://www.gnu.org/licenses/>.
-*
-*/
+ *      Copyright (C) 2005-2013 Team XBMC
+ *      http://xbmc.org
+ *
+ *  This Program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2, or (at your option)
+ *  any later version.
+ *
+ *  This Program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with XBMC; see the file COPYING.  If not, see
+ *  <http://www.gnu.org/licenses/>.
+ *
+ */
 
 #include "Texture.h"
 #include "windowing/WindowingFactory.h"
@@ -87,7 +87,11 @@ void CBaseTexture::Allocate(unsigned int width, unsigned int height, unsigned in
     // we crash in CPicture::ScaleImage in ffmpegs swscale
     // because it tries to access beyond the source memory
     // (happens on osx and ios)
-    m_textureWidth = ((m_textureWidth + 1) / 2) * 2;
+    // UPDATE: don't just update to be on an even width;
+    // ffmpegs swscale relies on a 16-byte stride on some systems
+    // so the textureWidth needs to be a multiple of 16. see ffmpeg
+    // swscale headers for more info.
+    m_textureWidth = ((m_textureWidth + 15) / 16) * 16;
   }
 
   // check for max texture size
