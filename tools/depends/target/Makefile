@@ -37,11 +37,6 @@ ifeq ($(OS),android)
   DEPENDS += mdnsresponder android-sources-ics
 endif
 
-ifeq ($(OS),linux)
-  DEPENDS += libsdl linux-system-libs
-endif
-
-
 DEPENDS := $(filter-out $(EXCLUDED_DEPENDS),$(DEPENDS))
 
 ZLIB=
@@ -57,9 +52,11 @@ ifeq ($(NEED_LIBICONV),1)
 endif
 
 ALSA_LIB=
+LINUX_SYSTEM_LIBS=
 ifeq ($(OS),linux)
-  DEPENDS += alsa-lib
+  DEPENDS += alsa-lib libsdl linux-system-libs
   ALSA_LIB = alsa-lib
+  LINUX_SYSTEM_LIBS = linux-system-libs
 endif
 
 .PHONY: $(DEPENDS)
@@ -91,6 +88,7 @@ libmp3lame: $(ICONV)
 libpng: $(ZLIB)
 openssl: $(ZLIB)
 pythonmodule-pil: $(ZLIB) libjpeg-turbo libpng freetype2 python26
+libsdl: $(LINUX_SYSTEM_LIBS)
 
 .installed-$(PLATFORM): $(DEPENDS)
 	touch $@
