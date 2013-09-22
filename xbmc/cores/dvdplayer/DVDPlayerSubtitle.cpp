@@ -34,7 +34,7 @@
 #include "DVDDemuxers/DVDDemuxUtils.h"
 #include "utils/log.h"
 #include "threads/SingleLock.h"
-#ifdef TARGET_POSIX
+#if defined(TARGET_POSIX) && defined(HAVE_CONFIG_H)
 #include "config.h"
 #endif
 
