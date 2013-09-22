@@ -56,6 +56,7 @@ namespace XFILE
     // the RAR code depends on things having a "\" at the end of the path
     URIUtils::AddSlashAtEnd(strSlashPath);
 
+#ifdef HAS_RAR
     if (g_RarManager.GetFilesInRar(items,strArchive,true,strPathInArchive))
     {
       // fill in paths
@@ -74,6 +75,9 @@ namespace XFILE
       CLog::Log(LOGWARNING,"%s: rar lib returned no files in archive %s, likely corrupt",__FUNCTION__,strArchive.c_str());
       return( false );
     }
+#else
+    return false;
+#endif
   }
 
   bool CRarDirectory::Exists(const char* strPath)
@@ -87,6 +91,7 @@ namespace XFILE
 
   bool CRarDirectory::ContainsFiles(const CStdString& strPath)
   {
+#ifdef HAS_RAR
     CFileItemList items;
     if (g_RarManager.GetFilesInRar(items,strPath))
     {
@@ -95,7 +100,7 @@ namespace XFILE
 
       return false;
     }
-
+#endif
     return false;
   }
 }

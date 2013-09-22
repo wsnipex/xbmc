@@ -26,7 +26,7 @@
 #include "utils/log.h"
 #include <sys/stat.h>
 
-#include "lib/libXDAAP/private.h"
+#include "libXDAAP/private.h"
 
 using namespace XFILE;
 

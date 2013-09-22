@@ -24,7 +24,7 @@
 #if (defined HAVE_CONFIG_H) && (!defined WIN32)
   #include "config.h"
 #endif
-#if (defined USE_EXTERNAL_FFMPEG)
+
 #include <libavformat/avformat.h>
 
 /* Taken from libavformat/utils.c */
@@ -121,4 +121,3 @@ void xbmc_read_frame_flush(AVFormatContext *s)
             st->pts_buffer[j]= AV_NOPTS_VALUE;
     }
 }
-#endif /* (defined USE_EXTERNAL_FFMPEG) */
