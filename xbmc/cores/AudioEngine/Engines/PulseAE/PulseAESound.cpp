@@ -21,11 +21,12 @@
 #include "system.h"
 #ifdef HAS_PULSEAUDIO
 
+#include <stdint.h>
 #include "PulseAESound.h"
 #include "AEFactory.h"
 #include "utils/log.h"
-#include "MathUtils.h"
-#include "StringUtils.h"
+#include "utils/MathUtils.h"
+#include "utils/StringUtils.h"
 
 CPulseAESound::CPulseAESound(const std::string &filename, pa_context *context, pa_threaded_mainloop *mainLoop) :
   IAESound         (filename),
