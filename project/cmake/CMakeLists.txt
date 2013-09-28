@@ -179,7 +179,7 @@ core_add_subdir_from_files("${SUBDIRS}" sort)
 
 # main binary
 add_executable(xbmc.bin ${CORE_SOURCE_DIR}/xbmc/main/main.cpp)
-target_link_libraries(xbmc.bin -Wl,--whole-archive ${xbmc-bin_DEPENDS} -Wl,--no-whole-archive
+target_link_libraries(xbmc.bin ${SYSTEM_LDFLAGS} -Wl,--whole-archive ${xbmc-bin_DEPENDS} -Wl,--no-whole-archive
                       ${DEPLIBS} ${CMAKE_DL_LIBS})
 install(TARGETS xbmc.bin DESTINATION lib/xbmc)
 
@@ -247,7 +247,7 @@ configure_file(${CORE_SOURCE_DIR}/xbmc/DllPaths_generated.h.in
                ${CORE_BUILD_DIR}/DllPaths_generated.h @ONLY)
 
 add_executable(xbmc-xrandr ${CORE_SOURCE_DIR}/xbmc-xrandr.c)
-target_link_libraries(xbmc-xrandr ${X_LIBRARIES} m ${XRANDR_LIBRARIES})
+target_link_libraries(xbmc-xrandr ${SYSTEM_LDFLAGS} ${X_LIBRARIES} m ${XRANDR_LIBRARIES})
 
 set(cmake-files ${CORE_SOURCE_DIR}/project/cmake/scripts/AddOptions.cmake
                 ${CORE_SOURCE_DIR}/project/cmake/scripts/xbmc-addon-helpers.cmake)
