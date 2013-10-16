@@ -1,6 +1,6 @@
--include ../../Makefile.include
+-include $(DEPS_DIR)/../../Makefile.include
 
-SOURCE=../../../../
+SOURCE=$(DEPS_DIR)/../../../../
 
 export CXXFLAGS+=-O3
 export CFLAGS+=-O3
@@ -20,10 +20,11 @@ all: $(SOURCE)/libxbmc.so
 
 
 $(SOURCE)/libxbmc.so:
+	@echo "$(SOURCE)"
 	$(CONFIGURE)
 	$(CMAKE) $(SOURCE)project/cmake -DWITH_CPU=$(CPU) -DVERBOSE=1 #&& make -j4
 
-../../Makefile.include:
+$(SOURCE)../../Makefile.include:
 	$(error Please run configure)
 
 clean:
