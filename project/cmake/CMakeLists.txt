@@ -208,12 +208,13 @@ foreach(skin ${SKINS})
 endforeach()
 
 # These for skins we cloned from a git within the build system
-foreach(xbt ${EXTRA_XBT})
-  pack_xbt(${xbt}/media ${CMAKE_BINARY_DIR}/${xbt}/media/Textures.xbt ${CMAKE_BINARY_DIR})
-endforeach()
-add_custom_target(pack-skins ALL
-                  DEPENDS bootstrap export-files ${XBT_FILES})
-
+if(${CORE_SYSTEM_NAME} STREQUAL "linux")
+  foreach(xbt ${EXTRA_XBT})
+    pack_xbt(${xbt}/media ${CMAKE_BINARY_DIR}/${xbt}/media/Textures.xbt ${CMAKE_BINARY_DIR})
+  endforeach()
+  add_custom_target(pack-skins ALL
+                    DEPENDS bootstrap export-files ${XBT_FILES})
+endif()
 set(CXIMAGE_DEPLIBS ${ZLIB_LIBRARIES} ${JPEG_LIBRARIES}
                     ${TIFF_LIBRARIES} ${PNG_LIBRARIES}
                     ${JASPER_LIBRARIES} )
@@ -245,10 +246,10 @@ add_dependencies(xbmc.bin export-files)
 
 configure_file(${CORE_SOURCE_DIR}/xbmc/DllPaths_generated.h.in
                ${CORE_BUILD_DIR}/DllPaths_generated.h @ONLY)
-
-add_executable(xbmc-xrandr ${CORE_SOURCE_DIR}/xbmc-xrandr.c)
-target_link_libraries(xbmc-xrandr ${SYSTEM_LDFLAGS} ${X_LIBRARIES} m ${XRANDR_LIBRARIES})
-
+if(${CORE_SYSTEM_NAME} STREQUAL "linux")
+  add_executable(xbmc-xrandr ${CORE_SOURCE_DIR}/xbmc-xrandr.c)
+  target_link_libraries(xbmc-xrandr ${SYSTEM_LDFLAGS} ${X_LIBRARIES} m ${XRANDR_LIBRARIES})
+endif()
 set(cmake-files ${CORE_SOURCE_DIR}/project/cmake/scripts/common/addoptions.cmake
                 ${CORE_SOURCE_DIR}/project/cmake/scripts/common/xbmc-addon-helpers.cmake)
 configure_file(${CORE_SOURCE_DIR}/project/cmake/templates/xbmc-config.cmake.in
