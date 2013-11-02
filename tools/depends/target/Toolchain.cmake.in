@@ -5,6 +5,7 @@ ENDIF()
 IF("${OS}" STREQUAL "android")
   SET(ANDROID TRUE)
   SET(CORE_SYSTEM_NAME android)
+  SET(PYTHON_LDFLAGS -L@prefix@/@deps_dir@/lib -lpython2.7 -lc -ldl -lm -lexpat -lffi -lintl -lssl -lcrypto)
 ENDIF()
 SET(CMAKE_SYSTEM_VERSION 1)
 
