@@ -30,16 +30,21 @@ extern "C" {
 #include "libswresample/swresample.h"
 }
 
-class CEncoderFFmpeg : public CEncoder
+class CEncoderFFmpeg : public CEncoder, public IEncoder
 {
 public:
   CEncoderFFmpeg();
   virtual ~CEncoderFFmpeg() {}
   bool Init(const char* strFile, int iInChannels, int iInRate, int iInBits);
   int Encode(int nNumBytesRead, uint8_t* pbtStream);
-  bool Close();
+  bool CloseEncode();
   void AddTag(int key, const char* value);
 
+  // dummies
+  bool Init() {return true;}
+  int Encode(int,uint8_t*, uint8_t*) {return 0;}
+  int Flush(uint8_t*) {return 0;}
+  bool Close() {return true;}
 private:
 
   AVFormatContext  *m_Format;
@@ -58,7 +63,7 @@ private:
   unsigned char     m_BCBuffer[4096];
   static int        avio_write_callback(void *opaque, uint8_t *buf, int buf_size);
   static int64_t    avio_seek_callback(void *opaque, int64_t offset, int whence);
-  void              SetTag(const CStdString tag, const CStdString value);
+  void              SetTag(const std::string &tag, const std::string &value);
 
 
   unsigned int      m_NeededFrames;
