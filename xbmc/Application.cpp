@@ -124,7 +124,7 @@
 #include "filesystem/AFPFile.h"
 #endif
 #ifdef HAS_FILESYSTEM_SFTP
-#include "filesystem/SFTPFile.h"
+#include "filesystem/SFTPSession.h"
 #endif
 #include "PartyModeManager.h"
 #ifdef HAS_VIDEO_PLAYBACK
