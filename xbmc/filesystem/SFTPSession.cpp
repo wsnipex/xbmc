@@ -29,6 +29,9 @@
 #include "Util.h"
 #include "URL.h"
 #include <fcntl.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 #include <sstream>
 
 #ifdef TARGET_WINDOWS
@@ -45,10 +48,13 @@
 #define O_RDONLY _O_RDONLY
 #endif
 
+
 using namespace std;
 
+namespace
+{
 
-static CStdString CorrectPath(const CStdString path)
+CStdString CorrectPath(const CStdString path)
 {
   if (path == "~")
     return "./";
@@ -58,47 +64,36 @@ static CStdString CorrectPath(const CStdString path)
     return "/" + path;
 }
 
-static const char * SFTPErrorText(int sftp_error)
+const char* Libssh2ErrorString(int err)
 {
-  switch(sftp_error)
+  switch(err)
   {
-    case SSH_FX_OK:
-      return "No error";
-    case SSH_FX_EOF:
-      return "End-of-file encountered";
-    case SSH_FX_NO_SUCH_FILE:
-      return "File doesn't exist";
-    case SSH_FX_PERMISSION_DENIED:
-      return "Permission denied";
-    case SSH_FX_BAD_MESSAGE:
-      return "Garbage received from server";
-    case SSH_FX_NO_CONNECTION:
-      return "No connection has been set up";
-    case SSH_FX_CONNECTION_LOST:
-      return "There was a connection, but we lost it";
-    case SSH_FX_OP_UNSUPPORTED:
-      return "Operation not supported by the server";
-    case SSH_FX_INVALID_HANDLE:
-      return "Invalid file handle";
-    case SSH_FX_NO_SUCH_PATH:
-      return "No such file or directory path exists";
-    case SSH_FX_FILE_ALREADY_EXISTS:
-      return "An attempt to create an already existing file or directory has been made";
-    case SSH_FX_WRITE_PROTECT:
-      return "We are trying to write on a write-protected filesystem";
-    case SSH_FX_NO_MEDIA:
-      return "No media in remote drive";
-    case -1:
-      return "Not a valid error code, probably called on an invalid session";
-    default:
-      CLog::Log(LOGERROR, "SFTPErrorText: Unknown error code: %d", sftp_error);
+  default:
+    return "Unknown error code";
+  case LIBSSH2_ERROR_SOCKET_NONE:
+    return "The socket is invalid";
+  case LIBSSH2_ERROR_BANNER_SEND:
+    return "Unable to send banner to remote host";
+  case LIBSSH2_ERROR_KEX_FAILURE:
+    return "Encryption key exchange with the remote host failed";
+  case LIBSSH2_ERROR_SOCKET_SEND:
+    return "Unable to send data on socket";
+  case LIBSSH2_ERROR_SOCKET_DISCONNECT:
+    return "The socket was disconnected";
+  case LIBSSH2_ERROR_PROTO:
+    return "An invalid SSH protocol response was received on the socket";
+  case LIBSSH2_ERROR_EAGAIN:
+    return "Marked for non-blocking I/O but the call would block";
+  case LIBSSH2_ERROR_TIMEOUT:
+    return "Connection timed out";
   }
-  return "Unknown error code";
 }
 
-CSFTPSession::CSFTPSession(const CStdString &host, unsigned int port, const CStdString &username, const CStdString &password)
+} // anonymous namespace
+
+CSFTPSession::CSFTPSession(const CStdString &host, const CStdString &port, const CStdString &username, const CStdString &password)
 {
-  CLog::Log(LOGINFO, "SFTPSession: Creating new session on host '%s:%d' with user '%s'", host.c_str(), port, username.c_str());
+  CLog::Log(LOGINFO, "SFTPSession: Creating new session on host '%s:%s' with user '%s'", host.c_str(), port.c_str(), username.c_str());
   CSingleLock lock(m_critSect);
   if (!Connect(host, port, username, password))
     Disconnect();
@@ -116,14 +111,15 @@ sftp_file CSFTPSession::CreateFileHande(const CStdString &file)
 {
   if (m_connected)
   {
+    const CStdString path = CorrectPath(file);
     CSingleLock lock(m_critSect);
     m_LastActive = XbmcThreads::SystemClockMillis();
-    sftp_file handle = sftp_open(m_sftp_session, CorrectPath(file).c_str(), O_RDONLY, 0);
+    sftp_file handle = libssh2_sftp_open_ex(m_sftp_session, path.c_str(),
+                                            path.size(), LIBSSH2_FXF_READ,
+                                            0, LIBSSH2_SFTP_OPENFILE);
+
     if (handle)
-    {
-      sftp_file_set_blocking(handle);
       return handle;
-    }
     else
       CLog::Log(LOGERROR, "SFTPSession: Was connected but couldn't create filehandle for '%s'", file.c_str());
   }
@@ -136,101 +132,92 @@ sftp_file CSFTPSession::CreateFileHande(const CStdString &file)
 void CSFTPSession::CloseFileHandle(sftp_file handle)
 {
   CSingleLock lock(m_critSect);
-  sftp_close(handle);
+  libssh2_sftp_close_handle(handle);
 }
 
 bool CSFTPSession::GetDirectory(const CStdString &base, const CStdString &folder, CFileItemList &items)
 {
-  int sftp_error = SSH_FX_OK;
   if (m_connected)
   {
     sftp_dir dir = NULL;
+    int sftp_error = 0;
 
     {
+      const CStdString path = CorrectPath(folder);
       CSingleLock lock(m_critSect);
       m_LastActive = XbmcThreads::SystemClockMillis();
-      dir = sftp_opendir(m_sftp_session, CorrectPath(folder).c_str());
+      dir = libssh2_sftp_open_ex(m_sftp_session, path.c_str(), path.size(),
+                                 LIBSSH2_FXF_READ, 0, LIBSSH2_SFTP_OPENDIR);
 
       //Doing as little work as possible within the critical section
       if (!dir)
-        sftp_error = sftp_get_error(m_sftp_session);
+        sftp_error = libssh2_sftp_last_error(m_sftp_session);
     }
 
     if (!dir)
     {
-      CLog::Log(LOGERROR, "%s: %s for '%s'", __FUNCTION__, SFTPErrorText(sftp_error), folder.c_str());
+      CLog::Log(LOGERROR, "%s: Error code %i for '%s'", __FUNCTION__,
+                sftp_error, folder.c_str());
     }
     else
     {
-      bool read = true;
-      while (read)
+      while (true)
       {
-        sftp_attributes attributes = NULL;
+        char mem[512];
+        char longentry[512];
+        LIBSSH2_SFTP_ATTRIBUTES attrs;
 
-        {
-          CSingleLock lock(m_critSect);
-          read = sftp_dir_eof(dir) == 0;
-          attributes = sftp_readdir(m_sftp_session, dir);
-        }
+        int rc = libssh2_sftp_readdir_ex(dir, mem, sizeof(mem), longentry,
+                                         sizeof(longentry), &attrs);
 
-        if (attributes && (attributes->name == NULL || strcmp(attributes->name, "..") == 0 || strcmp(attributes->name, ".") == 0))
-        {
-          CSingleLock lock(m_critSect);
-          sftp_attributes_free(attributes);
+        if (rc < 0 && rc != LIBSSH2_ERROR_BUFFER_TOO_SMALL)
+          break;
+
+        if ((strcmp(mem, "..") == 0) || (strcmp(mem, ".") == 0))
           continue;
-        }
-        
-        if (attributes)
-        {
-          CStdString itemName = attributes->name;
-          CStdString localPath = folder;
-          localPath.append(itemName);
 
-          if (attributes->type == SSH_FILEXFER_TYPE_SYMLINK)
+        CStdString localPath = folder + mem;
+
+        // if file is a symlink perform stat to gain target information
+        if (attrs.flags & LIBSSH2_SFTP_ATTR_PERMISSIONS)
+          if (LIBSSH2_SFTP_S_ISLNK(attrs.permissions))
           {
+            const CStdString tpath = CorrectPath(localPath);
             CSingleLock lock(m_critSect);
-            sftp_attributes_free(attributes);
-            attributes = sftp_stat(m_sftp_session, CorrectPath(localPath).c_str());
-            if (attributes == NULL)
-              continue;
+            if (libssh2_sftp_stat_ex(m_sftp_session, tpath.c_str(),
+                                     tpath.size(), LIBSSH2_SFTP_STAT,
+                                     &attrs))
+              CLog::Log(LOGERROR, "SFTPSession: Failed to stat target of symlink %s",
+                        localPath.c_str());
           }
 
-          CFileItemPtr pItem(new CFileItem);
-          pItem->SetLabel(itemName);
+        CFileItemPtr pItem(new CFileItem);
+        pItem->SetLabel(mem);
 
-          if (itemName[0] == '.')
-            pItem->SetProperty("file:hidden", true);
+        if (mem[0] == '.')
+          pItem->SetProperty("file:hidden", true);
 
-          if (attributes->flags & SSH_FILEXFER_ATTR_ACMODTIME)
-            pItem->m_dateTime = attributes->mtime;
+        if (attrs.flags & LIBSSH2_SFTP_ATTR_ACMODTIME)
+          pItem->m_dateTime = attrs.mtime;
 
-          if (attributes->type & SSH_FILEXFER_TYPE_DIRECTORY)
+        if (attrs.flags & LIBSSH2_SFTP_ATTR_PERMISSIONS)
+        {
+          if (LIBSSH2_SFTP_S_ISDIR(attrs.permissions))
           {
             localPath.append("/");
             pItem->m_bIsFolder = true;
             pItem->m_dwSize = 0;
           }
           else
-          {
-            pItem->m_dwSize = attributes->size;
-          }
-
-          pItem->SetPath(base + localPath);
-          items.Add(pItem);
-
-          {
-            CSingleLock lock(m_critSect);
-            sftp_attributes_free(attributes);
-          }
+            if (attrs.flags & LIBSSH2_SFTP_ATTR_SIZE)
+              pItem->m_dwSize = attrs.filesize;
         }
-        else
-          read = false;
+
+        pItem->SetPath(base + localPath);
+        items.Add(pItem);
       }
 
-      {
-        CSingleLock lock(m_critSect);
-        sftp_closedir(dir);
-      }
+      libssh2_sftp_close_handle(dir);
 
       return true;
     }
@@ -259,32 +246,44 @@ bool CSFTPSession::FileExists(const char *path)
 
 int CSFTPSession::Stat(const char *path, struct __stat64* buffer)
 {
-  CSingleLock lock(m_critSect);
   if(m_connected)
   {
-    m_LastActive = XbmcThreads::SystemClockMillis();
-    sftp_attributes attributes = sftp_stat(m_sftp_session, CorrectPath(path).c_str());
+    LIBSSH2_SFTP_ATTRIBUTES attrs;
+    int rc = 0;
+    const CStdString p = CorrectPath(path);
 
-    if (attributes)
     {
-      memset(buffer, 0, sizeof(struct __stat64));
-      buffer->st_size = attributes->size;
-      buffer->st_mtime = attributes->mtime;
-      buffer->st_atime = attributes->atime;
-
-      if S_ISDIR(attributes->permissions)
-        buffer->st_mode = _S_IFDIR;
-      else if S_ISREG(attributes->permissions)
-        buffer->st_mode = _S_IFREG;
-
-      sftp_attributes_free(attributes);
-      return 0;
+      CSingleLock lock(m_critSect);
+      m_LastActive = XbmcThreads::SystemClockMillis();
+      rc = libssh2_sftp_stat_ex(m_sftp_session, p.c_str(), p.size(),
+                                LIBSSH2_SFTP_STAT, &attrs);
     }
-    else
+
+    if (rc)
     {
       CLog::Log(LOGERROR, "SFTPSession::Stat - Failed to get attributes for '%s'", path);
       return -1;
     }
+
+    memset(buffer, 0, sizeof(struct __stat64));
+    if (attrs.flags & LIBSSH2_SFTP_ATTR_SIZE)
+      buffer->st_size = attrs.filesize;
+
+    if (attrs.flags & LIBSSH2_SFTP_ATTR_ACMODTIME)
+    {
+      buffer->st_mtime = attrs.mtime;
+      buffer->st_atime = attrs.atime;
+    }
+
+    if (attrs.flags & LIBSSH2_SFTP_ATTR_PERMISSIONS)
+    {
+      if LIBSSH2_SFTP_S_ISDIR(attrs.permissions)
+        buffer->st_mode = _S_IFDIR;
+      else if LIBSSH2_SFTP_S_ISREG(attrs.permissions)
+        buffer->st_mode = _S_IFREG;
+    }
+
+    return 0;
   }
   else
   {
@@ -297,21 +296,22 @@ int CSFTPSession::Seek(sftp_file handle, uint64_t position)
 {
   CSingleLock lock(m_critSect);
   m_LastActive = XbmcThreads::SystemClockMillis();
-  return sftp_seek64(handle, position);
+  libssh2_sftp_seek64(handle, position);
+  return 0;
 }
 
-int CSFTPSession::Read(sftp_file handle, void *buffer, size_t length)
+int CSFTPSession::Read(sftp_file handle, char *buffer, size_t length)
 {
   CSingleLock lock(m_critSect);
   m_LastActive = XbmcThreads::SystemClockMillis();
-  return sftp_read(handle, buffer, length);
+  return libssh2_sftp_read(handle, buffer, length);
 }
 
 int64_t CSFTPSession::GetPosition(sftp_file handle)
 {
   CSingleLock lock(m_critSect);
   m_LastActive = XbmcThreads::SystemClockMillis();
-  return sftp_tell64(handle);
+  return libssh2_sftp_tell64(handle);
 }
 
 bool CSFTPSession::IsIdle()
@@ -321,6 +321,9 @@ bool CSFTPSession::IsIdle()
 
 bool CSFTPSession::VerifyKnownHost(ssh_session session)
 {
+  // disabled for now, needs changes in UI to be done correctly
+  return true;
+  /*
   switch (ssh_is_server_known(session))
   {
     case SSH_SERVER_KNOWN_OK:
@@ -348,153 +351,145 @@ bool CSFTPSession::VerifyKnownHost(ssh_session session)
   }
 
   return false;
+  */
 }
 
-bool CSFTPSession::Connect(const CStdString &host, unsigned int port, const CStdString &username, const CStdString &password)
+namespace
 {
-  int timeout     = SFTP_TIMEOUT;
+
+int init_socket(const char* host, const char* port)
+{
+  int m_socket;
+  struct addrinfo hints;
+  struct addrinfo *result;
+
+  memset(&hints, 0, sizeof(struct addrinfo));
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_flags = 0;
+  hints.ai_protocol = 0;
+
+  int s = getaddrinfo(host, port, &hints, &result);
+  if (s != 0)
+  {
+    CLog::Log(LOGERROR, "SFTPSession::Connect: getaddrinfo failed: %s",
+              gai_strerror(s));
+    return -1;
+  }
+
+  struct addrinfo *rp = result;
+  for (; rp != NULL; rp = rp->ai_next)
+  {
+    m_socket = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+    if (m_socket == -1)
+      continue;
+
+    if (connect(m_socket, rp->ai_addr, rp->ai_addrlen) != -1)
+      break; // successfull connection
+
+    // connection failure, try next
+    close(m_socket);
+  }
+
+  freeaddrinfo(result);
+
+  if (rp == NULL)
+  {
+    CLog::Log(LOGERROR, "SFTPSession::Connect: Found no host to connect");
+    return -1;
+  }
+
+  return m_socket;
+}
+
+ssh_session
+init_ssh_session()
+{
+  ssh_session session = libssh2_session_init();
+
+  if (!session)
+  {
+    CLog::Log(LOGERROR, "SFTPSession::Connect: Failed to create SSH session");
+    return NULL;
+  }
+
+  libssh2_session_set_blocking(session, 1);
+  libssh2_session_set_timeout(session, SFTP_TIMEOUT);
+
+  return session;
+}
+
+} // anonymous namespace
+
+bool CSFTPSession::Connect(const CStdString &host, const CStdString &port, const CStdString &username, const CStdString &password)
+{
+  int rc;
+  m_socket        = 0;
   m_connected     = false;
   m_session       = NULL;
   m_sftp_session  = NULL;
 
-  m_session=ssh_new();
-  if (m_session == NULL)
+  m_socket = init_socket(host.c_str(), port.c_str());
+  if (m_socket < 0)
+    return false;
+  m_session = init_ssh_session();
+  if (!m_session)
+    return false;
+
+  rc = libssh2_session_handshake(m_session, m_socket);
+  if (rc)
   {
-    CLog::Log(LOGERROR, "SFTPSession: Failed to initialize session for host '%s'", host.c_str());
+    CLog::Log(LOGERROR, "CSFTPSession::Connect: Session handshake failed: %s",
+              Libssh2ErrorString(rc));
+    libssh2_session_free(m_session);
+    m_session = NULL;
     return false;
   }
 
-#if LIBSSH_VERSION_INT >= SSH_VERSION_INT(0,4,0)
-  if (ssh_options_set(m_session, SSH_OPTIONS_USER, username.c_str()) < 0)
+  // TODO: Perform hostkey verification
+
+  // TODO: Implement public key authentication via agent
+
+  rc = libssh2_userauth_password_ex(m_session, username.c_str(),
+                                    username.size(), password.c_str(),
+                                    password.size(), NULL);
+  if (rc)
   {
-    CLog::Log(LOGERROR, "SFTPSession: Failed to set username '%s' for session", username.c_str());
+    if (rc == LIBSSH2_ERROR_AUTHENTICATION_FAILED)
+      CLog::Log(LOGINFO, "CSFTPSession::Connect: Wrong username/password");
+    else
+      CLog::Log(LOGERROR, "CSFTPSession::Connect: Error during password authentication");
+
     return false;
   }
 
-  if (ssh_options_set(m_session, SSH_OPTIONS_HOST, host.c_str()) < 0)
+  m_sftp_session = libssh2_sftp_init(m_session);
+  if (!m_sftp_session)
   {
-    CLog::Log(LOGERROR, "SFTPSession: Failed to set host '%s' for session", host.c_str());
+    CLog::Log(LOGERROR, "CSFTPSession::Connect: Failed to init SFTP session");
     return false;
   }
 
-  if (ssh_options_set(m_session, SSH_OPTIONS_PORT, &port) < 0)
-  {
-    CLog::Log(LOGERROR, "SFTPSession: Failed to set port '%d' for session", port);
-    return false;
-  }
-
-  ssh_options_set(m_session, SSH_OPTIONS_LOG_VERBOSITY, 0);
-  ssh_options_set(m_session, SSH_OPTIONS_TIMEOUT, &timeout);  
-#else
-  SSH_OPTIONS* options = ssh_options_new();
-
-  if (ssh_options_set_username(options, username.c_str()) < 0)
-  {
-    CLog::Log(LOGERROR, "SFTPSession: Failed to set username '%s' for session", username.c_str());
-    return false;
-  }
-
-  if (ssh_options_set_host(options, host.c_str()) < 0)
-  {
-    CLog::Log(LOGERROR, "SFTPSession: Failed to set host '%s' for session", host.c_str());
-    return false;
-  }
-
-  if (ssh_options_set_port(options, port) < 0)
-  {
-    CLog::Log(LOGERROR, "SFTPSession: Failed to set port '%d' for session", port);
-    return false;
-  }
-  
-  ssh_options_set_timeout(options, timeout, 0);
-
-  ssh_options_set_log_verbosity(options, 0);
-
-  ssh_set_options(m_session, options);
-#endif
-
-  if(ssh_connect(m_session))
-  {
-    CLog::Log(LOGERROR, "SFTPSession: Failed to connect '%s'", ssh_get_error(m_session));
-    return false;
-  }
-
-  if (!VerifyKnownHost(m_session))
-  {
-    CLog::Log(LOGERROR, "SFTPSession: Host is not known '%s'", ssh_get_error(m_session));
-    return false;
-  }
-
-
-  int noAuth = SSH_AUTH_DENIED;
-  if ((noAuth = ssh_userauth_none(m_session, NULL)) == SSH_AUTH_ERROR)
-  {
-    CLog::Log(LOGERROR, "SFTPSession: Failed to authenticate via guest '%s'", ssh_get_error(m_session));
-    return false;
-  }
-
-  int method = ssh_auth_list(m_session);
-
-  // Try to authenticate with public key first
-  int publicKeyAuth = SSH_AUTH_DENIED;
-  if (method & SSH_AUTH_METHOD_PUBLICKEY && (publicKeyAuth = ssh_userauth_autopubkey(m_session, NULL)) == SSH_AUTH_ERROR)
-  {
-    CLog::Log(LOGERROR, "SFTPSession: Failed to authenticate via publickey '%s'", ssh_get_error(m_session));
-    return false;
-  }
-
-  // Try to authenticate with password
-  int passwordAuth = SSH_AUTH_DENIED;
-  if (method & SSH_AUTH_METHOD_PASSWORD)
-  {
-    if (publicKeyAuth != SSH_AUTH_SUCCESS &&
-        (passwordAuth = ssh_userauth_password(m_session, username.c_str(), password.c_str())) == SSH_AUTH_ERROR)
-      {
-        CLog::Log(LOGERROR, "SFTPSession: Failed to authenticate via password '%s'", ssh_get_error(m_session));
-        return false;
-      }
-  }
-  else if (!password.empty())
-  {
-    CLog::Log(LOGERROR, "SFTPSession: Password present, but server does not support password authentication");
-  }
-
-  if (noAuth == SSH_AUTH_SUCCESS || publicKeyAuth == SSH_AUTH_SUCCESS || passwordAuth == SSH_AUTH_SUCCESS)
-  {
-    m_sftp_session = sftp_new(m_session);
-
-    if (m_sftp_session == NULL)
-    {
-      CLog::Log(LOGERROR, "SFTPSession: Failed to initialize channel '%s'", ssh_get_error(m_session));
-      return false;
-    }
-
-    if (sftp_init(m_sftp_session))
-    {
-      CLog::Log(LOGERROR, "SFTPSession: Failed to initialize sftp '%s'", ssh_get_error(m_session));
-      return false;
-    }
-
-    m_connected = true;
-  }
-  else
-  {
-    CLog::Log(LOGERROR, "SFTPSession: No authentication method successful");
-  }
-
-  return m_connected;
+  m_connected = true;
+  return true;
 }
 
 void CSFTPSession::Disconnect()
 {
   if (m_sftp_session)
-    sftp_free(m_sftp_session);
+    libssh2_sftp_shutdown(m_sftp_session);
+  m_sftp_session = NULL;
 
   if (m_session)
-    ssh_disconnect(m_session);
-
-  m_sftp_session = NULL;
+  {
+    libssh2_session_disconnect(m_session, "Good bye");
+    libssh2_session_free(m_session);
+  }
   m_session = NULL;
+
+  if (m_socket >= 0)
+    close(m_socket);
+  m_socket = -1;
 }
 
 /*!
@@ -505,23 +500,26 @@ void CSFTPSession::Disconnect()
  */
 bool CSFTPSession::GetItemPermissions(const char *path, uint32_t &permissions)
 {
-  bool gotPermissions = false;
-  CSingleLock lock(m_critSect);
-  if(m_connected)
-  {
-    sftp_attributes attributes = sftp_stat(m_sftp_session, CorrectPath(path).c_str());
-    if (attributes)
-    {
-      if (attributes->flags & SSH_FILEXFER_ATTR_PERMISSIONS)
-      {
-        permissions = attributes->permissions;
-        gotPermissions = true;
-      }
+  const CStdString cpath = CorrectPath(path);
+  LIBSSH2_SFTP_ATTRIBUTES attrs;
+  int rc;
 
-      sftp_attributes_free(attributes);
-    }
+  {
+    CSingleLock lock(m_critSect);
+    rc = libssh2_sftp_stat_ex(m_sftp_session, cpath.c_str(), cpath.size(),
+                              LIBSSH2_SFTP_STAT, &attrs);
   }
-  return gotPermissions;
+
+  if (rc)
+    return false;
+
+  if (attrs.flags & LIBSSH2_SFTP_ATTR_PERMISSIONS)
+  {
+    permissions = attrs.permissions;
+    return true;
+  }
+  else
+    return false;
 }
 
 #endif

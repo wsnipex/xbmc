@@ -21,24 +21,18 @@
 
 #include "system.h"
 #ifdef HAS_FILESYSTEM_SFTP
-#include <libssh/libssh.h>
-#include <libssh/sftp.h>
+#include <libssh2.h>
+#include <libssh2_sftp.h>
 #include <boost/shared_ptr.hpp>
 
-#if LIBSSH_VERSION_INT < SSH_VERSION_INT(0,3,2)
-#define ssh_session SSH_SESSION
-#endif
+#define ssh_session LIBSSH2_SESSION*
+#define sftp_session LIBSSH2_SFTP*
+#define sftp_attributes LIBSSH2_SFTP_ATTRIBUTES*
+#define sftp_file LIBSSH2_SFTP_HANDLE*
+#define sftp_dir LIBSSH2_SFTP_HANDLE*
 
-#if LIBSSH_VERSION_INT < SSH_VERSION_INT(0,4,0)
-#define sftp_file SFTP_FILE*
-#define sftp_session SFTP_SESSION*
-#define sftp_attributes SFTP_ATTRIBUTES*
-#define sftp_dir SFTP_DIR*
-#define ssh_session ssh_session*
-#endif
-
-//five secs timeout for SFTP
-#define SFTP_TIMEOUT 5
+//five secs timeout for SFTP (in milliseconds)
+#define SFTP_TIMEOUT 5000
 
 class CSFTPSession;
 class CSFTPSessionManager;

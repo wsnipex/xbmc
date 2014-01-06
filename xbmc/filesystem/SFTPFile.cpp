@@ -104,7 +104,8 @@ unsigned int CSFTPFile::Read(void* lpBuf, int64_t uiBufSize)
 {
   if (m_session && m_sftp_handle)
   {
-    int rc = m_session->Read(m_sftp_handle, lpBuf, (size_t)uiBufSize);
+    int rc = m_session->Read(m_sftp_handle, reinterpret_cast<char*>(lpBuf),
+                             (size_t)uiBufSize);
 
     if (rc >= 0)
       return rc;

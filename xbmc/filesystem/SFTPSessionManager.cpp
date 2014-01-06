@@ -22,6 +22,7 @@
 #ifdef HAS_FILESYSTEM_SFTP
 #include "SFTPSession.h"
 #include "threads/SingleLock.h"
+#include "utils/log.h"
 #include "utils/Variant.h"
 #include "Util.h"
 #include "URL.h"
@@ -36,6 +37,42 @@ using namespace std;
 
 CCriticalSection CSFTPSessionManager::m_critSect;
 map<CStdString, CSFTPSessionPtr> CSFTPSessionManager::sessions;
+
+namespace
+{
+
+class SFTPInitHelper
+{
+public:
+  static int Initialize();
+
+private:
+  SFTPInitHelper();
+  ~SFTPInitHelper();
+  SFTPInitHelper(const SFTPInitHelper&);
+  SFTPInitHelper& operator=(const SFTPInitHelper&);
+
+  int rc;
+};
+
+SFTPInitHelper::SFTPInitHelper()
+{
+  rc = libssh2_init(0);
+}
+
+SFTPInitHelper::~SFTPInitHelper()
+{
+  libssh2_exit();
+}
+
+int
+SFTPInitHelper::Initialize()
+{
+  static SFTPInitHelper helper;
+  return helper.rc;
+}
+
+} // anonymous namespace
 
 CSFTPSessionPtr CSFTPSessionManager::CreateSession(const CURL &url)
 {
@@ -55,11 +92,13 @@ CSFTPSessionPtr CSFTPSessionManager::CreateSession(const CStdString &host, unsig
   CStdString portstr = itoa.str();
 
   CSingleLock lock(m_critSect);
+  if (SFTPInitHelper::Initialize())
+    CLog::Log(LOGERROR, "SFTPSessionManager: Initialization of libssh2 failed");
   CStdString key = username + ":" + password + "@" + host + ":" + portstr;
   CSFTPSessionPtr ptr = sessions[key];
   if (ptr == NULL)
   {
-    ptr = CSFTPSessionPtr(new CSFTPSession(host, port, username, password));
+    ptr = CSFTPSessionPtr(new CSFTPSession(host, portstr, username, password));
     sessions[key] = ptr;
   }
 

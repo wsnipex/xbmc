@@ -30,7 +30,7 @@ class CFileItemList;
 class CSFTPSession
 {
 public:
-  CSFTPSession(const CStdString &host, unsigned int port, const CStdString &username, const CStdString &password);
+  CSFTPSession(const CStdString &host, const CStdString &port, const CStdString &username, const CStdString &password);
   virtual ~CSFTPSession();
 
   sftp_file CreateFileHande(const CStdString &file);
@@ -40,18 +40,18 @@ public:
   bool FileExists(const char *path);
   int Stat(const char *path, struct __stat64* buffer);
   int Seek(sftp_file handle, uint64_t position);
-  int Read(sftp_file handle, void *buffer, size_t length);
+  int Read(sftp_file handle, char *buffer, size_t length);
   int64_t GetPosition(sftp_file handle);
   bool IsIdle();
 private:
   bool VerifyKnownHost(ssh_session session);
-  bool Connect(const CStdString &host, unsigned int port, const CStdString &username, const CStdString &password);
+  bool Connect(const CStdString &host, const CStdString& port, const CStdString &username, const CStdString &password);
   void Disconnect();
   bool GetItemPermissions(const char *path, uint32_t &permissions);
   CCriticalSection m_critSect;
 
   bool m_connected;
-  int m_sock;
+  int m_socket;
   ssh_session  m_session;
   sftp_session m_sftp_session;
   int m_LastActive;

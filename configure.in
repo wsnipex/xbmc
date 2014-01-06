@@ -1499,12 +1499,12 @@ else
   USE_SKIN_TOUCHED=0
 fi
 
-# libssh
+# libssh2
 if test "x$use_ssh" = "xno"; then
   AC_MSG_NOTICE($ssh_disabled)
   use_libssh="no"
 else
-  AC_CHECK_LIB([ssh], [sftp_tell64],, AC_MSG_ERROR($ssh_not_found))
+  AC_CHECK_LIB([ssh2], [libssh2_sftp_tell64],, AC_MSG_ERROR($ssh_not_found))
   AC_DEFINE([HAVE_LIBSSH], [1], [Whether to use libSSH library.])
 fi
 
