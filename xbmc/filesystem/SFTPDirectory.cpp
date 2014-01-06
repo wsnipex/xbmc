@@ -21,6 +21,7 @@
 #include "SFTPDirectory.h"
 #ifdef HAS_FILESYSTEM_SFTP
 #include "SFTPSession.h"
+#include "SFTPSessionManager.h"
 #include "utils/log.h"
 #include "URL.h"
 

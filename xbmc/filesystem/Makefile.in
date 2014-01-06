@@ -67,6 +67,7 @@ SRCS += SAPFile.cpp
 SRCS += SFTPDirectory.cpp
 SRCS += SFTPFile.cpp
 SRCS += SFTPSession.cpp
+SRCS += SFTPSessionManager.cpp
 SRCS += SIDFileDirectory.cpp
 SRCS += ShoutcastFile.cpp
 SRCS += SlingboxDirectory.cpp

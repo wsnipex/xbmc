@@ -25,10 +25,7 @@
 #include "utils/StdString.h"
 #include "threads/CriticalSection.h"
 
-#include <map>
-
 class CFileItemList;
-class CURL;
 
 class CSFTPSession
 {
@@ -54,21 +51,10 @@ private:
   CCriticalSection m_critSect;
 
   bool m_connected;
+  int m_sock;
   ssh_session  m_session;
   sftp_session m_sftp_session;
   int m_LastActive;
-};
-
-class CSFTPSessionManager
-{
-public:
-  static CSFTPSessionPtr CreateSession(const CURL &url);
-  static CSFTPSessionPtr CreateSession(const CStdString &host, unsigned int port, const CStdString &username, const CStdString &password);
-  static void ClearOutIdleSessions();
-  static void DisconnectAllSessions();
-private:
-  static CCriticalSection m_critSect;
-  static std::map<CStdString, CSFTPSessionPtr> sessions;
 };
 
 #endif

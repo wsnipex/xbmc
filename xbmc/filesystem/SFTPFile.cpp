@@ -22,6 +22,7 @@
 #include "SFTPFile.h"
 #ifdef HAS_FILESYSTEM_SFTP
 #include "SFTPSession.h"
+#include "SFTPSessionManager.h"
 #include "threads/SingleLock.h"
 #include "utils/log.h"
 #include "utils/TimeUtils.h"
