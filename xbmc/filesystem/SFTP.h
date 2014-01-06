@@ -21,18 +21,27 @@
 
 #include "system.h"
 #ifdef HAS_FILESYSTEM_SFTP
-#include "SFTP.h"
-#include "IDirectory.h"
+#include <libssh/libssh.h>
+#include <libssh/sftp.h>
+#include <boost/shared_ptr.hpp>
 
-namespace XFILE
-{
-  class CSFTPDirectory : public IDirectory
-  {
-  public:
-    CSFTPDirectory(void);
-    virtual ~CSFTPDirectory(void);
-    virtual bool GetDirectory(const CStdString& strPath, CFileItemList &items);
-    virtual bool Exists(const char* strPath);
-  };
-}
+#if LIBSSH_VERSION_INT < SSH_VERSION_INT(0,3,2)
+#define ssh_session SSH_SESSION
+#endif
+
+#if LIBSSH_VERSION_INT < SSH_VERSION_INT(0,4,0)
+#define sftp_file SFTP_FILE*
+#define sftp_session SFTP_SESSION*
+#define sftp_attributes SFTP_ATTRIBUTES*
+#define sftp_dir SFTP_DIR*
+#define ssh_session ssh_session*
+#endif
+
+//five secs timeout for SFTP
+#define SFTP_TIMEOUT 5
+
+class CSFTPSession;
+class CSFTPSessionManager;
+typedef boost::shared_ptr<CSFTPSession> CSFTPSessionPtr;
+
 #endif
