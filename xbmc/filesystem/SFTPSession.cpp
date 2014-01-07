@@ -329,7 +329,7 @@ bool CSFTPSession::GetDirectory(const CStdString &base, const CStdString &folder
       }
 
       {
-        CSingleLock lock(m_critSect)
+        CSingleLock lock(m_critSect);
         libssh2_sftp_close_handle(dir);
       }
 
