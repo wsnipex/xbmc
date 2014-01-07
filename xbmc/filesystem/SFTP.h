@@ -25,11 +25,11 @@
 #include <libssh2_sftp.h>
 #include <boost/shared_ptr.hpp>
 
-#define ssh_session LIBSSH2_SESSION*
-#define sftp_session LIBSSH2_SFTP*
-#define sftp_attributes LIBSSH2_SFTP_ATTRIBUTES*
-#define sftp_file LIBSSH2_SFTP_HANDLE*
-#define sftp_dir LIBSSH2_SFTP_HANDLE*
+typedef LIBSSH2_SESSION* ssh_session;
+typedef LIBSSH2_SFTP* sftp_session;
+typedef LIBSSH2_SFTP_ATTRIBUTES* sftp_attributes;
+typedef LIBSSH2_SFTP_HANDLE* sftp_file;
+typedef LIBSSH2_SFTP_HANDLE* sftp_dir;
 
 //five secs timeout for SFTP (in milliseconds)
 #define SFTP_TIMEOUT 5000
