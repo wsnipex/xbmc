@@ -570,7 +570,8 @@ bool CSFTPSession::Connect(const CStdString &host, const CStdString &port, const
     if (rc == LIBSSH2_ERROR_AUTHENTICATION_FAILED)
       CLog::Log(LOGINFO, "CSFTPSession::Connect: Wrong username/password");
     else
-      CLog::Log(LOGERROR, "CSFTPSession::Connect: Error during password authentication");
+      CLog::Log(LOGERROR, "CSFTPSession::Connect: Error during password authentication %s",
+                GetErrorString(rc));
 
     return false;
   }
@@ -580,7 +581,8 @@ bool CSFTPSession::Connect(const CStdString &host, const CStdString &port, const
   if (!m_sftp_session)
   {
     int err = libssh2_session_last_errno(m_session);
-    CLog::Log(LOGERROR, "CSFTPSession::Connect: Failed to init SFTP session");
+    CLog::Log(LOGERROR, "CSFTPSession::Connect: Failed to init SFTP session: %s",
+              GetErrorCode(err));
     return false;
   }
 
