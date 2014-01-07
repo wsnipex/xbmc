@@ -48,7 +48,10 @@ private:
   bool Connect(const CStdString &host, const CStdString& port, const CStdString &username, const CStdString &password);
   void Disconnect();
   bool GetItemPermissions(const char *path, uint32_t &permissions);
+  void waitsocket(bool lock);
+  LIBSSH2_SFTP_HANDLE* CreateSFTPHandle(const CStdString& file, int open_type);
   CCriticalSection m_critSect;
+  const char* GetErrorString(int rc);
 
   bool m_connected;
   int m_socket;

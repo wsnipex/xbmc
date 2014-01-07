@@ -94,7 +94,7 @@ CSFTPSessionPtr CSFTPSessionManager::CreateSession(const CStdString &host, unsig
   CSingleLock lock(m_critSect);
   if (SFTPInitHelper::Initialize())
     CLog::Log(LOGERROR, "SFTPSessionManager: Initialization of libssh2 failed");
-  CStdString key = username + ":" + password + "@" + host + ":" + portstr;
+  CStdString key = username + "@" + host + ":" + portstr;
   CSFTPSessionPtr ptr = sessions[key];
   if (ptr == NULL)
   {

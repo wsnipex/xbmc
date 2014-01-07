@@ -23,7 +23,6 @@
 #ifdef HAS_FILESYSTEM_SFTP
 #include "SFTP.h"
 #include "IFile.h"
-#include "threads/CriticalSection.h"
 
 namespace XFILE
 {
