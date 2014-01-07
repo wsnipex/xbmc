@@ -1502,10 +1502,10 @@ fi
 # libssh2
 if test "x$use_ssh" = "xno"; then
   AC_MSG_NOTICE($ssh_disabled)
-  use_libssh="no"
+  use_libssh2="no"
 else
   AC_CHECK_LIB([ssh2], [libssh2_sftp_tell64],, AC_MSG_ERROR($ssh_not_found))
-  AC_DEFINE([HAVE_LIBSSH], [1], [Whether to use libSSH library.])
+  AC_DEFINE([HAVE_LIBSSH2], [1], [Whether to use libSSH2 library.])
 fi
 
 # libRTMP
@@ -2350,10 +2350,10 @@ else
   USE_WEB_SERVER=0
 fi
 
-if test "$use_libssh" != "no"; then
-  final_message="$final_message\n  libssh support:\tYes"
+if test "$use_libssh2" != "no"; then
+  final_message="$final_message\n  libssh2 support:\tYes"
 else
-  final_message="$final_message\n  libssh support:\tNo"
+  final_message="$final_message\n  libssh2 support:\tNo"
 fi
 
 if test "$use_librtmp" != "no"; then
