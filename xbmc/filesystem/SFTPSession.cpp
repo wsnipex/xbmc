@@ -267,8 +267,12 @@ bool CSFTPSession::GetDirectory(const CStdString &base, const CStdString &folder
         char longentry[512];
         LIBSSH2_SFTP_ATTRIBUTES attrs;
 
-        int rc = libssh2_sftp_readdir_ex(dir, mem, sizeof(mem), longentry,
-                                         sizeof(longentry), &attrs);
+        int rc;
+        {
+          CSingleLock lock(m_critSect);
+          rc = libssh2_sftp_readdir_ex(dir, mem, sizeof(mem), longentry,
+                                       sizeof(longentry), &attrs);
+        }
 
         if (rc == 0)
           break;
@@ -324,7 +328,10 @@ bool CSFTPSession::GetDirectory(const CStdString &base, const CStdString &folder
         items.Add(pItem);
       }
 
-      libssh2_sftp_close_handle(dir);
+      {
+        CSingleLock lock(m_critSect)
+        libssh2_sftp_close_handle(dir);
+      }
 
       return true;
     }
@@ -533,8 +540,6 @@ init_ssh_session()
 
 bool CSFTPSession::Connect(const CStdString &host, const CStdString &port, const CStdString &username, const CStdString &password)
 {
-  CSingleLock lock(m_critSect);
-
   int rc;
   m_socket        = 0;
   m_connected     = false;
