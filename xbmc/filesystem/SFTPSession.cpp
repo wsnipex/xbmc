@@ -247,7 +247,7 @@ void CSFTPSession::CloseFileHandle(sftp_file handle)
 {
   CSingleLock lock(m_critSect);
   int rc;
-  while ((rc = libssh2_sftp_close_handle(handle)) == LIBSSH2_ERROR_EAGAIN);
+  rc = libssh2_sftp_close_handle(handle);
   if (rc)
     CLog::Log(LOGERROR, "CSFTPSession::CloseFileHandle failed: %s",
               GetErrorString(rc));
@@ -324,7 +324,7 @@ bool CSFTPSession::GetDirectory(const CStdString &base, const CStdString &folder
         items.Add(pItem);
       }
 
-      while (libssh2_sftp_close_handle(dir) == LIBSSH2_ERROR_EAGAIN);
+      libssh2_sftp_close_handle(dir);
 
       return true;
     }
@@ -363,12 +363,8 @@ int CSFTPSession::Stat(const char *path, struct __stat64* buffer)
 
     {
       CSingleLock lock(m_critSect);
-      while ((rc = libssh2_sftp_stat_ex(m_sftp_session, p.c_str(), p.size(),
-                                        LIBSSH2_SFTP_STAT, &attrs))
-             == LIBSSH2_ERROR_EAGAIN)
-      {
-        waitsocket(false);
-      }
+      rc = libssh2_sftp_stat_ex(m_sftp_session, p.c_str(), p.size(),
+                                        LIBSSH2_SFTP_STAT, &attrs);
     }
 
     if (rc)
@@ -417,11 +413,7 @@ int CSFTPSession::Read(sftp_file handle, char *buffer, size_t length)
 {
   CSingleLock lock(m_critSect);
   m_LastActive = XbmcThreads::SystemClockMillis();
-  int rc;
-  while ((rc = libssh2_sftp_read(handle, buffer, length))
-         == LIBSSH2_ERROR_EAGAIN)
-    waitsocket(false);
-  return rc;
+  return libssh2_sftp_read(handle, buffer, length);
 }
 
 int64_t CSFTPSession::GetPosition(sftp_file handle)
@@ -583,24 +575,14 @@ bool CSFTPSession::Connect(const CStdString &host, const CStdString &port, const
     return false;
   }
 
-  do
-  {
-    m_sftp_session = libssh2_sftp_init(m_session);
+  m_sftp_session = libssh2_sftp_init(m_session);
 
-    if (!m_sftp_session)
-    {
-      int err = libssh2_session_last_errno(m_session);
-      if (err == LIBSSH2_ERROR_EAGAIN)
-      {
-        waitsocket(false);
-      }
-      else
-      {
-        CLog::Log(LOGERROR, "CSFTPSession::Connect: Failed to init SFTP session");
-        return false;
-      }
-    }
-  } while (!m_sftp_session);
+  if (!m_sftp_session)
+  {
+    int err = libssh2_session_last_errno(m_session);
+    CLog::Log(LOGERROR, "CSFTPSession::Connect: Failed to init SFTP session");
+    return false;
+  }
 
   m_connected = true;
   return true;
@@ -616,8 +598,7 @@ void CSFTPSession::Disconnect()
 
   if (m_session)
   {
-    while (libssh2_session_disconnect(m_session, "Good bye")
-           == LIBSSH2_ERROR_EAGAIN);
+    libssh2_session_disconnect(m_session, "Good bye");
     libssh2_session_free(m_session);
   }
   m_session = NULL;
@@ -657,38 +638,6 @@ bool CSFTPSession::GetItemPermissions(const char *path, uint32_t &permissions)
     return false;
 }
 
-void CSFTPSession::waitsocket(bool lock)
-{
-  int dir;
-  if (lock)
-  {
-    CSingleLock lock(m_critSect);
-    dir = libssh2_session_block_directions(m_session);
-  }
-  else
-    dir = libssh2_session_block_directions(m_session);
-
-  fd_set fd;
-  fd_set *writefd = NULL;
-  fd_set *readfd = NULL;
-
-  FD_ZERO(&fd);
-  FD_SET(m_socket, &fd);
-
-  struct timeval timeout;
-  timeout.tv_sec = 10;
-  timeout.tv_usec = 0;
-
-  if (dir & LIBSSH2_SESSION_BLOCK_INBOUND)
-    readfd = &fd;
-  if (dir & LIBSSH2_SESSION_BLOCK_OUTBOUND)
-    writefd = &fd;
-
-  CLog::Log(LOGINFO, "SFTPSession: Waiting 10 seconds for asynchronous transfer");
-  select(m_socket + 1, readfd, writefd, NULL, &timeout);
-  CLog::Log(LOGINFO, "SFTPSession: Done");
-}
-
 LIBSSH2_SFTP_HANDLE*
 CSFTPSession::CreateSFTPHandle(const CStdString& file, int open_type)
 {
@@ -701,28 +650,19 @@ CSFTPSession::CreateSFTPHandle(const CStdString& file, int open_type)
     CSingleLock lock(m_critSect);
 
     int err = 0;
-    do
+    handle = libssh2_sftp_open_ex(m_sftp_session, path.c_str(),
+                                  path.size(), LIBSSH2_FXF_READ,
+                                  0, open_type);
+
+    if (!handle)
+      err = libssh2_session_last_errno(m_session);
+
+    if (err)
     {
-      err = 0;
-      handle = libssh2_sftp_open_ex(m_sftp_session, path.c_str(),
-                                    path.size(), LIBSSH2_FXF_READ,
-                                    0, open_type);
-
-      if (!handle)
-        err = libssh2_session_last_errno(m_session);
-      if (err == LIBSSH2_ERROR_EAGAIN)
-      {
-        waitsocket(false);
-        continue;
-      }
-
-      if (err)
-      {
-        CLog::Log(LOGERROR, "SFTPSession:: Failed to create handle for file %s: %s",
-                  file.c_str(), GetErrorString(err));
-        break;
-      }
-    } while(!handle);
+      CLog::Log(LOGERROR, "SFTPSession:: Failed to create handle for file %s: %s",
+                file.c_str(), GetErrorString(err));
+      break;
+    }
 
     return handle;
   }
