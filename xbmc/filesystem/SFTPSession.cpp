@@ -582,7 +582,7 @@ bool CSFTPSession::Connect(const CStdString &host, const CStdString &port, const
   {
     int err = libssh2_session_last_errno(m_session);
     CLog::Log(LOGERROR, "CSFTPSession::Connect: Failed to init SFTP session: %s",
-              GetErrorCode(err));
+              GetErrorString(err));
     return false;
   }
 
@@ -660,11 +660,8 @@ CSFTPSession::CreateSFTPHandle(const CStdString& file, int open_type)
       err = libssh2_session_last_errno(m_session);
 
     if (err)
-    {
       CLog::Log(LOGERROR, "SFTPSession:: Failed to create handle for file %s: %s",
                 file.c_str(), GetErrorString(err));
-      break;
-    }
 
     return handle;
   }
