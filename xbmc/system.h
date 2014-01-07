@@ -120,7 +120,7 @@
 #define HAVE_LIBCRYSTALHD 2
 #define HAS_WEB_SERVER
 #define HAS_WEB_INTERFACE
-#define HAVE_LIBSSH
+#define HAVE_LIBSSH2
 #define HAS_LIBRTMP
 #define HAVE_LIBBLURAY
 #define HAS_ASAP_CODEC
@@ -194,7 +194,7 @@
 #endif
 #endif
 
-#ifdef HAVE_LIBSSH
+#ifdef HAVE_LIBSSH2
 #define HAS_FILESYSTEM_SFTP
 #endif
 
