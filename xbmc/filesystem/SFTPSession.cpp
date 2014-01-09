@@ -29,10 +29,20 @@
 #include "Util.h"
 #include "URL.h"
 #include <fcntl.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
 #include <sstream>
+
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_NETDB_H
+#include <netdb.h>
+#endif
 
 #ifdef TARGET_WINDOWS
 #pragma comment(lib, "ssh.lib")
