@@ -824,7 +824,8 @@ bool URIUtils::IsInternetStream(const CURL& url, bool bStrictCheck /* = false */
       strProtocol2 == "mmsh"  || strProtocol2 == "rtsp"   ||
       strProtocol2 == "rtmp"  || strProtocol2 == "rtmpt"  ||
       strProtocol2 == "rtmpe" || strProtocol2 == "rtmpte" ||
-      strProtocol2 == "rtmps")
+      strProtocol2 == "rtmps" || strProtocol2 == "sftp"   ||
+      strProtocol2 == "ssh")
     return true;
 
   return false;
