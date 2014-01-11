@@ -157,7 +157,7 @@ vtbdecoder_enabled="== VTBDecoder support enabled. =="
 vtbdecoder_disabled="== VTBDecoder support manually disabled. =="
 openmax_disabled="== OpenMax support manually disabled. =="
 openmax_not_found="== Could not find libnvomx. OpenMax support disabled. =="
-ssh_not_found="== Could not find libssh. =="
+ssh_not_found="== Could not find libssh2. =="
 ssh_disabled="== SSH SFTP disabled. =="
 librtmp_not_found="== Could not find libRTMP. RTMP support disabled. =="
 librtmp_disabled="== RTMP support disabled. =="
@@ -1504,8 +1504,13 @@ if test "x$use_ssh" = "xno"; then
   AC_MSG_NOTICE($ssh_disabled)
   use_libssh2="no"
 else
-  AC_CHECK_LIB([ssh2], [libssh2_sftp_tell64],, AC_MSG_ERROR($ssh_not_found))
-  AC_DEFINE([HAVE_LIBSSH2], [1], [Whether to use libSSH2 library.])
+  PKG_CHECK_MODULES([LIBSSH2], [libssh2],
+                   [INCLUDES="$INCLUDES $LIBSSH2_CFLAGS"; LIBS="$LIBS $LIBSSH2_LIBS";
+                     AC_DEFINE([HAVE_LIBSSH2], [1], [Whether to use libSSH2 library.])],
+                   [AC_MSG_ERROR($ssh_not_found)])
+
+  #AC_CHECK_LIB([ssh2], [libssh2_sftp_tell64],, AC_MSG_ERROR($ssh_not_found))
+  #AC_DEFINE([HAVE_LIBSSH2], [1], [Whether to use libSSH2 library.])
 fi
 
 # libRTMP
