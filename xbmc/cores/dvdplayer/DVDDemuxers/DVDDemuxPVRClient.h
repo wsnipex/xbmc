@@ -21,8 +21,8 @@
 
 #include "DVDDemux.h"
 #include <map>
-#include "DllAvCodec.h"
-#include "DllAvFormat.h"
+#include "libavcodec/avcodec.h"
+#include "libavformat/avformat.h"
 
 #include "pvr/addons/PVRClient.h"
 
@@ -107,8 +107,6 @@ protected:
 #endif
   CDemuxStream* m_streams[MAX_STREAMS]; // maximum number of streams that ffmpeg can handle
   boost::shared_ptr<PVR::CPVRClient> m_pvrClient;
-
-  DllAvCodec  m_dllAvCodec;
 
 private:
   void RequestStreams();

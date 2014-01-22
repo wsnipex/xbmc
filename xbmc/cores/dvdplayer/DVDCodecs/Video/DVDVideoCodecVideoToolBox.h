@@ -80,9 +80,6 @@ protected:
 
   bool              m_convert_bytestream;
   bool              m_convert_3byteTo4byteNALSize;
-
-  DllAvUtil         *m_dllAvUtil;
-  DllAvFormat       *m_dllAvFormat;
 };
 
 #endif

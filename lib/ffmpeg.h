@@ -1,5 +1,7 @@
+#pragma once
+
 /*
- *      Copyright (C) 2013 Team XBMC
+ *      Copyright (C) 2005-2013 Team XBMC
  *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
@@ -13,23 +15,27 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with XBMC; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
- *  http://www.gnu.org/copyleft/gpl.html
+ *  along with XBMC; see the file COPYING.  If not, see
+ *  <http://www.gnu.org/licenses/>.
  *
  */
 
-#include "libav_hacks.h"
 
-AVDictionary *av_frame_get_metadata (const AVFrame *frame)
-{
-    return NULL;
-}
+#include "utils/CPUInfo.h"
 
-AVRational av_stream_get_r_frame_rate(const AVStream *s)
+inline int SwScaleCPUFlags()
 {
-    AVRational zero;
-    zero.num = 0;
-    zero.den = 1;
-    return zero;
+  unsigned int cpuFeatures = g_cpuInfo.GetCPUFeatures();
+  int flags = 0;
+
+  if (cpuFeatures & CPU_FEATURE_MMX)
+    flags |= SWS_CPU_CAPS_MMX;
+  if (cpuFeatures & CPU_FEATURE_MMX2)
+    flags |= SWS_CPU_CAPS_MMX2;
+  if (cpuFeatures & CPU_FEATURE_3DNOW)
+    flags |= SWS_CPU_CAPS_3DNOW;
+  if (cpuFeatures & CPU_FEATURE_ALTIVEC)
+    flags |= SWS_CPU_CAPS_ALTIVEC;
+
+  return flags;
 }

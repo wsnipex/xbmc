@@ -19,8 +19,8 @@
  *
  */
 
-#include "DllAvUtil.h"
-#include "DllSwResample.h"
+#include "libavutil/avutil.h"
+#include "libswresample/swresample.h"
 #include "cores/AudioEngine/Utils/AEAudioFormat.h"
 #include "cores/AudioEngine/Interfaces/AE.h"
 #include <deque>

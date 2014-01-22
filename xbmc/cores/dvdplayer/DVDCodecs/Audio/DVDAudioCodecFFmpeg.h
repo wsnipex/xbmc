@@ -21,10 +21,10 @@
  */
 
 #include "DVDAudioCodec.h"
-#include "DllAvCodec.h"
-#include "DllAvFormat.h"
-#include "DllAvUtil.h"
-#include "DllSwResample.h"
+#include "libavcodec/avcodec.h"
+#include "libavformat/avformat.h"
+#include "libavutil/avutil.h"
+#include "libswresample/swresample.h"
 
 class CDVDAudioCodecFFmpeg : public CDVDAudioCodec
 {
@@ -63,10 +63,6 @@ protected:
 
   int      m_channels;
   uint64_t m_layout;
-
-  DllAvCodec m_dllAvCodec;
-  DllAvUtil m_dllAvUtil;
-  DllSwResample m_dllSwResample;
 
   void BuildChannelMap();
   void ConvertToFloat();  
