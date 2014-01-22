@@ -25,7 +25,7 @@
 #include "ActiveAE.h"
 #include "ActiveAESound.h"
 #include "utils/log.h"
-#include "DllAvUtil.h"
+#include "libavutil/avutil.h"
 
 using namespace ActiveAE;
 using namespace XFILE;
@@ -151,7 +151,7 @@ int CActiveAESound::Read(void *h, uint8_t* buf, int size)
   return pFile->Read(buf, size);
 }
 
-offset_t CActiveAESound::Seek(void *h, offset_t pos, int whence)
+int64_t CActiveAESound::Seek(void *h, int64_t pos, int whence)
 {
   CFile* pFile = static_cast<CActiveAESound*>(h)->m_pFile;
   if(whence == AVSEEK_SIZE)

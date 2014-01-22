@@ -36,7 +36,7 @@
 #include "threads/Thread.h"
 #include "utils/log.h"
 #include "utils/fastmemcpy.h"
-#include "DllSwScale.h"
+#include "libswscale/swscale.h"
 #include "utils/TimeUtils.h"
 #include "windowing/WindowingFactory.h"
 

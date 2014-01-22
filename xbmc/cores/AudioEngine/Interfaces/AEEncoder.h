@@ -19,7 +19,7 @@
  *
  */
 
-#include "DllAvCodec.h"
+#include "libavcodec/avcodec.h"
 #include "cores/AudioEngine/Utils/AEAudioFormat.h"
 
 /**

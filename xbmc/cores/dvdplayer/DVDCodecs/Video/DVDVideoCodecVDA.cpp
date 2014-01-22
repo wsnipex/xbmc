@@ -24,7 +24,7 @@
 #include "system_gl.h"
 #include "DVDVideoCodecVDA.h"
 
-#include "DllSwScale.h"
+#include "libswscale/swscale.h"
 #include "DVDClock.h"
 #include "DVDStreamInfo.h"
 #include "cores/dvdplayer/DVDCodecs/DVDCodecUtils.h"
