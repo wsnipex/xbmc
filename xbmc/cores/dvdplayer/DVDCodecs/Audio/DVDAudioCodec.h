@@ -30,7 +30,10 @@
   #include "config.h"
 #endif
 #include <vector>
+
+extern "C" {
 #include "libavcodec/avcodec.h"
+}
 
 struct AVStream;
 

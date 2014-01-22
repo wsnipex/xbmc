@@ -22,7 +22,10 @@
 #include "cores/AudioEngine/Interfaces/AEEncoder.h"
 #include "cores/AudioEngine/Utils/AERemap.h"
 #include "cores/AudioEngine/Utils/AEPackIEC61937.h"
+
+extern "C" {
 #include "libswresample/swresample.h"
+}
 
 /* ffmpeg re-defines this, so undef it to squash the warning */
 #undef restrict

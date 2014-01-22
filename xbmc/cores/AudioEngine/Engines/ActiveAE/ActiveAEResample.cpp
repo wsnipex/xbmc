@@ -19,10 +19,13 @@
  */
 
 #include "ActiveAEResample.h"
+#include "utils/log.h"
+
+extern "C" {
 #include "libavutil/channel_layout.h"
 #include "libavutil/opt.h"
 #include "libswresample/swresample.h"
-#include "utils/log.h"
+}
 
 using namespace ActiveAE;
 

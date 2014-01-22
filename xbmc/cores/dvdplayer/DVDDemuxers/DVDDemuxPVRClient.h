@@ -21,10 +21,12 @@
 
 #include "DVDDemux.h"
 #include <map>
+#include "pvr/addons/PVRClient.h"
+
+extern "C" {
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
-
-#include "pvr/addons/PVRClient.h"
+}
 
 class CDVDDemuxPVRClient;
 struct PVR_STREAM_PROPERTIES;

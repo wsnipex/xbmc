@@ -22,14 +22,17 @@
 
 #include "DVDVideoCodec.h"
 #include "DVDResource.h"
+#include <string>
+#include "utils/StdString.h"
+
+extern "C" {
+#include "libavfilter/avfilter.h"
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 #include "libavutil/avutil.h"
 #include "libswscale/swscale.h"
-#include "libavfilter/avfilter.h"
 #include "libpostproc/postprocess.h"
-#include <string>
-#include "utils/StdString.h"
+}
 
 class CCriticalSection;
 

@@ -30,13 +30,16 @@
 #include "filesystem/File.h"
 #include "utils/log.h"
 #include "utils/URIUtils.h"
-#include "libswscale/swscale.h"
 #include "guilib/Texture.h"
 #include "guilib/imagefactory.h"
 #include "lib/ffmpeg.h"
 #if defined(HAS_OMXPLAYER)
 #include "cores/omxplayer/OMXImage.h"
 #endif
+
+extern "C" {
+#include "libswscale/swscale.h"
+}
 
 using namespace XFILE;
 

@@ -40,19 +40,15 @@
 
 #include "system_gl.h"
 
-#include "libavutil/avutil.h"
 #include "DVDVideoCodec.h"
 #include "DVDVideoCodecFFmpeg.h"
-#include "libavcodec/vdpau.h"
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #define GLX_GLXEXT_PROTOTYPES
 #include <GL/glx.h>
 
-#include "libavutil/avutil.h"
 #include "DVDVideoCodec.h"
 #include "DVDVideoCodecFFmpeg.h"
-#include "libavcodec/vdpau.h"
 #include "threads/CriticalSection.h"
 #include "threads/SharedSection.h"
 #include "settings/VideoSettings.h"
@@ -62,6 +58,11 @@
 #include "utils/ActorProtocol.h"
 #include <list>
 #include <map>
+
+extern "C" {
+#include "libavutil/avutil.h"
+#include "libavcodec/vdpau.h"
+}
 
 using namespace Actor;
 

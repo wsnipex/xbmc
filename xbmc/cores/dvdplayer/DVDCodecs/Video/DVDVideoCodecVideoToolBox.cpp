@@ -27,12 +27,15 @@
 #include "DVDStreamInfo.h"
 #include "DVDCodecUtils.h"
 #include "DVDVideoCodecVideoToolBox.h"
-#include "lib/libswscale/swscale.h"
-#include "lib/libavformat/avformat.h"
 #include "settings/Settings.h"
 #include "utils/log.h"
 #include "utils/TimeUtils.h"
 #include "osx/DarwinUtils.h"
+
+extern "C" {
+#include "lib/libswscale/swscale.h"
+#include "lib/libavformat/avformat.h"
+}
 
 #if defined(__cplusplus)
 extern "C"

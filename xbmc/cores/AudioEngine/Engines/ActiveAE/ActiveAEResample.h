@@ -19,12 +19,15 @@
  *
  */
 
-#include "libavutil/avutil.h"
-#include "libswresample/swresample.h"
 #include "cores/AudioEngine/Utils/AEChannelInfo.h"
 #include "cores/AudioEngine/Utils/AEAudioFormat.h"
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAEBuffer.h"
 #include "cores/AudioEngine/Interfaces/AE.h"
+
+extern "C" {
+#include "libavutil/avutil.h"
+#include "libswresample/swresample.h"
+}
 
 namespace ActiveAE
 {

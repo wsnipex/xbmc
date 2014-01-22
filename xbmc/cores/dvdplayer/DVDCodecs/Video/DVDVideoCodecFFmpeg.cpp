@@ -61,9 +61,12 @@
 #include "VDA.h"
 #endif
 #include "utils/StringUtils.h"
+
+extern "C" {
 #include "libavutil/opt.h"
 #include "libavfilter/buffersink.h"
 #include "libavfilter/buffersrc.h"
+}
 
 using namespace boost;
 

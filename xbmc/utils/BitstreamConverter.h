@@ -22,10 +22,13 @@
 #define _BITSTREAMCONVERTER_H_
 
 #include <stdint.h>
+
+extern "C" {
 #include "libavutil/avutil.h"
 #include "libavformat/avformat.h"
 #include "libavfilter/avfilter.h"
 #include "libavcodec/avcodec.h"
+}
 
 typedef struct {
   int       writer_le;

@@ -30,9 +30,11 @@
 #include "guilib/DispResource.h"
 
 // ffmpeg
+extern "C" {
 #include "libavformat/avformat.h"
 #include "libavcodec/avcodec.h"
 #include "libavutil/avutil.h"
+}
 
 class IAESink;
 class IAEEncoder;

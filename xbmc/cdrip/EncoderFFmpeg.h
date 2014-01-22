@@ -22,10 +22,13 @@
  */
 
 #include "Encoder.h"
+
+extern "C" {
 #include "libavformat/avformat.h"
 #include "libavcodec/avcodec.h"
 #include "libavutil/avutil.h"
 #include "libswresample/swresample.h"
+}
 
 class CEncoderFFmpeg : public CEncoder
 {

@@ -25,10 +25,13 @@
 
 class CBaseTexture;
 
+extern "C" {
 struct AVFormatContext;
 struct AVCodecContext;
 struct AVCodec;
 struct AVFrame;
+struct AVPicture;
+}
 
 /**
  * A simple FFMpeg-based background video decoder.

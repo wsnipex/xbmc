@@ -21,14 +21,15 @@
  */
 
 #include "DVDDemux.h"
+#include "threads/CriticalSection.h"
+#include "threads/SystemClock.h"
+#include <map>
+
+extern "C" {
 #include "libavformat/avformat.h"
 #include "libavcodec/avcodec.h"
 #include "libavutil/avutil.h"
-
-#include "threads/CriticalSection.h"
-#include "threads/SystemClock.h"
-
-#include <map>
+}
 
 class CDVDDemuxFFmpeg;
 class CURL;

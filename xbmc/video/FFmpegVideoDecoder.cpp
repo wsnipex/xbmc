@@ -19,14 +19,16 @@
  */
 
 #include "system.h"
-#include "libavformat/avformat.h"
-#include "libavcodec/avcodec.h"
-#include "libavutil/avutil.h"
-#include "libswscale/swscale.h"
 #include "guilib/Texture.h"
 
 #include "FFmpegVideoDecoder.h"
 
+extern "C" {
+#include "libavformat/avformat.h"
+#include "libavcodec/avcodec.h"
+#include "libavutil/avutil.h"
+#include "libswscale/swscale.h"
+}
 
 FFmpegVideoDecoder::FFmpegVideoDecoder()
 {

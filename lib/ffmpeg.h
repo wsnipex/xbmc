@@ -23,6 +23,10 @@
 
 #include "utils/CPUInfo.h"
 
+extern "C" {
+#include "libswscale/swscale.h"
+}
+
 inline int SwScaleCPUFlags()
 {
   unsigned int cpuFeatures = g_cpuInfo.GetCPUFeatures();

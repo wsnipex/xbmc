@@ -41,7 +41,6 @@
 #include "guilib/Texture.h"
 #include "guilib/LocalizeStrings.h"
 #include "threads/SingleLock.h"
-#include "libswscale/swscale.h"
 #include "utils/log.h"
 #include "utils/GLUtils.h"
 #include "utils/StringUtils.h"
@@ -49,6 +48,10 @@
 #include "RenderFormats.h"
 #include "cores/IPlayer.h"
 #include "lib/ffmpeg.h"
+
+extern "C" {
+#include "libswscale/swscale.h"
+}
 
 #ifdef HAVE_LIBVDPAU
 #include "cores/dvdplayer/DVDCodecs/Video/VDPAU.h"

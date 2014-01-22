@@ -25,7 +25,10 @@
 #include "ActiveAE.h"
 #include "ActiveAESound.h"
 #include "utils/log.h"
+
+extern "C" {
 #include "libavutil/avutil.h"
+}
 
 using namespace ActiveAE;
 using namespace XFILE;

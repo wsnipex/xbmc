@@ -24,16 +24,19 @@
 #include "guilib/Texture.h"
 #include "guilib/GUITexture.h"
 #include "Application.h"
-#include "libavformat/avformat.h"
-#include "libavcodec/avcodec.h"
-#include "libavutil/avutil.h"
-#include "libswscale/swscale.h"
 #include "filesystem/SpecialProtocol.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/DisplaySettings.h"
 #include "video/FFmpegVideoDecoder.h"
 #include "system.h"
 #include "utils/log.h"
+
+extern "C" {
+#include "libavformat/avformat.h"
+#include "libavcodec/avcodec.h"
+#include "libavutil/avutil.h"
+#include "libswscale/swscale.h"
+}
 
 KaraokeVideoBackground::KaraokeVideoBackground()
 {
