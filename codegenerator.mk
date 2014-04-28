@@ -18,6 +18,8 @@ else
 DOXY_XML_PATH=$(GENDIR)/doxygenxml
 endif
 
+GENERATED_JSON = $(INTERFACES_DIR)/json-rpc/ServiceDescription.h
+
 GENDIR = $(INTERFACES_DIR)/python/generated
 GROOVY_DIR = $(TOPDIR)/lib/groovy
 
@@ -43,7 +45,7 @@ $(GENDIR)/%.xml: %.i $(SWIG) $(JAVA) $(GENERATE_DEPS)
 	mkdir -p $(GENDIR)
 	$(SWIG) -w401 -c++ -o $@ -xml -I$(TOPDIR)/xbmc -xmllang python $<
 
-codegenerated: $(DOXYGEN) $(SWIG) $(JAVA) $(GENERATED)
+codegenerated: $(DOXYGEN) $(SWIG) $(JAVA) $(GENERATED) $(GENERATED_JSON)
 
 $(DOXY_XML_PATH): $(SWIG) $(JAVA)
 	cd $(INTERFACES_DIR)/python; ($(DOXYGEN) Doxyfile > /dev/null) 2>&1 | grep -v " warning: "
@@ -63,3 +65,5 @@ $(SWIG):
 	@echo This is not necessarily an error.
 	@false
 
+$(GENERATED_JSON):
+	make -C $(INTERFACES_DIR)/json-rpc $(notdir $@)
