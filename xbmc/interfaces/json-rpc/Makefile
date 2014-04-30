@@ -1,8 +1,3 @@
-JSON_BUILDER = ../../../tools/JsonSchemaBuilder/src/JsonSchemaBuilder
-GENERATED_JSON = ServiceDescription.h
-JSON_SRC =  schema/version.txt schema/license.txt schema/methods.json schema/types.json schema/notifications.json
-
-
 SRCS=AddonsOperations.cpp \
      ApplicationOperations.cpp \
      AudioLibrary.cpp \
@@ -25,13 +20,17 @@ SRCS=AddonsOperations.cpp \
 
 LIB=json-rpc.a
 
+GENERATED_JSON = ServiceDescription.h
+JSON_SRC =  schema/version.txt schema/license.txt schema/methods.json schema/types.json schema/notifications.json
+
 all: $(GENERATED_JSON) $(LIB)
 
-$(GENERATED_JSON): $(JSON_BUILDER) $(JSON_SRC)
+-include ../../../Makefile.include
+ifeq ($(wildcard $(JSON_BUILDER)),)
+  JSON_BUILDER = ../../../tools/depends/native/JsonSchemaBuilder/JsonSchemaBuilder
+endif
+
+$(GENERATED_JSON): $(JSON_SRC)
 	$(JSON_BUILDER) $(JSON_SRC)
 
-$(JSON_BUILDER):
-	make -C ../../../tools/JsonSchemaBuilder/src
-
--include ../../../Makefile.include
 -include $(patsubst %.cpp,%.P,$(patsubst %.c,%.P,$(SRCS)))

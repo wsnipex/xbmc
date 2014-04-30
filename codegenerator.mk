@@ -19,6 +19,9 @@ DOXY_XML_PATH=$(GENDIR)/doxygenxml
 endif
 
 GENERATED_JSON = $(INTERFACES_DIR)/json-rpc/ServiceDescription.h
+ifeq ($(wildcard $(JSON_BUILDER)),)
+  JSON_BUILDER = tools/depends/native/JsonSchemaBuilder/JsonSchemaBuilder
+endif
 
 GENDIR = $(INTERFACES_DIR)/python/generated
 GROOVY_DIR = $(TOPDIR)/lib/groovy
@@ -65,5 +68,11 @@ $(SWIG):
 	@echo This is not necessarily an error.
 	@false
 
-$(GENERATED_JSON):
+$(GENERATED_JSON): $(JSON_BUILDER)
+	@echo Jsonbuilder: $(JSON_BUILDER)
 	make -C $(INTERFACES_DIR)/json-rpc $(notdir $@)
+
+ifneq ($(CROSS_COMPILING), yes)
+$(JSON_BUILDER):
+	make -C $(dir $@)
+endif
