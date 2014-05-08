@@ -35,6 +35,9 @@ endif
 $(GENERATED_JSON): $(JSON_SRC)
 	$(JSON_BUILDER) $(JSON_SRC)
 
+.PHONY: $(notdir $(GENERATED_ADDON_JSON))
+$(notdir $(GENERATED_ADDON_JSON)): $(GENERATED_ADDON_JSON)
+
 $(GENERATED_ADDON_JSON): $(JSON_VERSION_SRC)
 	sed s/@jsonrpc_version@/`cat $(JSON_VERSION_SRC)`/g $@.in > $@
 

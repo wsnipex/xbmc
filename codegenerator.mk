@@ -1,6 +1,5 @@
 TOPDIR ?= .
 INTERFACES_DIR ?= xbmc/interfaces
-ADDON_JSON_DIR ?= addons/xbmc.json
 
 JAVA ?= $(shell which java)
 ifeq ($(JAVA),)
@@ -19,8 +18,7 @@ else
 DOXY_XML_PATH=$(GENDIR)/doxygenxml
 endif
 
-GENERATED_JSON = $(INTERFACES_DIR)/json-rpc/ServiceDescription.h
-GENERATED_ADDON_JSON = $(ADDON_JSON_DIR)/addon.xml
+GENERATED_JSON = $(INTERFACES_DIR)/json-rpc/ServiceDescription.h addons/xbmc.json/addon.xml
 ifeq ($(wildcard $(JSON_BUILDER)),)
   JSON_BUILDER = $(shell which JsonSchemaBuilder)
 ifeq ($(JSON_BUILDER),)
@@ -76,9 +74,6 @@ $(SWIG):
 $(GENERATED_JSON): $(JSON_BUILDER)
 	@echo Jsonbuilder: $(JSON_BUILDER)
 	make -C $(INTERFACES_DIR)/json-rpc $(notdir $@)
-
-$(GENERATED_ADDON_JSON):
-	make -C $(INTERFACES_DIR)/json-rpc ../../../addons/xbmc.json/$(notdir $@)
 
 ifneq ($(CROSS_COMPILING), yes)
 $(JSON_BUILDER):
