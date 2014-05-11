@@ -488,6 +488,8 @@ MAINOBJS+=xbmc/main/main.a
 else
 ifeq (@USE_ANDROID@,1)
 MAINOBJS+=xbmc/android/activity/activity.a
+else
+MAINOBJS+=xbmc/main/main.a
 endif # USE_ANDROID
 endif # USE_LIBXBMC
 
