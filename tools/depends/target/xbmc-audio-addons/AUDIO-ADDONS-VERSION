@@ -1,0 +1,6 @@
+BASE_URL=https://github.com/wsnipex
+ADDONS=audioencoder.flac audioencoder.lame audioencoder.vorbis
+audioencoder.flac-VERSION=9ce0a77f6c3f49f9e3f6eeca6f359c6e1cda98b9
+audioencoder.lame-VERSION=64a0b04ff7d4a78ff96228e422515400b5558750
+audioencoder.vorbis-VERSION=f09dda08b842782329076ccc54be9589a8e2a026
+
