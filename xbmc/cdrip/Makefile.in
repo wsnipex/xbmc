@@ -3,6 +3,7 @@ SRCS += CDDARipper.cpp
 SRCS += Encoder.cpp
 SRCS += EncoderFFmpeg.cpp
 SRCS += EncoderWav.cpp
+SRCS += TranscodeJob.cpp
 
 LIB=cdrip.a
 

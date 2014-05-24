@@ -68,6 +68,11 @@
 #include "music/infoscanner/MusicInfoScanner.h"
 #include "cores/IPlayer.h"
 
+
+#include "utils/JobManager.h"
+#include "cdrip/TranscodeJob.h"
+
+
 using namespace std;
 using namespace XFILE;
 using namespace MUSICDATABASEDIRECTORY;
@@ -696,6 +701,10 @@ void CGUIWindowMusicBase::GetContextButtons(int itemNumber, CContextButtons &but
       {
         buttons.Add(CONTEXT_BUTTON_QUEUE_ITEM, 13347); //queue
 
+        if (!item->m_bIsFolder && item->IsAudio())
+        {
+          buttons.Add(CONTEXT_BUTTON_RIP_TRACK, 610); // rip
+        }
         // allow a folder to be ad-hoc queued and played by the default player
         if (item->m_bIsFolder || (item->IsPlayList() &&
            !g_advancedSettings.m_playlistAsFolders))
@@ -739,6 +748,13 @@ bool CGUIWindowMusicBase::OnContextButton(int itemNumber, CONTEXT_BUTTON button)
 
   switch (button)
   {
+  case CONTEXT_BUTTON_RIP_TRACK:
+    {
+      std::string out = "special://profile/test";
+      CJobManager::GetInstance().AddJob(new CTranscodeJob(*item, out, CSettings::Get().GetInt("audiocds.encoder")), NULL);
+    }
+    return true;
+
   case CONTEXT_BUTTON_QUEUE_ITEM:
     OnQueueItem(itemNumber);
     return true;
