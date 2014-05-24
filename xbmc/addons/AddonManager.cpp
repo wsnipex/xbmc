@@ -130,7 +130,12 @@ AddonPtr CAddonMgr::Factory(const cp_extension_t *props)
           if (URIUtils::HasExtension(library, ".py"))
             return AddonPtr(new CScreenSaver(props));
         }
-#if defined(TARGET_ANDROID)                                                                                                                                                      
+        if (type == ADDON_AUDIOENCODER && 0 == strncmp(props->plugin->identifier,
+                                                       "audioencoder.xbmc.builtin.", 26))
+        { // built in audio encoder
+          return AddonPtr(new CAudioEncoder(props));
+        }
+#if defined(TARGET_ANDROID)
           if ((value = GetExtValue(props->plugin->extensions->configuration, "@library_android")) && value.empty())                                                                
             break;                                                                                                                                                                 
 #elif defined(TARGET_LINUX) || defined(TARGET_FREEBSD)
