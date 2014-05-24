@@ -69,7 +69,6 @@ int CEncoderWav::Flush(uint8_t* buffer)
 bool CEncoderWav::Close()
 {
   WAVHDR wav;
-  int bps = 1;
 
   XFILE::CFile file;
   if (!file.OpenForWrite(m_strFile))
@@ -83,8 +82,7 @@ bool CEncoderWav::Close()
   wav.wNumChannels = m_iInChannels;
   wav.dwSampleRate = m_iInSampleRate;
   wav.wBitsPerSample = m_iInBitsPerSample;
-  if (wav.wBitsPerSample == 16) bps = 2;
-  wav.dwBytesPerSec = m_iInBitsPerSample * m_iInChannels * bps;
+  wav.dwBytesPerSec = m_iInSampleRate * m_iInChannels * (m_iInBitsPerSample >> 3);
   wav.wBlockAlign = 4;
   memcpy(wav.cData, "data", 4);
   wav.dwDataLen = m_iBytesWritten;
