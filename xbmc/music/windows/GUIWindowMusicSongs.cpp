@@ -403,9 +403,12 @@ bool CGUIWindowMusicSongs::OnContextButton(int itemNumber, CONTEXT_BUTTON button
     return true;
 
   case CONTEXT_BUTTON_RIP_TRACK:
-    OnRipTrack(itemNumber);
-    return true;
-
+    if (m_vecItems->IsCDDA())
+    {
+      OnRipTrack(itemNumber);
+      return true;
+    }
+    break;
   case CONTEXT_BUTTON_RIP_CD:
     OnRipCD();
     return true;
