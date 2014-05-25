@@ -24,32 +24,28 @@ ifeq ($(HOST),)
   HOST = $(shell uname -s)
 endif
 
-
+workdir = $(shell pwd)
 ALLADDONS = $(foreach addon,$(ADDONS),$(PLATFORM)/$(addon)/.installed)
 
 all: .installed-$(PLATFORM)
 
-$(TARBALLS_LOCATION)/$(addprefix .,$(notdir $(ADDONS))):
-	ADDON=$(subst .audio,audio,$(notdir $@)) ;\
-        VERSION=$$(grep $$ADDON-VERSION AUDIO-ADDONS-VERSION | sed 's/.*=//g') ; echo "Version: $$VERSION" ;\
-        ARCHIVE=$$VERSION.tar.gz ;\
-        [ -f $(TARBALLS_LOCATION)/$$ADDON-$$ARCHIVE ] || $(RETRIEVE_TOOL) -Ls --create-dirs -f -o $(TARBALLS_LOCATION)/$$ADDON-$$ARCHIVE $(BASE_URL)/$$ADDON/archive/$$ARCHIVE ;\
-        echo $$ADDON-$$ARCHIVE > $@
-
-
-$(foreach addon,$(ADDONS),$(PLATFORM)/$(addon)/.installed): $(TARBALLS_LOCATION)/$(addprefix .,$(notdir $(ADDONS)))
+$(foreach addon,$(ADDONS),$(PLATFORM)/$(addon)/.installed):
 ifeq ($(PREFIX),)
 	@echo
 	@echo "ERROR: please set PREFIX to the xbmc install path e.g. make PREFIX=/usr/local"
 	@exit 1
 endif
-	mkdir -p $(PLATFORM)
+	echo "param: $@"
+#	ADDON=$(subst .audio,audio,$(notdir $@)) 
 	addon=$(subst /.installed,,$(subst $(PLATFORM)/,,$@)) ;\
+        VERSION=$$(grep $$ADDON-VERSION AUDIO-ADDONS-VERSION | sed 's/.*=//g') ; echo "Version: $$VERSION" ;\
+        ARCHIVE=$$VERSION.tar.gz ;\
+        [ -f $(TARBALLS_LOCATION)/$$ADDON-$$ARCHIVE ] || $(RETRIEVE_TOOL) -Ls --create-dirs -f -o $(TARBALLS_LOCATION)/$$ADDON-$$ARCHIVE $(BASE_URL)/$$ADDON/archive/$$ARCHIVE ;\
+        mkdir -p $(PLATFORM) ;\
         rm -rf $(PLATFORM)/$$addon ;\
         mkdir $(PLATFORM)/$$addon ;\
-        ARCHIVE=$$(cat .$$addon) ;\
         cd $(PLATFORM)/$$addon ;\
-        $(ARCHIVE_TOOL) $(ARCHIVE_TOOL_FLAGS) $(TARBALLS_LOCATION)/$$ARCHIVE ;\
+        $(ARCHIVE_TOOL) $(ARCHIVE_TOOL_FLAGS) $(TARBALLS_LOCATION)/$$ADDON-$$ARCHIVE ;\
         $(CMAKE) $(INSTALL_PREFIX) -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=1 . ;\
         make install && touch .installed ;\
         if [ $$(echo $(HOST) | grep darwin) ]; then \
