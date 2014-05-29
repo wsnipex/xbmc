@@ -858,6 +858,9 @@
     <ClCompile Include="..\..\xbmc\cdrip\EncoderFFmpeg.cpp">
       <Filter>cdrip</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\xbmc\cdrip\TranscodeJob.cpp">
+      <Filter>cdrip</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\xbmc\addons\GUIDialogAddonInfo.cpp">
       <Filter>addons</Filter>
     </ClCompile>
@@ -3737,6 +3740,9 @@
       <Filter>cdrip</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\cdrip\EncoderFFmpeg.h">
+      <Filter>cdrip</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cdrip\TranscodeJob.h">
       <Filter>cdrip</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\addons\DllLibCPluff.h">

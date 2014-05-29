@@ -1612,6 +1612,7 @@
     <ClCompile Include="..\..\xbmc\cdrip\CDDARipper.cpp" />
     <ClCompile Include="..\..\xbmc\cdrip\Encoder.cpp" />
     <ClCompile Include="..\..\xbmc\cdrip\EncoderFFmpeg.cpp" />
+    <ClCompile Include="..\..\xbmc\cdrip\TranscodeJob.cpp" />
     <ClCompile Include="..\..\xbmc\windowing\windows\WinEventsWin32.cpp" />
     <ClCompile Include="..\..\xbmc\windowing\windows\WinSystemWin32.cpp" />
     <ClCompile Include="..\..\xbmc\windowing\windows\WinSystemWin32DX.cpp" />
@@ -2327,6 +2328,7 @@
     <ClInclude Include="..\..\xbmc\cdrip\CDDARipper.h" />
     <ClInclude Include="..\..\xbmc\cdrip\Encoder.h" />
     <ClInclude Include="..\..\xbmc\cdrip\EncoderFFmpeg.h" />
+    <ClInclude Include="..\..\xbmc\cdrip\TranscodeJob.h" />
     <ClInclude Include="..\..\xbmc\windowing\WindowingFactory.h" />
     <ClInclude Include="..\..\xbmc\windowing\windows\WinEventsWin32.h" />
     <ClInclude Include="..\..\xbmc\windowing\windows\WinSystemWin32.h" />
