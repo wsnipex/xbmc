@@ -18,48 +18,101 @@ else()
 endif()
 get_filename_component(XBMCROOT "${XBMCROOT}" ABSOLUTE)
 
-# there's something odd going on with passing -Dprefix so we use -DPREFIX but in here we use ${prefix}
-if(NOT PREFIX)
-  set(prefix "${CMAKE_BINARY_DIR}/addons")
+if (NOT DEPENDS_PATH)
+  set(DEPENDS_PATH "${CMAKE_BINARY_DIR}/addons")
 else()
-  set(prefix "${PREFIX}")
-  file(TO_CMAKE_PATH "${prefix}" prefix)
+  file(TO_CMAKE_PATH "${DEPENDS_PATH}" DEPENDS_PATH)
 endif()
-get_filename_component(prefix "${prefix}" ABSOLUTE)
+# xbmc-config.cmake.in (further down) expects a "prefix" variable
+get_filename_component(prefix "${DEPENDS_PATH}" ABSOLUTE)
 
-list(APPEND CMAKE_PREFIX_PATH ${prefix})
-set(PREFIX_INCLUDE_DIR ${prefix}/include)
-set(PREFIX_LIB_DIR ${prefix}/lib)
-
-if(NOT OUTPUT_DIR)
-  set(OUTPUT_DIR ${prefix}/addons)
+#make sure CMAKE_PREFIX_PATH is set
+if (NOT CMAKE_PREFIX_PATH)
+  set(CMAKE_PREFIX_PATH "${DEPENDS_PATH}")
+else()
+  file(TO_CMAKE_PATH "${CMAKE_PREFIX_PATH}" CMAKE_PREFIX_PATH)
+  list(APPEND CMAKE_PREFIX_PATH "${DEPENDS_PATH}")
 endif()
-list(APPEND CMAKE_PREFIX_PATH ${OUTPUT_DIR})
+
+if(NOT CMAKE_INSTALL_PREFIX)
+  set(CMAKE_INSTALL_PREFIX ${prefix})
+endif()
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX})
+
+set(BUILD_ARGS -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+               -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+               -DCMAKE_BUILD_TYPE=Release
+               -DBUILD_SHARED_LIBS=1)
+
+if(PACKAGE_ZIP)
+  #needed for project installing
+  list(APPEND BUILD_ARGS -DPACKAGE_ZIP=1)
+  MESSAGE("package zip specified")
+endif()
+
+if(CMAKE_TOOLCHAIN_FILE)
+  list(APPEND BUILD_ARGS -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE})
+  MESSAGE("toolchain specified")
+  MESSAGE(${BUILD_ARGS})
+endif()
+
+# parse version.txt to get the version info
+if (EXISTS "${XBMCROOT}/version.txt")
+  file(STRINGS "${XBMCROOT}/version.txt" versions)
+  foreach (version ${versions})
+    string(REGEX MATCH "^[^ ]+" version_name ${version})
+    string(REPLACE "${version_name} " "" version_value ${version})
+    set(APP_${version_name} "${version_value}")
+  endforeach()
+endif()
+
+# bail if we can't parse versions
+if (NOT DEFINED APP_VERSION_MAJOR OR NOT DEFINED APP_VERSION_MINOR)
+  message(FATAL_ERROR "Could not determine app version! make sure that ${XBMCROOT}/version.txt exists")
+endif()
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX})
 
 ### copy all the addon binding header files to include/xbmc
 # make sure include/xbmc exists and is empty
-set(XBMC_INCLUDE_DIR ${PREFIX_INCLUDE_DIR}/xbmc)
-set(XBMC_LIB_DIR ${PREFIX_LIB_DIR}/xbmc)
-if(NOT EXISTS "${XBMC_INCLUDE_DIR}/")
-  file(MAKE_DIRECTORY ${XBMC_INCLUDE_DIR})
-endif()
+set(XBMC_LIB_DIR ${DEPENDS_PATH}/lib/xbmc)
 if(NOT EXISTS "${XBMC_LIB_DIR}/")
-  file(MAKE_DIRECTORY ${XBMC_INCLUDE_DIR})
+  file(MAKE_DIRECTORY ${XBMC_LIB_DIR})
 endif()
 
-# parse addon-bindings.mk to get the list of header files to copy
-file(STRINGS ${XBMCROOT}/xbmc/addons/addon-bindings.mk bindings)
-string(REPLACE "\n" ";" bindings "${bindings}")
-foreach(binding ${bindings})
-  string(REPLACE " =" ";" binding "${binding}")
-  string(REPLACE "+=" ";" binding "${binding}")
-  list(GET binding 1 header)
-  # copy the header file to include/xbmc
-  file(COPY ${XBMCROOT}/${header} DESTINATION ${XBMC_INCLUDE_DIR})
-endforeach()
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  # We use the addon headers from the Xbmc source tree directly
+  # We also do not install them with the addons
+  list(APPEND BUILD_ARGS -Dxbmc_DIR=${PROJECT_SOURCE_DIR}/..)
+  list(APPEND BUILD_ARGS -DCMAKE_MODULE_PATH=${PROJECT_SOURCE_DIR}/..)
+  set(XBMC_INCLUDE_DIR ${XBMCROOT}/xbmc/addons)
 
-# generate the proper xbmc-config.cmake file
-configure_file(${XBMCROOT}/project/cmake/xbmc-config.cmake.in ${XBMC_LIB_DIR}/xbmc-config.cmake @ONLY)
+  # generate the proper xbmc-config.cmake file
+  get_filename_component(prefix "${XBMC_INCLUDE_DIR}" ABSOLUTE)
+  configure_file(${XBMCROOT}/project/cmake/xbmc-config.cmake.in ${XBMCROOT}/project/cmake/xbmc-config.cmake @ONLY)
+else()
+  set(XBMC_INCLUDE_DIR ${DEPENDS_PATH}/include/xbmc)
+  if(NOT EXISTS "${XBMC_INCLUDE_DIR}/")
+    file(MAKE_DIRECTORY ${XBMC_INCLUDE_DIR})
+  endif()
+
+  # generate the proper xbmc-config.cmake file
+  configure_file(${XBMCROOT}/project/cmake/xbmc-config.cmake.in ${XBMC_LIB_DIR}/xbmc-config.cmake @ONLY)
+  # copy cmake helpers to lib/xbmc
+  file(COPY ${XBMCROOT}/project/cmake/xbmc-addon-helpers.cmake ${XBMCROOT}/project/cmake/AddOptions.cmake DESTINATION ${XBMC_LIB_DIR})
+
+  ### copy all the addon binding header files to include/xbmc
+  # parse addon-bindings.mk to get the list of header files to copy
+  file(STRINGS ${XBMCROOT}/xbmc/addons/addon-bindings.mk bindings)
+  string(REPLACE "\n" ";" bindings "${bindings}")
+  foreach(binding ${bindings})
+    string(REPLACE " =" ";" binding "${binding}")
+    string(REPLACE "+=" ";" binding "${binding}")
+    list(GET binding 1 header)
+    # copy the header file to include/xbmc
+    file(COPY ${XBMCROOT}/${header} DESTINATION ${XBMC_INCLUDE_DIR})
+  endforeach()
+endif()
+
 
 ### get and build all the binary addons
 # look for all the addons to be built
@@ -72,19 +125,15 @@ foreach(addon ${addons})
   list(GET def 2 revision)
 
   # make sure the output directory is clean
-  if(EXISTS "${OUTPUT_DIR}/${id}")
-    file(REMOVE_RECURSE "${OUTPUT_DIR}/${id}/")
+  if(EXISTS "${CMAKE_INSTALL_PREFIX}/${id}")
+    file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/${id}/")
   endif()
 
   # add the addon as an external project for automatic building
   externalproject_add(${id}
                       GIT_REPOSITORY ${url}/${id}
                       GIT_TAG ${revision}
-                      INSTALL_DIR "${OUTPUT_DIR}"
-                      CMAKE_ARGS -DCMAKE_PREFIX_PATH=${prefix}
-                                 -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
-                                 -DCMAKE_BUILD_TYPE=Release
-                                 -DPACKAGE_ZIP=1                            #needed for project installing
-                                 -DBUILD_SHARED_LIBS=1
+                      INSTALL_DIR "${CMAKE_INSTALL_PREFIX}"
+                      CMAKE_ARGS ${BUILD_ARGS}
                      )
 endforeach()

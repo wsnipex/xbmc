@@ -18,29 +18,26 @@ executing cmake with the -D<variable-name>=<value> option) to e.g. access
 specific paths:
   * CMAKE_BUILD_TYPE specifies the type of the build. This can be either "Debug"
     or "Release" (default is "Release").
+  * CMAKE_INSTALL_PREFIX points to the directory where the built addons and their
+    additional files (addon.xml, resources ...) will be installed to (defaults
+    to <DEPENDS_PATH>).
+  * CMAKE_TOOLCHAIN_FILE can be used to pass a toolchain file into the add-on
+    builds.
+  * DEPENDS_PATH points to the directory containing the "include" and "lib"
+    directories of the addons' dependencies.
   * XBMCROOT points to the root directory of the xbmc project (default is the
     absolute representation of ../../.. starting from this directory).
-  * PREFIX points to the directory containing the "include" and "lib"
-    directories of the addons' dependencies.
-  * OUTPUT_DIR points to the directory where the built addons and their
-    additional files (addon.xml, resources ...) will be installed to (defaults
-    to <PREFIX>/addons).
+  * PACKAGE_ZIP=1 will mean the add-ons will be 'packaged' into a common folder,
+    rather than being placed in <CMAKE_INSTALL_PREFIX>/lib/xbmc/addons and
+    <CMAKE_INSTALL_PREFIX>/share/xbmc/addons.
   * ARCH_DEFINES specifies the platform-specific C/C++ preprocessor defines
     (defaults to empty).
-  * XBMC_MAJOR_VERSION specifies the major version of the xbmc release (defaults
-    to empty).
-  * XBMC_MINOR_VERSION specifies the minor version of the xbmc release (defaults
-    to empty).
 
 The buildsystem makes some assumptions about the environment which must be met
 by whoever uses it:
   * Any dependencies of the addons must already be built and their include and
-    library files must be present in the path pointed to by <PREFIX> (in
+    library files must be present in the path pointed to by <CMAKE_PREFIX_PATH> (in
     "include" and "lib" sub-directories).
-  * The header files describing the interface used by xbmc to interact with the
-    addons must be located at <PREFIX>/include/xbmc.
-  * The cmake helper scripts AddOptions.cmake and xbmc-addon-helpers.cmake
-    (located at <XBMCROOT>/project/cmake) must be located at <PREFIX>/lib/xbmc.
   * The xbmc-config.cmake.in must be located at <XBMCROOT>/project/cmake. It can
     use any of the variables used in CMakeLists.txt using the @variable@
     notation. The variables will be replaced with the actual values and the
@@ -61,5 +58,5 @@ In case of additional options the call might look like this
         -DCMAKE_BUILD_TYPE=Release \
         -DXBMCROOT="<path-to-xbmc-root>" \
         -DARCH_DEFINES="-DTARGET_LINUX" \
-        -DPREFIX="<path-to-built-depends>" \
-        -DOUTPUT_DIR="<path-to-install-directory"
+        -DDEPENDS_PATH="<path-to-built-depends>" \
+        -DCMAKE_INSTALL_PREFIX="<path-to-install-directory"
