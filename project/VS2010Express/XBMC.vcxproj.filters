@@ -6054,9 +6054,6 @@
     <CustomBuild Include="..\..\xbmc\interfaces\json-rpc\schema\methods.json">
       <Filter>interfaces\json-rpc\schema</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\xbmc\interfaces\json-rpc\schema\version.txt">
-      <Filter>interfaces\json-rpc\schema</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\xbmc\interfaces\json-rpc\schema\license.txt">
       <Filter>interfaces\json-rpc\schema</Filter>
     </CustomBuild>
