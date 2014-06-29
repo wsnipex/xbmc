@@ -13,7 +13,7 @@ SET jsonrpc_output=ServiceDescription.h
 SET xbmc_json_path=%base_Dir%\addons\xbmc.json
 SET xbmc_json_output=addon.xml
 
-SET /p version=<"%jsonrpc_schema_path%\version.txt"
+for /f %%i in ('%msys_bin_dir%\awk.exe "/JSON_API/ {print $2}" %base_dir%\version.txt') do set version=%%i
 "%msys_bin_dir%\sed.exe" s/@jsonrpc_version@/%version%/g "%xbmc_json_path%\%xbmc_json_output%.in" > "%xbmc_json_path%\%xbmc_json_output%"
 
 "%bin_dir%\json-rpc\JsonSchemaBuilder.exe" "%jsonrpc_schema_path%\version.txt" "%jsonrpc_schema_path%\license.txt" "%jsonrpc_schema_path%\methods.json" "%jsonrpc_schema_path%\types.json" "%jsonrpc_schema_path%\notifications.json"

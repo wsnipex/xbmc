@@ -22,7 +22,8 @@ LIB=json-rpc.a
 
 GENERATED_JSON = ServiceDescription.h
 GENERATED_ADDON_JSON = ../../../addons/xbmc.json/addon.xml
-JSON_VERSION_SRC = schema/version.txt
+JSON_VERSION_SRC = ../../../version.txt
+JSON_API_VERSION = $(shell awk '/JSON_API/ {print $$2}' $(JSON_VERSION_SRC))
 JSON_SRC =  $(JSON_VERSION_SRC) schema/license.txt schema/methods.json schema/types.json schema/notifications.json
 
 all: $(GENERATED_JSON) $(GENERATED_ADDON_JSON) $(LIB)
@@ -42,6 +43,6 @@ $(GENERATED_JSON): $(JSON_SRC)
 $(notdir $(GENERATED_ADDON_JSON)): $(GENERATED_ADDON_JSON)
 
 $(GENERATED_ADDON_JSON): $(JSON_VERSION_SRC)
-	sed s/@jsonrpc_version@/`cat $(JSON_VERSION_SRC)`/g $@.in > $@
+	@sed s/@jsonrpc_version@/$(JSON_API_VERSION)/g $@.in > $@
 
 -include $(patsubst %.cpp,%.P,$(patsubst %.c,%.P,$(SRCS)))
