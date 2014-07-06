@@ -15,7 +15,7 @@ DEPENDS = \
 	python26 afpfs-ng libshairplay \
 	libplist libcec libbluray boost tinyxml dummy-libxbmc \
 	libamplayer libssh taglib libusb libnfs libmp3lame \
-	xbmc-pvr-addons xbmc-addon-bindings xbmc-audioencoder-addons \
+	xbmc-pvr-addons xbmc-audioencoder-addons \
 	pythonmodule-pil libxslt ffmpeg
 
 ifeq ($(ENABLE_GPLV3),1)
