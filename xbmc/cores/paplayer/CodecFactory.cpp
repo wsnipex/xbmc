@@ -107,6 +107,8 @@ ICodec* CodecFactory::CreateCodec(const CStdString& strFileType)
     return new DVDPlayerCodec();
   else if (strFileType.Equals("tak"))
     return new DVDPlayerCodec();
+  else if (strFileType.Equals("opus"))
+    return new DVDPlayerCodec();
 
   return NULL;
 }
