@@ -148,6 +148,7 @@ CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" \
 	--enable-encoder=aac \
 	--enable-encoder=wmav2 \
 	--enable-protocol=http \
+	--enable-libopus \
 	--enable-libvorbis \
 	--enable-muxer=ogg \
 	--enable-encoder=libvorbis \
