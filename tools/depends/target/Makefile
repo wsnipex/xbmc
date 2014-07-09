@@ -9,7 +9,7 @@ DEPENDS = \
 	libgcrypt bzip2 liblzo2 libzip freetype2 fontconfig \
 	openssl gmp nettle gnutls libssh2 curl \
 	libjpeg-turbo tiff jasper libpng \
-	libogg libvorbis libflac fribidi libmpeg2 \
+	libogg libvorbis libflac opus fribidi libmpeg2 \
 	libass \
 	libmodplug librtmp libxml2 yajl libmicrohttpd mysql libffi \
 	python26 afpfs-ng libshairplay \
@@ -97,7 +97,7 @@ nettle: gmp
 pythonmodule-pil: $(ZLIB) libjpeg-turbo libpng freetype2 python26
 libsdl: $(LINUX_SYSTEM_LIBS)
 libxslt: libgcrypt
-ffmpeg: $(ICONV) $(ZLIB) bzip2 libvorbis $(FFMPEG_DEPENDS)
+ffmpeg: $(ICONV) $(ZLIB) bzip2 libvorbis opus $(FFMPEG_DEPENDS)
 
 .installed-$(PLATFORM): $(DEPENDS)
 	touch $@

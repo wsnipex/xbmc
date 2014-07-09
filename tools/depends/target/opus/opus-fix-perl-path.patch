@@ -1,0 +1,12 @@
+--- configure.ac	2014-07-10 11:33:11.570411787 +0200
++++ configure.ac	2014-07-10 11:30:59.874411261 +0200
+@@ -229,7 +229,7 @@
+                 ])
+             ])
+             dnl We need Perl to translate RVCT-syntax asm to gas syntax.
+-            AC_CHECK_PROG([HAVE_PERL], perl, yes, no)
++            AC_CHECK_PROG([HAVE_PERL], perl, yes, no, [path = $(dirname $SYSTEM_PERL):$PATH])
+             AS_IF([test x"$HAVE_PERL" = x"yes"],[
+                 AM_CONDITIONAL([OPUS_ARM_EXTERNAL_ASM],[true])
+                 asm_optimization="ARM"
+
