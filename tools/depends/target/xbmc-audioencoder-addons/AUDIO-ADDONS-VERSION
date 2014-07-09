@@ -1,6 +1,0 @@
-BASE_URL=https://github.com/jmarshallnz
-ADDONS=audioencoder.flac audioencoder.lame audioencoder.vorbis audioencoder.wav
-audioencoder.flac-VERSION=alternate_api
-audioencoder.lame-VERSION=alternate_api
-audioencoder.vorbis-VERSION=badbf297778d7f18a15621b2bf50aa9c1a29a388
-audioencoder.wav-VERSION=master
