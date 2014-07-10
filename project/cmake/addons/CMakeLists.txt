@@ -70,7 +70,6 @@ endif()
 if (NOT DEFINED APP_VERSION_MAJOR OR NOT DEFINED APP_VERSION_MINOR)
   message(FATAL_ERROR "Could not determine app version! make sure that ${XBMCROOT}/version.txt exists")
 endif()
-list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX})
 
 ### copy all the addon binding header files to include/xbmc
 # make sure include/xbmc exists and is empty
@@ -79,40 +78,27 @@ if(NOT EXISTS "${XBMC_LIB_DIR}/")
   file(MAKE_DIRECTORY ${XBMC_LIB_DIR})
 endif()
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  # We use the addon headers from the Xbmc source tree directly
-  # We also do not install them with the addons
-  list(APPEND BUILD_ARGS -Dxbmc_DIR=${PROJECT_SOURCE_DIR}/..)
-  list(APPEND BUILD_ARGS -DCMAKE_MODULE_PATH=${PROJECT_SOURCE_DIR}/..)
-  set(XBMC_INCLUDE_DIR ${XBMCROOT}/xbmc/addons)
-
-  # generate the proper xbmc-config.cmake file
-  get_filename_component(prefix "${XBMC_INCLUDE_DIR}" ABSOLUTE)
-  configure_file(${XBMCROOT}/project/cmake/xbmc-config.cmake.in ${XBMCROOT}/project/cmake/xbmc-config.cmake @ONLY)
-else()
-  set(XBMC_INCLUDE_DIR ${DEPENDS_PATH}/include/xbmc)
-  if(NOT EXISTS "${XBMC_INCLUDE_DIR}/")
-    file(MAKE_DIRECTORY ${XBMC_INCLUDE_DIR})
-  endif()
-
-  # generate the proper xbmc-config.cmake file
-  configure_file(${XBMCROOT}/project/cmake/xbmc-config.cmake.in ${XBMC_LIB_DIR}/xbmc-config.cmake @ONLY)
-  # copy cmake helpers to lib/xbmc
-  file(COPY ${XBMCROOT}/project/cmake/xbmc-addon-helpers.cmake ${XBMCROOT}/project/cmake/AddOptions.cmake DESTINATION ${XBMC_LIB_DIR})
-
-  ### copy all the addon binding header files to include/xbmc
-  # parse addon-bindings.mk to get the list of header files to copy
-  file(STRINGS ${XBMCROOT}/xbmc/addons/addon-bindings.mk bindings)
-  string(REPLACE "\n" ";" bindings "${bindings}")
-  foreach(binding ${bindings})
-    string(REPLACE " =" ";" binding "${binding}")
-    string(REPLACE "+=" ";" binding "${binding}")
-    list(GET binding 1 header)
-    # copy the header file to include/xbmc
-    file(COPY ${XBMCROOT}/${header} DESTINATION ${XBMC_INCLUDE_DIR})
-  endforeach()
+set(XBMC_INCLUDE_DIR ${DEPENDS_PATH}/include/xbmc)
+if(NOT EXISTS "${XBMC_INCLUDE_DIR}/")
+  file(MAKE_DIRECTORY ${XBMC_INCLUDE_DIR})
 endif()
 
+# generate the proper xbmc-config.cmake file
+configure_file(${XBMCROOT}/project/cmake/xbmc-config.cmake.in ${XBMC_LIB_DIR}/xbmc-config.cmake @ONLY)
+# copy cmake helpers to lib/xbmc
+file(COPY ${XBMCROOT}/project/cmake/xbmc-addon-helpers.cmake ${XBMCROOT}/project/cmake/AddOptions.cmake DESTINATION ${XBMC_LIB_DIR})
+
+### copy all the addon binding header files to include/xbmc
+# parse addon-bindings.mk to get the list of header files to copy
+file(STRINGS ${XBMCROOT}/xbmc/addons/addon-bindings.mk bindings)
+string(REPLACE "\n" ";" bindings "${bindings}")
+foreach(binding ${bindings})
+  string(REPLACE " =" ";" binding "${binding}")
+  string(REPLACE "+=" ";" binding "${binding}")
+  list(GET binding 1 header)
+  # copy the header file to include/xbmc
+  file(COPY ${XBMCROOT}/${header} DESTINATION ${XBMC_INCLUDE_DIR})
+endforeach()
 
 ### get and build all the binary addons
 # look for all the addons to be built
