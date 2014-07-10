@@ -7,8 +7,8 @@ VERSION=1.1
 SOURCE=$(LIBNAME)-$(VERSION)
 ARCHIVE=$(SOURCE).tar.gz
 
-# RPI, probably also needed for ATV2
-ifeq ($(CPU)), arm1176jzf-s)
+# Use lower quality but faster optimizations on embedded
+ifeq ($(findstring arm, $(CPU)), arm)
   EXTRA_OPTS = --enable-fixed-point --enable-float-approx
 endif
 
