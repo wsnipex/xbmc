@@ -88,3 +88,4 @@ export LIBTOOLIZE=@prefix@/@tool_dir@/bin/libtoolize
 export AUTORECONF=@prefix@/@tool_dir@/bin/autoreconf
 export JSON_BUILDER=$(NATIVEPREFIX)/bin/JsonSchemaBuilder
 
+export SYSTEM_PERL=@SYSTEM_PERL@

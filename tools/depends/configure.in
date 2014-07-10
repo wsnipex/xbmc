@@ -72,6 +72,8 @@ if test "x$TAR" = "xno" ; then
   AC_MSG_ERROR("Missing program: tar")
 fi
 
+AC_PATH_PROG(SYSTEM_PERL,perl,"")
+
 use_host=$host_alias
 
 if test "x$host" = "x$build"; then
