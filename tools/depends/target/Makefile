@@ -15,7 +15,7 @@ DEPENDS = \
 	python26 afpfs-ng libshairplay \
 	libplist libcec libbluray boost tinyxml dummy-libxbmc \
 	libamplayer libssh taglib libusb libnfs libmp3lame \
-	xbmc-pvr-addons xbmc-audioencoder-addons \
+	xbmc-pvr-addons xbmc-audioencoder-addons xbmc-screensaver-addons \
 	pythonmodule-pil libxslt ffmpeg
 
 ifeq ($(ENABLE_GPLV3),1)
@@ -87,8 +87,6 @@ afpfs-ng: libgcrypt $(ICONV)
 libplist: libxml2 $(ZLIB)
 libbluray: $(ICONV) libxml2
 libssh: openssl
-xbmc-pvr-addons: boost mysql
-xbmc-audioencoder-addons: libvorbis libflac libmp3lame libogg
 mysql: openssl
 libzip: $(ZLIB)
 libmp3lame: $(ICONV)
@@ -100,6 +98,9 @@ pythonmodule-pil: $(ZLIB) libjpeg-turbo libpng freetype2 python26
 libsdl: $(LINUX_SYSTEM_LIBS)
 libxslt: libgcrypt
 ffmpeg: $(ICONV) $(ZLIB) bzip2 libvorbis $(FFMPEG_DEPENDS)
+xbmc-pvr-addons: boost mysql
+xbmc-audioencoder-addons: libvorbis libflac libmp3lame libogg
+xbmc-screensaver-addons: libpng $(LINUX_SYSTEM_LIBS)
 
 .installed-$(PLATFORM): $(DEPENDS)
 	touch $@
