@@ -11,6 +11,7 @@ BINDINGS+=xbmc/addons/include/xbmc_scr_dll.h
 BINDINGS+=xbmc/addons/include/xbmc_scr_types.h
 BINDINGS+=xbmc/addons/include/xbmc_vis_dll.h
 BINDINGS+=xbmc/addons/include/xbmc_vis_types.h
+BINDINGS+=xbmc/addons/include/xbmc_codec_descriptor.hpp
 BINDINGS+=xbmc/addons/include/xbmc_stream_utils.hpp
 BINDINGS+=addons/library.xbmc.addon/libXBMC_addon.h
 BINDINGS+=addons/library.xbmc.gui/libXBMC_gui.h
