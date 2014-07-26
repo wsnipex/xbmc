@@ -212,36 +212,6 @@ LIB_DIRS += lib/cmyth
 CMYTH=cmyth
 endif
 
-ifneq (@DISABLE_SPECTRUM@,1)
-  VIS_DIRS+= xbmc/visualizations/OpenGLSpectrum
-else
-  INSTALL_FILTER+= .*visualization\.glspectrum.*
-endif
-
-ifneq (@DISABLE_WAVEFORM@,1)
-  VIS_DIRS+= xbmc/visualizations/WaveForm
-else
-  INSTALL_FILTER+= .*visualization\.waveform.*
-endif
-
-ifneq (@DISABLE_FISHBMC@,1)
-  VIS_DIRS+= xbmc/visualizations/fishBMC
-else
-  INSTALL_FILTER+= .*visualization\.fishbmc.*
-endif
-
-ifneq (@DISABLE_PROJECTM@,1)
-  VIS_DIRS+= xbmc/visualizations/XBMCProjectM
-else
-  INSTALL_FILTER+= .*visualization\.projectm.*
-endif
-
-ifneq (@DISABLE_GOOM@,1)
-  VIS_DIRS+=xbmc/visualizations/Goom
-else
-  INSTALL_FILTER+= .*visualization\.goom.*
-endif
-
 LIBADDON_DIRS=\
 	lib/addons/library.xbmc.addon \
 	lib/addons/library.xbmc.codec \
@@ -322,7 +292,7 @@ all : $(FINAL_TARGETS)
 
 include Makefile.include
 
-.PHONY : dllloader exports visualizations eventclients papcodecs \
+.PHONY : dllloader exports eventclients papcodecs \
 	dvdpcodecs dvdpextcodecs imagelib codecs externals force skins libaddon check \
 	testframework testsuite
 
@@ -371,11 +341,6 @@ dllloader: exports xbmc/cores/DllLoader/dllloader.a
 ifeq (@USE_OPENGLES@,1)
 EGLHELPERS=xbmc/visualizations/EGLHelpers/eglhelpers.a
 endif
-
-$(VIS_DIRS): force exports $(EGLHELPERS)
-	$(MAKE) -C $@
-
-visualizations: $(VIS_DIRS)
 
 libaddon: exports
 	$(MAKE) -C lib/addons/library.xbmc.addon
@@ -435,10 +400,10 @@ codecs: papcodecs dvdpcodecs dvdpextcodecs
 
 libs: libhdhomerun imagelib libexif system/libcpluff-@ARCH@.so $(CMYTH)
 
-externals: codecs libs visualizations libaddon pvraddons
+externals: codecs libs libaddon pvraddons
 
 xcode_depends: \
-	codecs libs visualizations eventclients skins libaddon \
+	codecs libs eventclients skins libaddon \
 	lib/libsquish/libsquish.a \
 	lib/libRTV/librtv.a \
 	lib/libXDAAP/libxdaap.a \
@@ -490,7 +455,7 @@ OBJSXBMC:=$(filter-out $(DYNOBJSXBMC), $(OBJSXBMC))
 BIN_DIRS = $(dir $(DIRECTORY_ARCHIVES)) $(dir $(NWAOBJSXBMC)) $(dir $(MAINOBJS))
 
 DIRS= $(BIN_DIRS) $(EC_DIRS) $(XBMCTEX_DIRS) $(DVDPCODECS_DIRS) $(PAPCODECS_DIRS) \
-	$(LIB_DIRS) $(VIS_DIRS) $(LIBADDON_DIRS) $(SKIN_DIRS) xbmc/main
+	$(LIB_DIRS) $(LIBADDON_DIRS) $(SKIN_DIRS) xbmc/main
 
 $(NWAOBJSXBMC) $(DIRECTORY_ARCHIVES) $(MAINOBJS): force
 	@$(MAKE) $(if $(V),,-s) -C $(@D)
@@ -661,8 +626,6 @@ clean-papcodecs:
 	for d in $(PAPCODECS_DIRS); do if test -f $$d/Makefile; then $(MAKE) -C $$d clean; fi; done
 clean-libs:
 	for d in $(LIB_DIRS); do if test -f $$d/Makefile; then $(MAKE) -C $$d clean; fi; done
-clean-visualisations:
-	for d in $(VIS_DIRS); do if test -f $$d/Makefile; then $(MAKE) -C $$d clean; fi; done
 clean-libaddons:
 	for d in $(LIBADDON_DIRS); do if test -f $$d/Makefile; then $(MAKE) -C $$d clean; fi; done
 clean-pvraddons:
@@ -673,7 +636,7 @@ endif
 clean-codecs: clean-dvdpcodecs clean-papcodecs
 
 clean-externals: clean-codecs clean-eventclients clean-xbmctex clean-libs \
-	clean-visualisations clean-libaddons clean-pvraddons
+	clean-libaddons clean-pvraddons
 
 ifeq (1,@GTEST_CONFIGURED@)
 check: testsuite

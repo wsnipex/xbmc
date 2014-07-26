@@ -1,5 +1,4 @@
 BOOTSTRAP_SUBDIRS += configure.in
-BOOTSTRAP_SUBDIRS += xbmc/visualizations/Goom/goom2k4-0/configure.in
 BOOTSTRAP_SUBDIRS += lib/cpluff/configure.ac
 BOOTSTRAP_SUBDIRS += lib/gtest/configure.ac
 
