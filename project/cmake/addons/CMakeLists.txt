@@ -142,21 +142,6 @@ message(STATUS "${id}_DEPENDS_DIR ${${id}_DEPENDS_DIR}")
 if(EXISTS ${${id}_DEPENDS_DIR})
   include(${XBMCROOT}/project/cmake/scripts/common/handle-depends.cmake)
   add_addon_depends(${${id}_DEPENDS_DIR})
-
-# file(GLOB_RECURSE depend ${${id}_DEPENDS_DIR}/*.txt)  
-# file(STRINGS ${depend} def_dep)
-# separate_arguments(def_dep)
-# list(GET def_dep 0 id_dep)
-# get_filename_component(dir ${addon} PATH)
-# list(GET def_dep 1 url_dep)
-# list(GET def_dep 2 revision_dep)
-# message(STATUS "depends: ${depend} url: ${url_dep} revision: ${revision_dep}")
-# externalproject_add(${id_dep}
-#                    GIT_REPOSITORY ${url_dep}
-#                    GIT_TAG ${revision_dep}
-#                    INSTALL_DIR "${CMAKE_INSTALL_PREFIX}"
-#                    CMAKE_ARGS ${BUILD_ARGS}
-#                    )
 endif()
 
       endif()
