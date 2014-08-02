@@ -38,7 +38,7 @@ if(NOT WIN32)
   endif()
 endif()
 
-if(NOT CMAKE_INSTALL_PREFIX)
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT OR NOT CMAKE_INSTALL_PREFIX)
   set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/output/addons")
 endif()
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX})
@@ -121,12 +121,44 @@ foreach(addon ${addons})
         list(GET def 2 revision)
 
         # add the addon as an external project for automatic building
+#        externalproject_add(${id}
+#                          GIT_REPOSITORY ${url}
+#                          GIT_TAG ${revision}
+#                          INSTALL_DIR "${CMAKE_INSTALL_PREFIX}"
+#                          CMAKE_ARGS ${BUILD_ARGS}
+#                         )
         externalproject_add(${id}
                           GIT_REPOSITORY ${url}
                           GIT_TAG ${revision}
-                          INSTALL_DIR "${CMAKE_INSTALL_PREFIX}"
-                          CMAKE_ARGS ${BUILD_ARGS}
+                          CONFIGURE_COMMAND ""
+                          BUILD_COMMAND ""
+                          INSTALL_COMMAND ""
                          )
+
+ExternalProject_Get_Property(${id} SOURCE_DIR)
+set(${id}_DEPENDS_DIR ${SOURCE_DIR}/depends)
+message(STATUS "${id}_DEPENDS_DIR ${${id}_DEPENDS_DIR}")
+
+if(EXISTS ${${id}_DEPENDS_DIR})
+  include(${XBMCROOT}/project/cmake/scripts/common/handle-depends.cmake)
+  add_addon_depends(${${id}_DEPENDS_DIR})
+
+# file(GLOB_RECURSE depend ${${id}_DEPENDS_DIR}/*.txt)  
+# file(STRINGS ${depend} def_dep)
+# separate_arguments(def_dep)
+# list(GET def_dep 0 id_dep)
+# get_filename_component(dir ${addon} PATH)
+# list(GET def_dep 1 url_dep)
+# list(GET def_dep 2 revision_dep)
+# message(STATUS "depends: ${depend} url: ${url_dep} revision: ${revision_dep}")
+# externalproject_add(${id_dep}
+#                    GIT_REPOSITORY ${url_dep}
+#                    GIT_TAG ${revision_dep}
+#                    INSTALL_DIR "${CMAKE_INSTALL_PREFIX}"
+#                    CMAKE_ARGS ${BUILD_ARGS}
+#                    )
+endif()
+
       endif()
     endif()
   endif()
