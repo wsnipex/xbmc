@@ -127,19 +127,6 @@ foreach(addon ${addons})
                           INSTALL_DIR "${CMAKE_INSTALL_PREFIX}"
                           CMAKE_ARGS ${BUILD_ARGS}
                          )
-#        externalproject_add(${id}
-#                          GIT_REPOSITORY ${url}
-#                          GIT_TAG ${revision}
-#                          CONFIGURE_COMMAND ""
-#                          BUILD_COMMAND ""
-#                          INSTALL_COMMAND ""
-#                         )
-#        file(MAKE_DIRECTORY ${CMAKE_INSTALL_PREFIX})
-#        get_filename_component(${id}_tarball ${url} NAME)
-#message(FATAL_ERROR "filename: ${${id}_tarball}")
-#        #file(DOWNLOAD ${url} ${DEPENDS_PATH}/${id}_tarball SHOW_PROGRESS)
-#        file(DOWNLOAD ${url} ${CMAKE_INSTALL_PREFIX}/${id}_tarball SHOW_PROGRESS)
-#        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf ${CMAKE_INSTALL_PREFIX}/${${id}_tarball})
 
 ExternalProject_Get_Property(${id} SOURCE_DIR)
 set(${id}_DEPENDS_DIR ${SOURCE_DIR}/depends)
@@ -147,7 +134,8 @@ message(STATUS "${id}_DEPENDS_DIR ${${id}_DEPENDS_DIR}")
 
 if(EXISTS ${${id}_DEPENDS_DIR})
   include(${XBMCROOT}/project/cmake/scripts/common/handle-depends.cmake)
-  add_addon_depends(${${id}_DEPENDS_DIR})
+  add_addon_depends(${id} ${${id}_DEPENDS_DIR})
+#  add_dependencies(${id} ${${id}_DEPENDS_DIR})
 endif()
 
       endif()

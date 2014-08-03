@@ -1,5 +1,5 @@
 # handle addon depends
-function(add_addon_depends searchpath)
+function(add_addon_depends addon searchpath)
   # input: string searchpath 
 
   set(OUTPUT_DIR ${DEPENDS_PATH})
@@ -144,6 +144,7 @@ function(add_addon_depends searchpath)
                           "${EXTERNALPROJECT_SETUP}"
                          )
     endif()
+   add_dependencies(${addon} ${id})
    endif()
   endforeach()
 endfunction()
