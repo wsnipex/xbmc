@@ -134,6 +134,12 @@ foreach(addon ${addons})
                           BUILD_COMMAND ""
                           INSTALL_COMMAND ""
                          )
+#        file(MAKE_DIRECTORY ${CMAKE_INSTALL_PREFIX})
+#        get_filename_component(${id}_tarball ${url} NAME)
+#message(FATAL_ERROR "filename: ${${id}_tarball}")
+#        #file(DOWNLOAD ${url} ${DEPENDS_PATH}/${id}_tarball SHOW_PROGRESS)
+#        file(DOWNLOAD ${url} ${CMAKE_INSTALL_PREFIX}/${id}_tarball SHOW_PROGRESS)
+#        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf ${CMAKE_INSTALL_PREFIX}/${${id}_tarball})
 
 ExternalProject_Get_Property(${id} SOURCE_DIR)
 set(${id}_DEPENDS_DIR ${SOURCE_DIR}/depends)

@@ -42,6 +42,7 @@ function(add_addon_depends searchpath)
     endif()
 
     set(BUILD_ARGS -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+                   -DOUTPUT_DIR=${DEPENDS_PATH}
                    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                    -DCMAKE_USER_MAKE_RULES_OVERRIDE=${CMAKE_USER_MAKE_RULES_OVERRIDE}
                    -DCMAKE_USER_MAKE_RULES_OVERRIDE_CXX=${CMAKE_USER_MAKE_RULES_OVERRIDE_CXX}
@@ -122,10 +123,18 @@ function(add_addon_depends searchpath)
       else()
         externalproject_add(${id}
                             URL ${url}
-                            CONFIGURE_COMMAND PKG_CONFIG_PATH=${OUTPUT_DIR}/lib/pkgconfig
-                                ${CMAKE_COMMAND} ${CMAKE_BINARY_DIR}/build/${id}/src/${id}
-                                -DOUTPUT_DIR=${OUTPUT_DIR}
-                                -DCMAKE_PREFIX_PATH=${OUTPUT_DIR}
+                            CONFIGURE_COMMAND PKG_CONFIG_PATH=${OUTPUT_DIR}/lib/pkgconfig 
+                                            LD_RUN_PATH=${OUTPUT_DIR}/lib
+                                            LDFLAGS="-L${OUTPUT_DIR}/lib"
+                                            CFLAGS="-L${OUTPUT_DIR}/lib"
+                                            CPPFLAGS="-L${OUTPUT_DIR}/lib"
+                                            ${CMAKE_COMMAND}
+                                            ${CMAKE_BINARY_DIR}/build/${id}/src/${id}
+                                            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+                                            -DOUTPUT_DIR=${OUTPUT_DIR}
+                                            -DCMAKE_PREFIX_PATH=${OUTPUT_DIR}
+                                            -DCMAKE_INSTALL_PREFIX=${OUTPUT_DIR}
+                                            -DCMAKE_EXE_LINKER_FLAGS=-L${OUTPUT_DIR}/lib
                             "${EXTERNALPROJECT_SETUP}"
                            )
       endif()
@@ -134,12 +143,8 @@ function(add_addon_depends searchpath)
                           SOURCE_DIR ${dir}
                           "${EXTERNALPROJECT_SETUP}"
                          )
-      endif()
     endif()
+   endif()
   endforeach()
-
-
-
-
 endfunction()
 
