@@ -121,19 +121,19 @@ foreach(addon ${addons})
         list(GET def 2 revision)
 
         # add the addon as an external project for automatic building
-#        externalproject_add(${id}
-#                          GIT_REPOSITORY ${url}
-#                          GIT_TAG ${revision}
-#                          INSTALL_DIR "${CMAKE_INSTALL_PREFIX}"
-#                          CMAKE_ARGS ${BUILD_ARGS}
-#                         )
         externalproject_add(${id}
                           GIT_REPOSITORY ${url}
                           GIT_TAG ${revision}
-                          CONFIGURE_COMMAND ""
-                          BUILD_COMMAND ""
-                          INSTALL_COMMAND ""
+                          INSTALL_DIR "${CMAKE_INSTALL_PREFIX}"
+                          CMAKE_ARGS ${BUILD_ARGS}
                          )
+#        externalproject_add(${id}
+#                          GIT_REPOSITORY ${url}
+#                          GIT_TAG ${revision}
+#                          CONFIGURE_COMMAND ""
+#                          BUILD_COMMAND ""
+#                          INSTALL_COMMAND ""
+#                         )
 #        file(MAKE_DIRECTORY ${CMAKE_INSTALL_PREFIX})
 #        get_filename_component(${id}_tarball ${url} NAME)
 #message(FATAL_ERROR "filename: ${${id}_tarball}")
