@@ -25,7 +25,11 @@
 #include "system.h"
 
 #ifdef HAS_SDL
-#include <SDL/SDL_events.h>
+#ifdef TARGET_DARWIN
+#include <SDL/SDL.h>
+#else
+#include <SDL2/SDL.h>
+#endif
 
 #include "WinEvents.h"
 
