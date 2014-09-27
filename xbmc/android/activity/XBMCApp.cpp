@@ -86,6 +86,7 @@ void* thread_run(void* obj)
 }
 CEvent CXBMCApp::m_windowCreated;
 ANativeActivity *CXBMCApp::m_activity = NULL;
+CJNIWakeLock *CXBMCApp::m_wakeLock = NULL;
 ANativeWindow* CXBMCApp::m_window = NULL;
 int CXBMCApp::m_batteryLevel = 0;
 int CXBMCApp::m_initialVolume = 0;
@@ -96,9 +97,17 @@ std::vector<androidPackage> CXBMCApp::m_applications;
 CXBMCApp::CXBMCApp(ANativeActivity* nativeActivity)
   : CJNIContext(nativeActivity)
   , CJNIBroadcastReceiver("org/xbmc/kodi/XBMCBroadcastReceiver")
-  , m_wakeLock(NULL)
 {
   m_activity = nativeActivity;
+  std::string appName = CCompileInfo::GetAppName();
+  StringUtils::ToLower(appName);
+  std::string className = "org.xbmc." + appName;
+  m_wakeLock = new CJNIWakeLock(CJNIPowerManager(getSystemService("power")).newWakeLock(className.c_str()));
+
+  if (m_wakeLock)
+    m_wakeLock->setReferenceCounted(false);
+  EnableWakeLock(true);
+
   m_firstrun = true;
   m_exiting=false;
   if (m_activity == NULL)
@@ -111,6 +120,7 @@ CXBMCApp::CXBMCApp(ANativeActivity* nativeActivity)
 
 CXBMCApp::~CXBMCApp()
 {
+  delete m_wakeLock;
 }
 
 void CXBMCApp::onStart()
@@ -179,12 +189,6 @@ void CXBMCApp::onDestroy()
     pthread_join(m_thread, NULL);
     android_printf(" => XBMC finished");
   }
-
-  if (m_wakeLock != NULL && m_activity != NULL)
-  {
-    delete m_wakeLock;
-    m_wakeLock = NULL;
-  }
 }
 
 void CXBMCApp::onSaveState(void **data, size_t *size)
@@ -215,8 +219,6 @@ void CXBMCApp::onCreateWindow(ANativeWindow* window)
   }
   m_window = window;
   m_windowCreated.Set();
-  if (getWakeLock() &&  m_wakeLock)
-    m_wakeLock->acquire();
   if(!m_firstrun)
   {
     XBMC_SetupDisplay();
@@ -242,10 +244,6 @@ void CXBMCApp::onDestroyWindow()
     XBMC_DestroyDisplay();
     XBMC_Pause(true);
   }
-
-  if (m_wakeLock)
-    m_wakeLock->release();
-
 }
 
 void CXBMCApp::onGainFocus()
@@ -258,15 +256,15 @@ void CXBMCApp::onLostFocus()
   android_printf("%s: ", __PRETTY_FUNCTION__);
 }
 
-bool CXBMCApp::getWakeLock()
+bool CXBMCApp::EnableWakeLock(bool on)
 {
-  if (m_wakeLock)
-    return true;
+  if (!m_wakeLock)
+    return false;
 
-  std::string appName = CCompileInfo::GetAppName();
-  StringUtils::ToLower(appName);
-  std::string className = "org.xbmc." + appName;
-  m_wakeLock = new CJNIWakeLock(CJNIPowerManager(getSystemService("power")).newWakeLock(className.c_str()));
+  if (on)
+    m_wakeLock->acquire();
+  else if (m_wakeLock->isHeld())
+    m_wakeLock->release();
 
   return true;
 }
