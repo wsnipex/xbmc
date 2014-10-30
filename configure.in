@@ -118,6 +118,7 @@ AC_DEFUN([XB_PUSH_FLAGS], [
 # version can be overridden by setting the following as ENV vars when running configure
 APP_NAME=${APP_NAME-$(${AWK} '/APP_NAME/ {print $2}' version.txt)}
 APP_NAME_LC=$(echo $APP_NAME | ${AWK} '{print tolower($0)}')
+APP_NAME_UC=$(echo $APP_NAME | ${AWK} '{print toupper($0)}')
 APP_VERSION_MAJOR=${APP_VERSION_MAJOR-$(${AWK} '/VERSION_MAJOR/ {print $2}' version.txt)}
 APP_VERSION_MINOR=${APP_VERSION_MINOR-$(${AWK} '/VERSION_MINOR/ {print $2}' version.txt)}
 APP_VERSION_TAG=${APP_VERSION_TAG-$(${AWK} '/VERSION_TAG/ {print $2}' version.txt)}
@@ -129,6 +130,7 @@ if test "$APP_NAME" != "" && test "$APP_VERSION_MAJOR" != "" && test "$APP_VERSI
   final_message="$final_message\n  ${APP_NAME} Version:\t${APP_VERSION_MAJOR}.${APP_VERSION_MINOR}-${APP_VERSION_TAG}"
   AC_SUBST(APP_NAME)
   AC_SUBST(APP_NAME_LC)
+  AC_SUBST(APP_NAME_UC)
   AC_SUBST(APP_VERSION_MAJOR)
   AC_SUBST(APP_VERSION_MINOR)
   AC_SUBST(APP_VERSION_TAG)
@@ -2482,6 +2484,7 @@ OUTPUT_FILES="Makefile \
     tools/TexturePacker/Makefile \
     tools/EventClients/Makefile \
     tools/EventClients/Clients/OSXRemote/Makefile \
+    tools/EventClients/Clients/OSXRemote/XBMCHelper.m \
     xbmc/peripherals/bus/Makefile \
     xbmc/peripherals/devices/Makefile \
     xbmc/android/activity/Makefile \
@@ -2496,6 +2499,7 @@ OUTPUT_FILES="Makefile \
     tools/darwin/packaging/osx/mkdmg-osx.sh \
     tools/darwin/packaging/migrate_to_kodi_ios.sh \
     tools/darwin/packaging/seatbeltunlock/mkdeb-seatbeltunlock.sh \
+    tools/darwin/runtime/preflight \
     xbmc/osx/Info.plist \
     xbmc/osx/ios/XBMCIOS-Info.plist \
     xbmc/osx/atv2/XBMCATV2-Info.plist \

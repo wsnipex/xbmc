@@ -614,18 +614,25 @@ void CXBMCApp::SetupEnv()
   std::string appName = CCompileInfo::GetAppName();
   StringUtils::ToLower(appName);
   std::string className = "org.xbmc." + appName;
+  std::string envAppHome = appName + "_HOME";
+  StringUtils::ToUpper(envAppHome);
+  std::string envAppBinHome = appName + "_BIN_HOME";
+  StringUtils::ToUpper(envAppBinHome);
+  std::string envAppTemp = appName + "_TEMP";
+  StringUtils::ToUpper(envAppTemp);
+
 
   std::string xbmcHome = CJNISystem::getProperty("xbmc.home", "");
   if (xbmcHome.empty())
   {
     std::string cacheDir = getCacheDir().getAbsolutePath();
-    setenv("KODI_BIN_HOME", (cacheDir + "/apk/assets").c_str(), 0);
-    setenv("KODI_HOME", (cacheDir + "/apk/assets").c_str(), 0);
+    setenv(envAppBinHome.c_str(), (cacheDir + "/apk/assets").c_str(), 0);
+    setenv(envAppHome.c_str(), (cacheDir + "/apk/assets").c_str(), 0);
   }
   else
   {
-    setenv("KODI_BIN_HOME", (xbmcHome + "/assets").c_str(), 0);
-    setenv("KODI_HOME", (xbmcHome + "/assets").c_str(), 0);
+    setenv(envAppBinHome.c_str(), (xbmcHome + "/assets").c_str(), 0);
+    setenv(envAppHome.c_str(), (xbmcHome + "/assets").c_str(), 0);
   }
 
   std::string externalDir = CJNISystem::getProperty("xbmc.data", "");
@@ -642,7 +649,7 @@ void CXBMCApp::SetupEnv()
   if (!externalDir.empty())
     setenv("HOME", externalDir.c_str(), 0);
   else
-    setenv("HOME", getenv("KODI_TEMP"), 0);
+    setenv("HOME", getenv(envAppTemp.c_str()), 0);
 }
 
 std::string CXBMCApp::GetFilenameFromIntent(const CJNIIntent &intent)

@@ -472,6 +472,7 @@ lib/cpluff/stamp-h1
 /tools/EventClients/Makefile
 /tools/EventClients/Clients/OSXRemote/Makefile
 /tools/EventClients/Clients/OSXRemote/build/
+/tools/EventClients/Clients/OSXRemote/XBMCHelper.m
 /tools/EventClients/Clients/WiiRemote/WiiRemote
 
 # /tools/darwin/
@@ -482,6 +483,7 @@ lib/cpluff/stamp-h1
 /tools/darwin/packaging/osx/mkdmg-osx.sh
 /tools/darwin/packaging/migrate_to_kodi_ios.sh
 /tools/darwin/packaging/seatbeltunlock/mkdeb-seatbeltunlock.sh
+/tools/darwin/runtime/preflight
 
 # /tools/Linux/
 /tools/Linux/kodi.sh

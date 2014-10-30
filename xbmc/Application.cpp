@@ -585,9 +585,12 @@ void CApplication::Preflight()
   // run any platform preflight scripts.
 #if defined(TARGET_DARWIN_OSX)
   CStdString install_path;
+  std::string appName = CCompileInfo::GetAppName();
+  std::string envAppHome = appName + "_HOME";
+  StringUtils::ToUpper(envAppHome);
 
   CUtil::GetHomePath(install_path);
-  setenv("KODI_HOME", install_path.c_str(), 0);
+  setenv(envAppHome.c_str(), install_path.c_str(), 0);
   install_path += "/tools/darwin/runtime/preflight";
   system(install_path.c_str());
 #endif
@@ -1078,14 +1081,16 @@ bool CApplication::InitDirectoriesLinux()
   std::string appName = CCompileInfo::GetAppName();
   std::string dotLowerAppName = "." + appName;
   StringUtils::ToLower(dotLowerAppName);
-  const char* envAppHome = "KODI_HOME";
-  const char* envAppBinHome = "KODI_BIN_HOME";
-  const char* envAppTemp = "KODI_TEMP";
-
+  std::string envAppHome = appName + "_HOME";
+  StringUtils::ToUpper(envAppHome);
+  std::string envAppBinHome = appName + "_BIN_HOME";
+  StringUtils::ToUpper(envAppBinHome);
+  std::string envAppTemp = appName + "_TEMP";
+  StringUtils::ToUpper(envAppTemp);
 
   CUtil::GetHomePath(appBinPath, envAppBinHome);
-  if (getenv(envAppHome))
-    appPath = getenv(envAppHome);
+  if (getenv(envAppHome.c_str()))
+    appPath = getenv(envAppHome.c_str());
   else
   {
     appPath = appBinPath;
@@ -1104,8 +1109,8 @@ bool CApplication::InitDirectoriesLinux()
   }
 
   /* Set some environment variables */
-  setenv(envAppBinHome, appBinPath.c_str(), 0);
-  setenv(envAppHome, appPath.c_str(), 0);
+  setenv(envAppBinHome.c_str(), appBinPath.c_str(), 0);
+  setenv(envAppHome.c_str(), appPath.c_str(), 0);
 
   if (m_bPlatformDirectories)
   {
@@ -1117,8 +1122,8 @@ bool CApplication::InitDirectoriesLinux()
 
     CStdString strTempPath = userHome;
     strTempPath = URIUtils::AddFileToFolder(strTempPath, dotLowerAppName + "/temp");
-    if (getenv(envAppTemp))
-      strTempPath = getenv(envAppTemp);
+    if (getenv(envAppTemp.c_str()))
+      strTempPath = getenv(envAppTemp.c_str());
     CSpecialProtocol::SetTempPath(strTempPath);
 
     URIUtils::AddSlashAtEnd(strTempPath);
@@ -1139,8 +1144,8 @@ bool CApplication::InitDirectoriesLinux()
 
     CStdString strTempPath = appPath;
     strTempPath = URIUtils::AddFileToFolder(strTempPath, "portable_data/temp");
-    if (getenv(envAppTemp))
-      strTempPath = getenv(envAppTemp);
+    if (getenv(envAppTemp.c_str()))
+      strTempPath = getenv(envAppTemp.c_str());
     CSpecialProtocol::SetTempPath(strTempPath);
     CreateUserDirs();
 
@@ -1171,7 +1176,11 @@ bool CApplication::InitDirectoriesOSX()
 
   std::string appPath;
   CUtil::GetHomePath(appPath);
-  setenv("KODI_HOME", appPath.c_str(), 0);
+  std::string appName = CCompileInfo::GetAppName();
+  std::string envAppHome = appName + "_HOME";
+  StringUtils::ToUpper(envAppHome);
+
+  setenv(envAppHome.c_str(), appPath.c_str(), 0);
 
 #if defined(TARGET_DARWIN_IOS)
   CStdString fontconfigPath;
@@ -1190,7 +1199,6 @@ bool CApplication::InitDirectoriesOSX()
     CSpecialProtocol::SetXBMCBinPath(appPath);
     CSpecialProtocol::SetXBMCPath(appPath);
     #if defined(TARGET_DARWIN_IOS)
-      std::string appName = CCompileInfo::GetAppName();
       CSpecialProtocol::SetHomePath(userHome + "/" + CDarwinUtils::GetAppRootFolder() + "/" + appName);
       CSpecialProtocol::SetMasterProfilePath(userHome + "/" + CDarwinUtils::GetAppRootFolder() + "/" + appName + "/userdata");
     #else
@@ -1251,7 +1259,13 @@ bool CApplication::InitDirectoriesWin32()
   CStdString xbmcPath;
 
   CUtil::GetHomePath(xbmcPath);
-  CEnvironment::setenv("KODI_HOME", xbmcPath);
+  std::string appName = CCompileInfo::GetAppName();
+  std::string envAppHome = appName + "_HOME";
+  StringUtils::ToUpper(envAppHome);
+  std::string envAppProfile = appName + "_PROFILE_USERDATA";
+  StringUtils::ToUpper(envAppProfile);
+
+  CEnvironment::setenv(envAppHome.c_str(), xbmcPath);
   CSpecialProtocol::SetXBMCBinPath(xbmcPath);
   CSpecialProtocol::SetXBMCPath(xbmcPath);
 
@@ -1262,7 +1276,7 @@ bool CApplication::InitDirectoriesWin32()
   CSpecialProtocol::SetMasterProfilePath(URIUtils::AddFileToFolder(strWin32UserFolder, "userdata"));
   CSpecialProtocol::SetTempPath(URIUtils::AddFileToFolder(strWin32UserFolder,"cache"));
 
-  CEnvironment::setenv("KODI_PROFILE_USERDATA", CSpecialProtocol::TranslatePath("special://masterprofile/"));
+  CEnvironment::setenv(envAppProfile.c_str(), CSpecialProtocol::TranslatePath("special://masterprofile/"));
 
   CreateUserDirs();
 

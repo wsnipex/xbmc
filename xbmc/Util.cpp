@@ -406,7 +406,12 @@ void CUtil::RunShortcut(const char* szShortcutPath)
 void CUtil::GetHomePath(std::string& strPath, const std::string& strTarget)
 {
   if (strTarget.empty())
-    strPath = CEnvironment::getenv("KODI_HOME");
+  {
+    std::string appName = CCompileInfo::GetAppName();
+    std::string envAppHome = appName + "_HOME";
+    StringUtils::ToUpper(envAppHome);
+    strPath = CEnvironment::getenv(envAppHome.c_str());
+  }
   else
     strPath = CEnvironment::getenv(strTarget);
 
