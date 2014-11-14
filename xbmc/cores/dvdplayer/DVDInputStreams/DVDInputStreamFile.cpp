@@ -24,6 +24,7 @@
 #include "settings/AdvancedSettings.h"
 #include "utils/log.h"
 #include "utils/URIUtils.h"
+#include "filesystem/CurlFile.h"
 
 using namespace XFILE;
 
@@ -80,6 +81,8 @@ bool CDVDInputStreamFile::Open(const char* strFile, const std::string& content)
   if (content == "video/mp4" || content == "video/x-msvideo" || content == "video/avi" || content == "video/x-matroska")
     flags |= READ_MULTI_STREAM;
 
+//  CCurlFile file;
+
   // open file in binary mode
   if (!m_pFile->Open(strFile, flags))
   {
@@ -90,6 +93,10 @@ bool CDVDInputStreamFile::Open(const char* strFile, const std::string& content)
 
   if (m_pFile->GetImplemenation() && (content.empty() || content == "application/octet-stream"))
     m_content = m_pFile->GetImplemenation()->GetContent();
+
+  //if(!.IsSeekable())
+  m_canSeek = m_item.IsSeekable();
+  CLog::Log(LOGINFO, "CDVDInputStreamFile: canseek: %i", m_canSeek);
 
   m_eof = false;
   return true;

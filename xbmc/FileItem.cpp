@@ -1339,6 +1339,16 @@ void CFileItem::FillInMimeType(bool lookup /*= true*/)
     StringUtils::Replace(m_strPath, "http:", "mms:");
 }
 
+bool CFileItem::IsSeekable()
+{
+  m_canSeek = false;
+  CCurlFile file;
+  if (file.Open(GetURL()))
+    m_canSeek = file.IsSeekable(GetURL());
+  file.Close();
+  return m_canSeek;
+}
+
 bool CFileItem::IsSamePath(const CFileItem *item) const
 {
   if (!item)

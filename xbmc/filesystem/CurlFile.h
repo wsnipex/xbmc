@@ -69,6 +69,7 @@ namespace XFILE
       bool ReadData(std::string& strHTML);
       bool Download(const std::string& strURL, const std::string& strFileName, LPDWORD pdwSize = NULL);
       bool IsInternet();
+      bool IsSeekable(const CURL &url)                           { return m_seekable; }
       void Cancel();
       void Reset();
       void SetUserAgent(const std::string& sUserAgent)           { m_userAgent = sUserAgent; }

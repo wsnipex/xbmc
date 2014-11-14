@@ -42,4 +42,5 @@ public:
 protected:
   XFILE::CFile* m_pFile;
   bool m_eof;
+  bool m_canSeek;
 };

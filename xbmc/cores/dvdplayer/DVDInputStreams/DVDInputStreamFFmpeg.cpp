@@ -85,6 +85,7 @@ bool CDVDInputStreamFFmpeg::Open(const char* strFile, const std::string& content
     m_can_pause = true;
     m_can_seek  = false;
   }
+
   return true;
 }
 

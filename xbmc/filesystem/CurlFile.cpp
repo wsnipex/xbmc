@@ -962,7 +962,7 @@ bool CCurlFile::Open(const CURL& url)
     || url2.IsProtocol("https"))
     {
       // if server says explicitly it can't seek, respect that
-      if(StringUtils::EqualsNoCase(m_state->m_httpheader.GetValue("Accept-Ranges"),"none"))
+      if(!StringUtils::EqualsNoCase(m_state->m_httpheader.GetValue("Accept-Ranges"),"bytes"))
         m_seekable = false;
     }
   }

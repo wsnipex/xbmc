@@ -426,6 +426,7 @@ public:
   bool IsSamePath(const CFileItem *item) const;
 
   bool IsAlbum() const;
+  bool IsSeekable();
 
   /*! \brief Sets details using the information from the CVideoInfoTag object
    Sets the videoinfotag and uses its information to set the label and path.
@@ -484,6 +485,7 @@ private:
   PVR::CPVRTimerInfoTag * m_pvrTimerInfoTag;
   CPictureInfoTag* m_pictureInfoTag;
   bool m_bIsAlbum;
+  bool m_canSeek;
 };
 
 /*!
