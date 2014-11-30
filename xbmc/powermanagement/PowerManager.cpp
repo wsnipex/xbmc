@@ -255,7 +255,7 @@ void CPowerManager::OnWake()
   if (dialog)
     dialog->Close();
 
-#if defined(HAS_SDL) || defined(TARGET_WINDOWS)
+#if defined(HAVE_X11) || defined(HAS_SDL) || defined(TARGET_WINDOWS)
   if (g_Windowing.IsFullScreen())
   {
 #if defined(TARGET_WINDOWS)
@@ -264,6 +264,7 @@ void CPowerManager::OnWake()
 #endif
   }
   g_application.ResetScreenSaver();
+  g_application.WakeUpScreenSaverAndDPMS(false);
 #endif
 
   // restart lirc
