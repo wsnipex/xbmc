@@ -118,13 +118,15 @@ bool GifHelper::LoadGifMetaData(GifFileType* file)
 {
   if (DGifSlurp(m_gif) == GIF_ERROR)
   {
-#if GIFLIB_MAJOR == 4
-    char* error = m_dll.GifErrorString();
-#else
+#if GIFLIB_MAJOR >= 5
     char* error = GifErrorString(m_gif->Error);
-#endif
     if (error)
       fprintf(stderr, "Gif::LoadGif(): Could not read file %s - %s", m_filename.c_str(), error);
+#else
+    int error = GifLastError();
+    if (error)
+      fprintf(stderr, "Gif::LoadGif(): Could not read file %s - %d", m_filename.c_str(), error);
+#endif
     else
       fprintf(stderr, "Gif::LoadGif(): Could not read file %s (reasons unknown)", m_filename.c_str());
     return false;
@@ -141,10 +143,9 @@ bool GifHelper::LoadGifMetaData(GifFileType* file)
   m_numFrames = m_gif->ImageCount;
   if (m_numFrames > 0)
   {
-#if GIFLIB_MAJOR == 5
+#if GIFLIB_MAJOR >= 5
     GraphicsControlBlock GCB;
     DGifSavedExtensionToGCB(m_gif, 0, &GCB);
-#endif
     ExtensionBlock* extb = m_gif->SavedImages[0].ExtensionBlocks;
     if (extb && extb->Function == APPLICATION_EXT_FUNC_CODE)
     {
@@ -154,6 +155,7 @@ bool GifHelper::LoadGifMetaData(GifFileType* file)
         m_loops = UNSIGNED_LITTLE_ENDIAN(extb->Bytes[1],extb->Bytes[2]);
       }
     }
+#endif
   }
   else
   {
@@ -179,21 +181,23 @@ bool GifHelper::LoadGifMetaData(const char* file)
   int err = 0;
   
   if (m_gifFile.Open(file))
-#if GIFLIB_MAJOR == 4
-    m_gif = DGifOpen(m_gifFile, ReadFromVfs);
-#else
+#if GIFLIB_MAJOR >= 5
     m_gif = DGifOpen(&m_gifFile, ReadFromVfs, &err);
+#else
+    m_gif = DGifOpen(&m_gifFile, ReadFromVfs);
 #endif
 
   if (!m_gif)
   {
-#if GIFLIB_MAJOR == 4
-    char* error = GifErrorString();
-#else
+#if GIFLIB_MAJOR >= 5
     char* error = GifErrorString(err);
-#endif
     if (error)
       fprintf(stderr, "Gif::LoadGif(): Could not open file %s - %s", m_filename.c_str(), error);
+#else
+    int error = GifLastError();
+    if (error)
+      fprintf(stderr, "Gif::LoadGif(): Could not open file %s - %d", m_filename.c_str(), error);
+#endif
     else
       fprintf(stderr, "Gif::LoadGif(): Could not open file %s (reasons unknown)", m_filename.c_str());
     return false;
@@ -233,10 +237,10 @@ bool GifHelper::IsAnimated(const char* file)
     gifFile = fopen(file, "rb");
     if (gifFile != NULL)
     {
-#if GIFLIB_MAJOR == 4
-      gif = DGifOpen(&gifFile, ReadFromVfs);
-#else
+#if GIFLIB_MAJOR >= 5
       gif = DGifOpen(&gifFile, ReadFromVfs, &err);
+#else
+      gif = DGifOpen(&gifFile, ReadFromVfs);
 #endif
     }
 
@@ -278,21 +282,7 @@ void GifHelper::InitTemplateAndColormap()
 bool GifHelper::gcbToFrame(GifFrame &frame, unsigned int imgIdx)
 {
   int transparent = 0;
-#if GIFLIB_MAJOR == 4
-  ExtensionBlock* extb = m_gif->SavedImages[imgIdx].ExtensionBlocks;
-  while (extb && extb->Function != GRAPHICS_EXT_FUNC_CODE)
-    extb++;
-
-  if (extb)
-  {
-    frame.m_delay = UNSIGNED_LITTLE_ENDIAN(extb->Bytes[1], extb->Bytes[2]) * 10;
-    frame.m_disposal = (extb->Bytes[0] >> 2) & 0x7;
-    if (extb->Bytes[0] & 0x1)
-      transparent = extb->Bytes[3];
-    else
-      transparent = -1;
-  }
-#else
+#if GIFLIB_MAJOR >= 5
   GraphicsControlBlock gcb;
   if (!DGifSavedExtensionToGCB(m_gif, imgIdx, &gcb))
   {
@@ -307,6 +297,20 @@ bool GifHelper::gcbToFrame(GifFrame &frame, unsigned int imgIdx)
   frame.m_delay = gcb.DelayTime * 10;
   frame.m_disposal = gcb.DisposalMode;
   transparent = gcb.TransparentColor;
+#else
+  ExtensionBlock* extb = m_gif->SavedImages[imgIdx].ExtensionBlocks;
+  while (extb && extb->Function != GRAPHICS_EXT_FUNC_CODE)
+    extb++;
+
+  if (extb)
+  {
+    frame.m_delay = UNSIGNED_LITTLE_ENDIAN(extb->Bytes[1], extb->Bytes[2]) * 10;
+    frame.m_disposal = (extb->Bytes[0] >> 2) & 0x7;
+    if (extb->Bytes[0] & 0x1)
+      transparent = extb->Bytes[3];
+    else
+      transparent = -1;
+  }
 #endif
   if (transparent >= 0 && (unsigned)transparent < frame.m_palette.size())
     frame.m_palette[transparent].x = 0;
@@ -399,6 +403,7 @@ void GifHelper::ConstructFrame(GifFrame &frame, const unsigned char* src) const
 
 bool GifHelper::PrepareTemplate(const GifFrame &frame)
 {
+#if GIFLIB_MAJOR >= 5
   switch (frame.m_disposal)
   {
     /* No disposal specified. */
@@ -447,6 +452,7 @@ bool GifHelper::PrepareTemplate(const GifFrame &frame)
     }
   }
   return true;
+#endif
 }
 
 void GifHelper::SetFrameAreaToBack(unsigned char* dest, const GifFrame &frame)
@@ -472,20 +478,22 @@ bool GifHelper::LoadImageFromMemory(unsigned char* buffer, unsigned int bufSize,
   reader.buffSize = bufSize;
 
   int err = 0;
-#if GIFLIB_MAJOR == 4
-  m_gif = DGifOpen((void *)&reader, (InputFunc)&ReadFromMemory);
-#else
+#if GIFLIB_MAJOR >= 5
   m_gif = DGifOpen((void *)&reader, (InputFunc)&ReadFromMemory, &err);
+#else
+  m_gif = DGifOpen((void *)&reader, (InputFunc)&ReadFromMemory);
 #endif
   if (!m_gif)
   {
-#if GIFLIB_MAJOR == 4
-    char* error = GifErrorString();
-#else
+#if GIFLIB_MAJOR >= 5
     char* error = GifErrorString(err);
-#endif
     if (error)
       fprintf(stderr, "Gif::LoadImageFromMemory(): Could not open gif from memory - %s", error);
+#else
+    int error = GifLastError();
+    if (error)
+      fprintf(stderr, "Gif::LoadImageFromMemory(): Could not open gif from memory - %d", error);
+#endif
     else
       fprintf(stderr, "Gif::LoadImageFromMemory(): Could not open gif from memory (reasons unknown)");
     return false;
