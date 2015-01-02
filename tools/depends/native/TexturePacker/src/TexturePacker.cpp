@@ -38,7 +38,7 @@
 #include "XBTFWriter.h"
 #include "md5.h"
 #include "cmdlineargs.h"
-#include "libsquish/squish.h"
+#include "squish.h"
 
 #ifdef TARGET_WINDOWS
 #define strncasecmp _strnicmp
