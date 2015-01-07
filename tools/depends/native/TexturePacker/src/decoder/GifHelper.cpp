@@ -281,37 +281,43 @@ void GifHelper::InitTemplateAndColormap()
 
 bool GifHelper::gcbToFrame(GifFrame &frame, unsigned int imgIdx)
 {
-  int transparent = 0;
+  int transparent = -1;
+  frame.m_delay = 0;
+  frame.m_disposal = 0;
+  if (m_gif->ExtensionBlockCount > 0)
+  {
 #if GIFLIB_MAJOR >= 5
-  GraphicsControlBlock gcb;
-  if (!DGifSavedExtensionToGCB(m_gif, imgIdx, &gcb))
-  {
-    char* error = GifErrorString(m_gif->Error);
-    if (error)
-      fprintf(stderr, "Gif::ExtractFrames(): Could not read GraphicsControlBlock of frame %d - %s", imgIdx, error);
-    else
-      fprintf(stderr, "Gif::ExtractFrames(): Could not read GraphicsControlBlock of frame %d (reasons unknown)", imgIdx);
-    return false;
-  }
-  // delay in ms
-  frame.m_delay = gcb.DelayTime * 10;
-  frame.m_disposal = gcb.DisposalMode;
-  transparent = gcb.TransparentColor;
+    GraphicsControlBlock gcb;
+    if (!DGifSavedExtensionToGCB(m_gif, imgIdx, &gcb))
+    {
+      char* error = GifErrorString(m_gif->Error);
+      if (error)
+        fprintf(stderr, "Gif::ExtractFrames(): Could not read GraphicsControlBlock of frame %d - %s\n", imgIdx, error);
+      else
+        fprintf(stderr, "Gif::ExtractFrames(): Could not read GraphicsControlBlock of frame %d (reasons unknown)\n", imgIdx);
+      return false;
+    }
+    // delay in ms
+    frame.m_delay = gcb.DelayTime * 10;
+    frame.m_disposal = gcb.DisposalMode;
+    transparent = gcb.TransparentColor;
 #else
-  ExtensionBlock* extb = m_gif->SavedImages[imgIdx].ExtensionBlocks;
-  while (extb && extb->Function != GRAPHICS_EXT_FUNC_CODE)
-    extb++;
+    ExtensionBlock* extb = m_gif->SavedImages[imgIdx].ExtensionBlocks;
+    while (extb && extb->Function != GRAPHICS_EXT_FUNC_CODE)
+      extb++;
 
-  if (extb)
-  {
-    frame.m_delay = UNSIGNED_LITTLE_ENDIAN(extb->Bytes[1], extb->Bytes[2]) * 10;
-    frame.m_disposal = (extb->Bytes[0] >> 2) & 0x7;
-    if (extb->Bytes[0] & 0x1)
-      transparent = extb->Bytes[3];
-    else
-      transparent = -1;
-  }
+    if (extb)
+    {
+      frame.m_delay = UNSIGNED_LITTLE_ENDIAN(extb->Bytes[1], extb->Bytes[2]) * 10;
+      frame.m_disposal = (extb->Bytes[0] >> 2) & 0x7;
+      if (extb->Bytes[0] & 0x1)
+        transparent = extb->Bytes[3];
+      else
+        transparent = -1;
+    }
 #endif
+  }
+
   if (transparent >= 0 && (unsigned)transparent < frame.m_palette.size())
     frame.m_palette[transparent].x = 0;
   return true;
