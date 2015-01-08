@@ -1,1 +1,1 @@
-audioencoder.flac https://github.com/Montellese/audioencoder.flac depends
+audioencoder.flac https://github.com/wsnipex/audioencoder.flac master
