@@ -38,8 +38,8 @@ else()
 endif()
 
 if(NOT PLATFORM_DIR)
- set(PLATFORM_DIR ${APP_ROOT}/project/cmake/platform/${CORE_SYSTEM_NAME})
- file(TO_CMAKE_PATH "${PLATFORM_DIR}" PLATFORM_DIR)
+  set(PLATFORM_DIR ${APP_ROOT}/project/cmake/platform/${CORE_SYSTEM_NAME})
+  file(TO_CMAKE_PATH "${PLATFORM_DIR}" PLATFORM_DIR)
 endif()
 
 # make sure CMAKE_PREFIX_PATH is set
@@ -84,11 +84,11 @@ endif()
 
 # check for platform specific stuff
 if(EXISTS ${PLATFORM_DIR}/defines.txt)
- file(STRINGS ${PLATFORM_DIR}/defines.txt platformdefines)
+  file(STRINGS ${PLATFORM_DIR}/defines.txt platformdefines)
 
- if(NOT ARCH_DEFINES AND platformdefines)
- set(ARCH_DEFINES ${platformdefines})
- endif()
+  if(NOT ARCH_DEFINES AND platformdefines)
+    set(ARCH_DEFINES ${platformdefines})
+  endif()
 endif()
 
 if(NOT WIN32)
