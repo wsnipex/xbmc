@@ -127,7 +127,9 @@ function(add_addon_depends addon searchpath)
                                     -DCMAKE_PREFIX_PATH=${OUTPUT_DIR}
                                     -DCMAKE_INSTALL_PREFIX=${OUTPUT_DIR}
                                     -DCMAKE_EXE_LINKER_FLAGS=-L${OUTPUT_DIR}/lib
-                                    -DCMAKE_INCLUDE_PATH=${OUTPUT_DIR}/include)
+                                    -DCMAKE_INCLUDE_PATH=${OUTPUT_DIR}/include
+                                    -DCMAKE_CXX_FLAGS=${ARCH_DEFINES}
+                                    -DCMAKE_FLAGS=${ARCH_DEFINES})
             endif()
 
             externalproject_add(${id}
