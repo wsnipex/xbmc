@@ -35,6 +35,7 @@
 #include "threads/SingleLock.h"
 #include "pvr/addons/PVRClients.h"
 #include "video/windows/GUIWindowVideoNav.h"
+#include "cores/AudioEngine/DSPAddons/ActiveAEDSP.h"
 
 using namespace PVR;
 
@@ -109,6 +110,9 @@ void CGUIWindowPVRRecordings::GetContextButtons(int itemNumber, CContextButtons 
     return;
   CFileItemPtr pItem = m_vecItems->Get(itemNumber);
 
+  if (ActiveAE::CActiveAEDSP::Get().IsProcessing())
+    buttons.Add(CONTEXT_BUTTON_ACTIVE_ADSP_SETTINGS, 15047);  /* if something is played and dsp is active, allow settings selection */
+
   if (pItem->HasPVRRecordingInfoTag())
   {
     buttons.Add(CONTEXT_BUTTON_INFO, 19053);      /* Get Information of this recording */
@@ -170,6 +174,7 @@ bool CGUIWindowPVRRecordings::OnContextButton(int itemNumber, CONTEXT_BUTTON but
       OnContextButtonDelete(pItem.get(), button) ||
       OnContextButtonInfo(pItem.get(), button) ||
       OnContextButtonMarkWatched(pItem, button) ||
+      OnContextButtonActiveADSPSettings(pItem.get(), button) ||
       CGUIWindowPVRBase::OnContextButton(itemNumber, button);
 }
 
