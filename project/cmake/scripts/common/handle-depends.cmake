@@ -47,7 +47,8 @@ function(add_addon_depends addon searchpath)
                        -DCMAKE_USER_MAKE_RULES_OVERRIDE=${CMAKE_USER_MAKE_RULES_OVERRIDE}
                        -DCMAKE_USER_MAKE_RULES_OVERRIDE_CXX=${CMAKE_USER_MAKE_RULES_OVERRIDE_CXX}
                        -DCMAKE_INSTALL_PREFIX=${DEPENDS_PATH}
-                       -DARCH_DEFINES=${ARCH_DEFINES}
+                       -DCMAKE_C_FLAGS=${ARCH_DEFINES}
+                       -DCMAKE_CXX_FLAGS=${ARCH_DEFINES}
                        -DENABLE_STATIC=1
                        -DBUILD_SHARED_LIBS=0)
 
