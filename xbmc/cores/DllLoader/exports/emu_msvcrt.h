@@ -26,6 +26,10 @@
 #define _onexit_t void*
 #endif
 
+#ifndef errno_t
+#define errno_t int
+#endif
+
 #if defined(TARGET_DARWIN) || defined(TARGET_FREEBSD) || defined(TARGET_ANDROID)
 typedef off_t __off_t;
 typedef int64_t off64_t;
