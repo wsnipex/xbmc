@@ -48,12 +48,12 @@
 			</control>
 		</control>
 		<control type="group">
-			<left>-290</left>
+			<left>-250</left>
 			<include>SideBladeLeft</include>
 			<control type="grouplist" id="9000">
 				<left>0</left>
 				<top>110</top>
-				<width>290</width>
+				<width>250</width>
 				<height>600</height>
 				<onleft>9000</onleft>
 				<onright>50</onright>
@@ -62,7 +62,7 @@
 				<onback>50</onback>
 				<itemgap>0</itemgap>
 				<control type="label" id="200">
-					<width>290</width>
+					<width>250</width>
 					<height>35</height>
 					<font>font12</font>
 					<label>31006</label>
@@ -72,7 +72,7 @@
 				</control>
 				<control type="button" id="2">
 					<description>View As button</description>
-					<textwidth>275</textwidth>
+					<textwidth>235</textwidth>
 					<include>ButtonCommonValues</include>
 					<label>-</label>
 				</control>
@@ -93,7 +93,7 @@
 				<control type="edit" id="19">
 					<visible>Container.CanFilter + !Container.CanFilterAdvanced</visible>
 					<description>Filter</description>
-					<textwidth>270</textwidth>
+					<textwidth>230</textwidth>
 					<include>ButtonCommonValues</include>
 					<label>587</label>
 				</control>
