@@ -1,5 +1,8 @@
+ADDON_DEPS_DIR := $(BUILDDIR)/$(PLATFORM)/build/depends
+TOOLCHAIN_FILE = $(ADDON_DEPS_DIR)/share/Toolchain_binaddons.cmake
+
 ifeq ($(CROSS_COMPILING),yes)
-  DEPS = $(abs_top_srcdir)/target/config-binaddons.site $(abs_top_srcdir)/target/Toolchain_binaddons.cmake $(CONFIG_SUB) $(CONFIG_GUESS)
+  DEPS = $(TOOLCHAIN_FILE) $(abs_top_srcdir)/target/config-binaddons.site $(abs_top_srcdir)/target/Toolchain_binaddons.cmake $(CONFIG_SUB) $(CONFIG_GUESS)
   ifeq ($(OS),linux)
     ifneq ($(TARGET_PLATFORM),raspberry-pi)
       DEPS += linux-system-libs
@@ -29,8 +32,6 @@ ifneq ($(PREFIX),)
 endif
 
 
-ADDON_DEPS_DIR := $(BUILDDIR)/$(PLATFORM)/build/depends
-
 all: .installed-$(PLATFORM)
 
 
@@ -51,11 +52,14 @@ endif
          cp -f $(abs_top_srcdir)/target/config-binaddons.site $(PLATFORM)/build/depends/share/config.site ;\
          cd $(PLATFORM); \
          $(NATIVEPREFIX)/bin/cmake -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX) $(CMAKE_EXTRA) \
-         -DCMAKE_TOOLCHAIN_FILE=$(abs_top_srcdir)/target/Toolchain_binaddons.cmake -DCMAKE_FIND_ROOT_PATH=$(ADDON_DEPS_DIR) \
+         -DCMAKE_TOOLCHAIN_FILE=$(TOOLCHAIN_FILE) \
          -DADDONS_TO_BUILD=$(ADDONS) ../../../../../project/cmake/addons/ -DBUILD_DIR=$(BUILDDIR)/$(PLATFORM)/build ;\
          $(MAKE);
 	touch $@
 
+$(TOOLCHAIN_FILE): $(abs_top_srcdir)/target/Toolchain_binaddons.cmake
+	mkdir -p $(ADDON_DEPS_DIR)/share
+	sed "s|@CMAKE_FIND_ROOT_PATH@|$(ADDON_DEPS_DIR)|g" $(abs_top_srcdir)/target/Toolchain_binaddons.cmake > $@
 
 linux-system-libs:
 	mkdir -p $(ADDON_DEPS_DIR)/lib/pkgconfig
