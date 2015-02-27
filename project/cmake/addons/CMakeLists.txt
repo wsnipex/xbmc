@@ -247,3 +247,4 @@ if(NEED_SUDO)
                     COMMAND sudo ${CMAKE_COMMAND} -E remove_directory ${ADDON_INSTALL_DIR}/
                     COMMAND sudo -k)
 endif()
+
