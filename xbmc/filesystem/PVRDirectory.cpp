@@ -23,6 +23,7 @@
 #include "Util.h"
 #include "URL.h"
 #include "utils/log.h"
+#include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
 #include "guilib/LocalizeStrings.h"
 
@@ -66,23 +67,18 @@ bool CPVRDirectory::GetDirectory(const CURL& url, CFileItemList &items)
   {
     CFileItemPtr item;
 
-    item.reset(new CFileItem(base + "/channels/", true));
+    item.reset(new CFileItem(base + "channels/", true));
     item->SetLabel(g_localizeStrings.Get(19019));
     item->SetLabelPreformated(true);
     items.Add(item);
 
-    item.reset(new CFileItem(base + "/recordings/", true));
-    item->SetLabel(g_localizeStrings.Get(19017));
+    item.reset(new CFileItem(base + "recordings/active/", true));
+    item->SetLabel(g_localizeStrings.Get(19017)); // TV Recordings
     item->SetLabelPreformated(true);
     items.Add(item);
 
-    item.reset(new CFileItem(base + "/timers/", true));
-    item->SetLabel(g_localizeStrings.Get(19040));
-    item->SetLabelPreformated(true);
-    items.Add(item);
-
-    item.reset(new CFileItem(base + "/guide/", true));
-    item->SetLabel(g_localizeStrings.Get(19029));
+    item.reset(new CFileItem(base + "recordings/deleted/", true));
+    item->SetLabel(g_localizeStrings.Get(19108)); // Deleted TV Recordings
     item->SetLabelPreformated(true);
     items.Add(item);
 
@@ -128,5 +124,12 @@ bool CPVRDirectory::IsLiveTV(const std::string& strPath)
 
 bool CPVRDirectory::HasRecordings()
 {
-  return g_PVRRecordings->GetNumRecordings() > 0;
+  return g_PVRManager.IsStarted() ? 
+    g_PVRRecordings->GetNumRecordings() > 0 : false;
+}
+
+bool CPVRDirectory::HasDeletedRecordings()
+{
+  return g_PVRManager.IsStarted() ?
+    g_PVRRecordings->HasDeletedRecordings() : false;
 }

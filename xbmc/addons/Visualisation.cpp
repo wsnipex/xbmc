@@ -266,13 +266,13 @@ void CVisualisation::OnAudioData(const float* pAudioData, int iAudioDataLength)
     return;
 
   // Save our audio data in the buffers
-  auto_ptr<CAudioBuffer> pBuffer ( new CAudioBuffer(AUDIO_BUFFER_SIZE) );
+  unique_ptr<CAudioBuffer> pBuffer ( new CAudioBuffer(AUDIO_BUFFER_SIZE) );
   pBuffer->Set(pAudioData, iAudioDataLength);
   m_vecBuffers.push_back( pBuffer.release() );
 
   if ( (int)m_vecBuffers.size() < m_iNumBuffers) return ;
 
-  auto_ptr<CAudioBuffer> ptrAudioBuffer ( m_vecBuffers.front() );
+  unique_ptr<CAudioBuffer> ptrAudioBuffer ( m_vecBuffers.front() );
   m_vecBuffers.pop_front();
   // Fourier transform the data if the vis wants it...
   if (m_bWantsFreq)
@@ -321,7 +321,7 @@ void CVisualisation::ClearBuffers()
   m_bWantsFreq = false;
   m_iNumBuffers = 0;
 
-  while (m_vecBuffers.size() > 0)
+  while (!m_vecBuffers.empty())
   {
     CAudioBuffer* pAudioBuffer = m_vecBuffers.front();
     delete pAudioBuffer;

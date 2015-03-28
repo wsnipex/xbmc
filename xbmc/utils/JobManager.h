@@ -100,7 +100,7 @@ public:
    \param job a pointer to the job to add. The job should be subclassed from CJob.
    \sa CJob
    */
-  void AddJob(CJob *job);
+  bool AddJob(CJob *job);
 
   /*!
    \brief Cancel a job in the queue
@@ -119,6 +119,11 @@ public:
    \sa CJob
    */
   void CancelJobs();
+
+  /*!
+   \brief Check whether the queue is processing a job
+   */
+  bool IsProcessing() const;
 
   /*!
    \brief The callback used when a job completes.
@@ -298,7 +303,7 @@ protected:
    \return true if the job has been cancelled, else returns false.
    \sa IJobCallback, CJob
    */
-  bool  OnJobProgress(unsigned int progress, unsigned int total, const CJob *job);
+  bool  OnJobProgress(unsigned int progress, unsigned int total, const CJob *job) const;
 
 private:
   // private construction, and no assignements; use the provided singleton methods
@@ -330,7 +335,4 @@ private:
   CCriticalSection m_section;
   CEvent           m_jobEvent;
   bool             m_running;
-
-  XbmcThreads::ConditionVariable m_tangle_cond;
-  unsigned int     m_tangle;  /*!< Active callbacks currently running */
 };

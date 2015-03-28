@@ -20,8 +20,6 @@
  *
  */
 
-#ifdef HAS_MMAL
-
 #include "guilib/GraphicContext.h"
 #include "RenderFlags.h"
 #include "RenderFormats.h"
@@ -90,9 +88,11 @@ public:
   virtual unsigned int GetMaxBufferSize() { return NUM_BUFFERS; }
   virtual unsigned int GetOptimalBufferSize() { return NUM_BUFFERS; }
   virtual void SetVideoRect(const CRect& SrcRect, const CRect& DestRect);
+  virtual bool         IsGuiLayer() { return false; }
 
   void vout_input_port_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer);
 protected:
+  int m_iYV12RenderBuffer;
   int m_NumYV12Buffers;
 
   std::vector<ERenderFormat> m_formats;
@@ -116,10 +116,9 @@ protected:
 
   MMAL_QUEUE_T     *m_release_queue;
   CEvent            m_sync;
+  MMAL_BUFFER_HEADER_T m_quit_packet;
+
   bool init_vout(MMAL_ES_FORMAT_T *m_format);
   void ReleaseBuffers();
+  void UnInitMMAL();
 };
-
-#else
-#include "LinuxRenderer.h"
-#endif

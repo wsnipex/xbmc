@@ -45,7 +45,6 @@ DVDPlayerCodec::DVDPlayerCodec()
   m_audioPos = 0;
   m_pPacket = NULL;
   m_nDecodedLen = 0;
-  m_strFileName = "";
   m_bInited = false;
   m_pResampler = NULL;
   m_needConvert = false;
@@ -250,7 +249,8 @@ bool DVDPlayerCodec::Init(const std::string &strFile, unsigned int filecache)
                        false,
                        false,
                        NULL,
-                       AE_QUALITY_UNKNOWN);
+                       AE_QUALITY_UNKNOWN,
+                       false);
     m_planes = AE_IS_PLANAR(m_DataFormat) ? m_ChannelInfo.Count() : 1;
     m_srcFormat = m_DataFormat;
     m_srcFrameSize = (CAEUtil::DataFormatToBits(m_DataFormat)>>3) * m_ChannelInfo.Count();

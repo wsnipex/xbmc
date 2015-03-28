@@ -28,6 +28,7 @@
 namespace EPG
 {
   class CEpgInfoTag;
+  typedef std::shared_ptr<EPG::CEpgInfoTag> CEpgInfoTagPtr;
 }
 
 namespace PVR
@@ -75,11 +76,16 @@ namespace PVR
      */
     void ResetPlayingTag(void);
 
-    bool GetPlayingTag(EPG::CEpgInfoTag &tag) const;
+    /*!
+     * @brief Get the currently playing EPG tag.
+     * @return The currently playing EPG tag or NULL if no EPG tag is playing.
+     */
+    EPG::CEpgInfoTagPtr GetPlayingTag() const;
 
     /*!
-    * @brief Get playing TV group.
-    */
+     * @brief Get playing TV group.
+     * @return The currently playing TV group or NULL if no TV group is playing.
+     */
     std::string GetPlayingTVGroup();
 
   private:
@@ -128,6 +134,7 @@ namespace PVR
     void CharInfoBackendChannels(std::string &strValue) const;
     void CharInfoBackendTimers(std::string &strValue) const;
     void CharInfoBackendRecordings(std::string &strValue) const;
+    void CharInfoBackendDeletedRecordings(std::string &strValue) const;
     void CharInfoPlayingClientName(std::string &strValue) const;
     void CharInfoEncryption(std::string &strValue) const;
     void CharInfoService(std::string &strValue) const;
@@ -155,6 +162,7 @@ namespace PVR
     std::string                     m_strBackendHost;
     std::string                     m_strBackendTimers;
     std::string                     m_strBackendRecordings;
+    std::string                     m_strBackendDeletedRecordings;
     std::string                     m_strBackendChannels;
     long long                       m_iBackendUsedDiskspace;
     long long                       m_iBackendTotalDiskspace;
@@ -176,7 +184,7 @@ namespace PVR
     unsigned int                    m_iTimerInfoToggleStart;
     unsigned int                    m_iTimerInfoToggleCurrent;
     XbmcThreads::EndTime            m_ToggleShowInfo;
-    EPG::CEpgInfoTag *              m_playingEpgTag;
+    EPG::CEpgInfoTagPtr             m_playingEpgTag;
 
     CCriticalSection                m_critSection;
   };

@@ -217,13 +217,14 @@ bool CDVDDemuxFFmpeg::Open(CDVDInputStream* pInput, bool streaminfo, bool filein
   if( m_pInput->GetContent().length() > 0 )
   {
     std::string content = m_pInput->GetContent();
+    StringUtils::ToLower(content);
 
     /* check if we can get a hint from content */
     if     ( content.compare("video/x-vobsub") == 0 )
       iformat = av_find_input_format("mpeg");
     else if( content.compare("video/x-dvd-mpeg") == 0 )
       iformat = av_find_input_format("mpeg");
-    else if( content.compare("video/x-mpegts") == 0 )
+    else if( content.compare("video/mp2t") == 0 )
       iformat = av_find_input_format("mpegts");
     else if( content.compare("multipart/x-mixed-replace") == 0 )
       iformat = av_find_input_format("mjpeg");
@@ -277,6 +278,11 @@ bool CDVDDemuxFFmpeg::Open(CDVDInputStream* pInput, bool streaminfo, bool filein
     if(m_pInput->Seek(0, SEEK_POSSIBLE) == 0)
       m_ioContext->seekable = 0;
 
+    std::string content = m_pInput->GetContent();
+    StringUtils::ToLower(content);
+    if (StringUtils::StartsWith(content, "audio/l16"))
+      iformat = av_find_input_format("s16be");
+
     if( iformat == NULL )
     {
       // let ffmpeg decide which demuxer we have to open
@@ -300,8 +306,10 @@ bool CDVDDemuxFFmpeg::Open(CDVDInputStream* pInput, bool streaminfo, bool filein
         pd.buf = probe_buffer;
         pd.filename = strFile.c_str();
 
+        // av_probe_input_buffer might have changed the buffer_size beyond our allocated amount
+        int buffer_size = std::min((int) FFMPEG_FILE_BUFFER_SIZE, m_ioContext->buffer_size);
         // read data using avformat's buffers
-        pd.buf_size = avio_read(m_ioContext, pd.buf, m_ioContext->max_packet_size ? m_ioContext->max_packet_size : m_ioContext->buffer_size);
+        pd.buf_size = avio_read(m_ioContext, pd.buf, m_ioContext->max_packet_size ? m_ioContext->max_packet_size : buffer_size);
         if (pd.buf_size <= 0)
         {
           CLog::Log(LOGERROR, "%s - error reading from input stream, %s", __FUNCTION__, CURL::GetRedacted(strFile).c_str());
@@ -389,6 +397,15 @@ bool CDVDDemuxFFmpeg::Open(CDVDInputStream* pInput, bool streaminfo, bool filein
       av_dict_set(&options, "usetoc", "0", 0);
     }
 
+    if (StringUtils::StartsWith(content, "audio/l16"))
+    {
+      int channels = 2;
+      int samplerate = 44100;
+      GetL16Parameters(channels, samplerate);
+      av_dict_set_int(&options, "channels", channels, 0);
+      av_dict_set_int(&options, "sample_rate", samplerate, 0);
+    }
+
     if (avformat_open_input(&m_pFormatContext, strFile.c_str(), iformat, &options) < 0)
     {
       CLog::Log(LOGERROR, "%s - Error, could not open file %s", __FUNCTION__, CURL::GetRedacted(strFile).c_str());
@@ -414,6 +431,10 @@ bool CDVDDemuxFFmpeg::Open(CDVDInputStream* pInput, bool streaminfo, bool filein
     av_opt_set_int(m_pFormatContext, "analyzeduration", 500000, 0);
     m_checkvideo = true;
     skipCreateStreams = true;
+  }
+  else if (!iformat || (strcmp(iformat->name, "mpegts") != 0))
+  {
+    m_streaminfo = true;
   }
 
   // we need to know if this is matroska or avi later
@@ -455,6 +476,7 @@ bool CDVDDemuxFFmpeg::Open(CDVDInputStream* pInput, bool streaminfo, bool filein
   {
     m_program = 0;
     m_checkvideo = true;
+    skipCreateStreams = true;
   }
 
   // reset any timeout
@@ -486,6 +508,11 @@ void CDVDDemuxFFmpeg::Dispose()
 
   if (m_pFormatContext)
   {
+    for (unsigned int i = 0; i < m_pFormatContext->nb_streams; i++)
+    {
+      avcodec_close(m_pFormatContext->streams[i]->codec);
+    }
+
     if (m_ioContext && m_pFormatContext->pb && m_pFormatContext->pb != m_ioContext)
     {
       CLog::Log(LOGWARNING, "CDVDDemuxFFmpeg::Dispose - demuxer changed our byte context behind our back, possible memleak");
@@ -520,7 +547,7 @@ void CDVDDemuxFFmpeg::Flush()
 {
   // naughty usage of an internal ffmpeg function
   if (m_pFormatContext)
-    av_read_frame_flush(m_pFormatContext);
+    avformat_flush(m_pFormatContext);
 
   m_currentPts = DVD_NOPTS_VALUE;
 
@@ -622,8 +649,8 @@ double CDVDDemuxFFmpeg::ConvertTimestamp(int64_t pts, int den, int num)
   double starttime = 0.0f;
 
   // for dvd's we need the original time
-  if(dynamic_cast<CDVDInputStream::IMenus*>(m_pInput))
-    starttime = dynamic_cast<CDVDInputStream::IMenus*>(m_pInput)->GetTimeStampCorrection() / DVD_TIME_BASE;
+  if(CDVDInputStream::IMenus* menu = dynamic_cast<CDVDInputStream::IMenus*>(m_pInput))
+    starttime = menu->GetTimeStampCorrection() / DVD_TIME_BASE;
   else if (m_pFormatContext->start_time != (int64_t)AV_NOPTS_VALUE)
     starttime = (double)m_pFormatContext->start_time / AV_TIME_BASE;
 
@@ -889,13 +916,20 @@ bool CDVDDemuxFFmpeg::SeekTime(int time, bool backwords, double *startpts)
   }
 
   int64_t seek_pts = (int64_t)time * (AV_TIME_BASE / 1000);
-  if (m_pFormatContext->start_time != (int64_t)AV_NOPTS_VALUE)
+  bool ismp3 = m_pFormatContext->iformat && (strcmp(m_pFormatContext->iformat->name, "mp3") == 0);
+  if (m_pFormatContext->start_time != (int64_t)AV_NOPTS_VALUE && !ismp3)
     seek_pts += m_pFormatContext->start_time;
 
   int ret;
   {
     CSingleLock lock(m_critSection);
     ret = av_seek_frame(m_pFormatContext, -1, seek_pts, backwords ? AVSEEK_FLAG_BACKWARD : 0);
+
+    // demuxer will return failure, if you seek behind eof
+    if (ret < 0 && m_pFormatContext->duration && seek_pts >= (m_pFormatContext->duration + m_pFormatContext->start_time))
+      ret = 0;
+    else if (ret < 0 && m_pInput->IsEOF())
+      ret = 0;
 
     if(ret >= 0)
       UpdateCurrentPTS();
@@ -909,10 +943,6 @@ bool CDVDDemuxFFmpeg::SeekTime(int time, bool backwords, double *startpts)
   // in this case the start time is requested time
   if(startpts)
     *startpts = DVD_MSEC_TO_TIME(time);
-
-  // demuxer will return failure, if you seek to eof
-  if (m_pInput->IsEOF() && ret <= 0)
-    return true;
 
   return (ret >= 0);
 }
@@ -1376,14 +1406,15 @@ int CDVDDemuxFFmpeg::GetChapter()
   return 0;
 }
 
-void CDVDDemuxFFmpeg::GetChapterName(std::string& strChapterName)
+void CDVDDemuxFFmpeg::GetChapterName(std::string& strChapterName, int chapterIdx)
 {
+  if (chapterIdx <= 0 || chapterIdx > GetChapterCount())
+    chapterIdx = GetChapter();
   CDVDInputStream::IChapter* ich = dynamic_cast<CDVDInputStream::IChapter*>(m_pInput);
   if(ich)  
-    ich->GetChapterName(strChapterName);
+    ich->GetChapterName(strChapterName, chapterIdx);
   else
   {
-    int chapterIdx = GetChapter();
     if(chapterIdx <= 0)
       return;
 
@@ -1392,6 +1423,20 @@ void CDVDDemuxFFmpeg::GetChapterName(std::string& strChapterName)
     if (titleTag)
       strChapterName = titleTag->value;
   }
+}
+
+int64_t CDVDDemuxFFmpeg::GetChapterPos(int chapterIdx)
+{
+  if (chapterIdx <= 0 || chapterIdx > GetChapterCount())
+    chapterIdx = GetChapter();
+  if(chapterIdx <= 0)
+    return 0;
+
+  CDVDInputStream::IChapter* ich = dynamic_cast<CDVDInputStream::IChapter*>(m_pInput);
+  if(ich)  
+    return ich->GetChapterPos(chapterIdx);
+
+  return m_pFormatContext->chapters[chapterIdx-1]->start*av_q2d(m_pFormatContext->chapters[chapterIdx-1]->time_base);
 }
 
 bool CDVDDemuxFFmpeg::SeekChapter(int chapter, double* startpts)
@@ -1407,7 +1452,9 @@ bool CDVDDemuxFFmpeg::SeekChapter(int chapter, double* startpts)
       return false;
 
     if(startpts)
-      *startpts = DVD_NOPTS_VALUE;
+    {
+      *startpts = DVD_SEC_TO_TIME(ich->GetChapterPos(chapter));
+    }
 
     Flush();
     return true;
@@ -1584,8 +1631,9 @@ void CDVDDemuxFFmpeg::ParsePacket(AVPacket *pkt)
       // Force thread count to 1 since the h264 decoder will not extract
       // SPS and PPS to extradata during multi-threaded decoding
       av_dict_set(&thread_opt, "threads", "1", 0);
-      avcodec_open2(st->codec, codec, &thread_opt);
-
+      int res = avcodec_open2(st->codec, codec, &thread_opt);
+      if(res < 0)
+        CLog::Log(LOGERROR, "CDVDDemuxFFmpeg::ParsePacket() unable to open codec %d", res);
       av_dict_free(&thread_opt);
     }
 
@@ -1606,6 +1654,7 @@ void CDVDDemuxFFmpeg::ParsePacket(AVPacket *pkt)
 
     int got_picture = 0;
     avcodec_decode_video2(st->codec, &picture, &got_picture, pkt);
+    av_frame_unref(&picture);
   }
 }
 
@@ -1662,6 +1711,63 @@ void CDVDDemuxFFmpeg::ResetVideoStreams()
         av_free(st->codec->extradata);
       st->codec->extradata = NULL;
       st->codec->width = 0;
+    }
+  }
+}
+
+void CDVDDemuxFFmpeg::GetL16Parameters(int &channels, int &samplerate)
+{
+  std::string content;
+  if (XFILE::CCurlFile::GetContentType(m_pInput->GetURL(), content))
+  {
+    StringUtils::ToLower(content);
+    const size_t len = content.length();
+    size_t pos = content.find(';');
+    while (pos < len)
+    {
+      // move to the next non-whitespace character
+      pos = content.find_first_not_of(" \t", pos + 1);
+
+      if (pos != std::string::npos)
+      {
+        if (content.compare(pos, 9, "channels=", 9) == 0)
+        {
+          pos += 9; // move position to char after 'channels='
+          size_t len = content.find(';', pos);
+          if (len != std::string::npos)
+            len -= pos;
+          std::string no_channels(content, pos, len);
+          // as we don't support any charset with ';' in name
+          StringUtils::Trim(no_channels, " \t");
+          if (!no_channels.empty())
+          {
+            int val = strtol(no_channels.c_str(), NULL, 0);
+            if (val > 0)
+              channels = val;
+            else
+              CLog::Log(LOGDEBUG, "CDVDDemuxFFmpeg::%s - no parameter for channels", __FUNCTION__);
+          }
+        }
+        else if (content.compare(pos, 5, "rate=", 5) == 0)
+        {
+          pos += 5; // move position to char after 'rate='
+          size_t len = content.find(';', pos);
+          if (len != std::string::npos)
+            len -= pos;
+          std::string rate(content, pos, len);
+          // as we don't support any charset with ';' in name
+          StringUtils::Trim(rate, " \t");
+          if (!rate.empty())
+          {
+            int val = strtol(rate.c_str(), NULL, 0);
+            if (val > 0)
+              samplerate = val;
+            else
+              CLog::Log(LOGDEBUG, "CDVDDemuxFFmpeg::%s - no parameter for samplerate", __FUNCTION__);
+          }
+        }
+        pos = content.find(';', pos); // find next parameter
+      }
     }
   }
 }

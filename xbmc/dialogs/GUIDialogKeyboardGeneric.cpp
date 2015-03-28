@@ -22,7 +22,8 @@
 #include "input/XBMC_vkeys.h"
 #include "guilib/GUIEditControl.h"
 #include "guilib/GUIWindowManager.h"
-#include "guilib/Key.h"
+#include "input/KeyboardLayoutManager.h"
+#include "input/Key.h"
 #include "guilib/LocalizeStrings.h"
 #include "GUIUserMessages.h"
 #include "GUIDialogNumeric.h"
@@ -32,6 +33,7 @@
 #include "utils/RegExp.h"
 #include "utils/StringUtils.h"
 #include "ApplicationMessenger.h"
+#include "windowing/WindowingFactory.h"
 
 #define BUTTON_ID_OFFSET      100
 #define BUTTONS_PER_ROW        20
@@ -66,17 +68,12 @@ CGUIDialogKeyboardGeneric::CGUIDialogKeyboardGeneric()
   m_hiddenInput = false;
   m_keyType = LOWER;
   m_currentLayout = 0;
-  m_strHeading = "";
   m_loadType = KEEP_IN_MEMORY;
 }
 
 void CGUIDialogKeyboardGeneric::OnWindowLoaded()
 {
-  // show the cursor always
-  CGUIEditControl *edit = (CGUIEditControl *)GetControl(CTL_EDIT);
-  if (edit)
-    edit->SetShowCursorAlways(true);
-
+  g_Windowing.EnableTextInput(false);
   CGUIDialog::OnWindowLoaded();
 }
 
@@ -89,15 +86,14 @@ void CGUIDialogKeyboardGeneric::OnInitWindow()
   // fill in the keyboard layouts
   m_currentLayout = 0;
   m_layouts.clear();
-  std::vector<CKeyboardLayout> keyLayouts = CKeyboardLayout::LoadLayouts();
-  const CSetting *setting = CSettings::Get().GetSetting("locale.keyboardlayouts");
-  std::vector<std::string> layouts;
-  if (setting)
-    layouts = StringUtils::Split(setting->ToString(), '|');
-  for (std::vector<CKeyboardLayout>::const_iterator j = keyLayouts.begin(); j != keyLayouts.end(); ++j)
+  const KeyboardLayouts& keyboardLayouts = CKeyboardLayoutManager::Get().GetLayouts();
+  std::vector<CVariant> layoutNames = CSettings::Get().GetList("locale.keyboardlayouts");
+
+  for (std::vector<CVariant>::const_iterator layoutName = layoutNames.begin(); layoutName != layoutNames.end(); ++layoutName)
   {
-    if (std::find(layouts.begin(), layouts.end(), j->GetName()) != layouts.end())
-      m_layouts.push_back(*j);
+    KeyboardLayouts::const_iterator keyboardLayout = keyboardLayouts.find(layoutName->asString());
+    if (keyboardLayout != keyboardLayouts.end())
+      m_layouts.push_back(keyboardLayout->second);
   }
 
   // set alphabetic (capitals)
@@ -220,7 +216,6 @@ bool CGUIDialogKeyboardGeneric::OnMessage(CGUIMessage& message)
     break;
 
   case GUI_MSG_SET_TEXT:
-  case GUI_MSG_INPUT_TEXT:
   case GUI_MSG_INPUT_TEXT_EDIT:
     {
       // the edit control only handles these messages if it is either focues
@@ -271,9 +266,9 @@ void CGUIDialogKeyboardGeneric::Character(const std::string &ch)
   CGUIControl *edit = GetControl(CTL_EDIT);
   if (edit)
   {
-    CGUIMessage msg(GUI_MSG_INPUT_TEXT, GetID(), CTL_EDIT);
-    msg.SetLabel(ch);
-    edit->OnMessage(msg);
+    CAction action(ACTION_INPUT_TEXT);
+    action.SetText(ch);
+    edit->OnAction(action);
   }
 }
 
@@ -318,14 +313,14 @@ void CGUIDialogKeyboardGeneric::UpdateButtons()
   CKeyboardLayout layout = m_layouts.empty() ? CKeyboardLayout() : m_layouts[m_currentLayout];
   SET_CONTROL_LABEL(CTL_BUTTON_LAYOUT, layout.GetName());
 
-  unsigned int modifiers = CKeyboardLayout::MODIFIER_KEY_NONE;
+  unsigned int modifiers = CKeyboardLayout::ModifierKeyNone;
   if ((m_keyType == CAPS && !m_bShift) || (m_keyType == LOWER && m_bShift))
-    modifiers |= CKeyboardLayout::MODIFIER_KEY_SHIFT;
+    modifiers |= CKeyboardLayout::ModifierKeyShift;
   if (m_keyType == SYMBOLS)
   {
-    modifiers |= CKeyboardLayout::MODIFIER_KEY_SYMBOL;
+    modifiers |= CKeyboardLayout::ModifierKeySymbol;
     if (m_bShift)
-      modifiers |= CKeyboardLayout::MODIFIER_KEY_SHIFT;
+      modifiers |= CKeyboardLayout::ModifierKeyShift;
   }
 
   for (unsigned int row = 0; row < BUTTONS_MAX_ROWS; row++)

@@ -21,6 +21,7 @@
 #include "GUIDialogFileBrowser.h"
 #include "Util.h"
 #include "utils/URIUtils.h"
+#include "utils/StringUtils.h"
 #include "network/GUIDialogNetworkSetup.h"
 #include "GUIDialogMediaSource.h"
 #include "GUIDialogContextMenu.h"
@@ -42,7 +43,7 @@
 #include "settings/AdvancedSettings.h"
 #include "settings/MediaSourceSettings.h"
 #include "settings/Settings.h"
-#include "guilib/Key.h"
+#include "input/Key.h"
 #include "guilib/LocalizeStrings.h"
 #include "utils/log.h"
 #include "URL.h"
@@ -73,6 +74,7 @@ CGUIDialogFileBrowser::CGUIDialogFileBrowser()
   m_singleList = false;
   m_thumbLoader.SetObserver(this);
   m_flipEnabled = false;
+  m_bFlip = false;
   m_multipleSelection = false;
   m_loadType = KEEP_IN_MEMORY;
 }
@@ -444,7 +446,7 @@ void CGUIDialogFileBrowser::Update(const std::string &strDirectory)
   }
 
   m_viewControl.SetItems(*m_vecItems);
-  m_viewControl.SetCurrentView((m_browsingForImages && CAutoSwitch::ByFileCount(*m_vecItems)) ? DEFAULT_VIEW_ICONS : DEFAULT_VIEW_LIST);
+  m_viewControl.SetCurrentView((m_browsingForImages && CAutoSwitch::ByFileCount(*m_vecItems)) ? CONTROL_THUMBS : CONTROL_LIST);
 
   std::string strPath2 = m_Directory->GetPath();
   URIUtils::RemoveSlashAtEnd(strPath2);

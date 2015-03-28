@@ -26,19 +26,21 @@ rem -------------------------------------------------------------
 rem Config
 rem If you get an error that Visual studio was not found, SET your path for VSNET main executable.
 rem -------------------------------------------------------------
-rem	CONFIG START
+rem  CONFIG START
 SET buildmode=ask
 SET promptlevel=prompt
 SET buildmingwlibs=true
+SET buildbinaryaddons=true
 SET exitcode=0
 SET useshell=rxvt
 SET BRANCH=na
 FOR %%b in (%1, %2, %3, %4, %5) DO (
-	IF %%b==clean SET buildmode=clean
-	IF %%b==noclean SET buildmode=noclean
-	IF %%b==noprompt SET promptlevel=noprompt
-	IF %%b==nomingwlibs SET buildmingwlibs=false
-	IF %%b==sh SET useshell=sh
+  IF %%b==clean SET buildmode=clean
+  IF %%b==noclean SET buildmode=noclean
+  IF %%b==noprompt SET promptlevel=noprompt
+  IF %%b==nomingwlibs SET buildmingwlibs=false
+  IF %%b==nobinaryaddons SET buildbinaryaddons=false
+  IF %%b==sh SET useshell=sh
 )
 
 SET buildconfig=Release
@@ -50,14 +52,14 @@ set WORKSPACE=%CD%\..\..
   SET NET="%MSBUILDROOT%12.0\bin\MSBuild.exe"
 
   IF EXIST "!NET!" (
-	set msbuildemitsolution=1
-	set OPTS_EXE="..\VS2010Express\XBMC for Windows.sln" /t:Build /p:Configuration="%buildconfig%" /property:VCTargetsPath="%MSBUILDROOT%Microsoft.Cpp\v4.0\V120" /m
-	set CLEAN_EXE="..\VS2010Express\XBMC for Windows.sln" /t:Clean /p:Configuration="%buildconfig%" /property:VCTargetsPath="%MSBUILDROOT%Microsoft.Cpp\v4.0\V120"
+    set msbuildemitsolution=1
+    set OPTS_EXE="..\VS2010Express\XBMC for Windows.sln" /t:Build /p:Configuration="%buildconfig%" /property:VCTargetsPath="%MSBUILDROOT%Microsoft.Cpp\v4.0\V120" /m
+    set CLEAN_EXE="..\VS2010Express\XBMC for Windows.sln" /t:Clean /p:Configuration="%buildconfig%" /property:VCTargetsPath="%MSBUILDROOT%Microsoft.Cpp\v4.0\V120"
   )
 
   IF NOT EXIST %NET% (
     set DIETEXT=MSBuild was not found.
-	goto DIE
+    goto DIE
   )
   
   set EXE= "..\VS2010Express\XBMC\%buildconfig%\%APP_NAME%.exe"
@@ -66,7 +68,7 @@ set WORKSPACE=%CD%\..\..
   :: sets the BRANCH env var
   call getbranch.bat
 
-  rem	CONFIG END
+  rem  CONFIG END
   rem -------------------------------------------------------------
   goto EXE_COMPILE
 
@@ -75,7 +77,7 @@ set WORKSPACE=%CD%\..\..
   IF NOT %buildmode%==ask goto COMPILE_MINGW
   IF %promptlevel%==noprompt goto COMPILE_MINGW
   rem ---------------------------------------------
-  rem	check for existing exe
+  rem  check for existing exe
   rem ---------------------------------------------
   set buildmode=clean
   
@@ -99,9 +101,9 @@ set WORKSPACE=%CD%\..\..
     ECHO Compiling mingw libs
     ECHO bla>noprompt
     IF EXIST errormingw del errormingw > NUL
-	IF %buildmode%==clean (
-	  ECHO bla>makeclean
-	)
+    IF %buildmode%==clean (
+      ECHO bla>makeclean
+    )
     rem only use sh to please jenkins
     IF %useshell%==sh (
       call ..\..\tools\buildsteps\win32\make-mingwlibs.bat sh noprompt
@@ -109,8 +111,8 @@ set WORKSPACE=%CD%\..\..
       call ..\..\tools\buildsteps\win32\make-mingwlibs.bat noprompt
     )
     IF EXIST errormingw (
-    	set DIETEXT="failed to build mingw libs"
-    	goto DIE
+      set DIETEXT="failed to build mingw libs"
+      goto DIE
     )
   )
   IF %buildmode%==clean goto COMPILE_EXE
@@ -125,11 +127,11 @@ set WORKSPACE=%CD%\..\..
   ECHO Compiling %APP_NAME% branch %BRANCH%...
   %NET% %OPTS_EXE%
   IF %errorlevel%==1 (
-  	set DIETEXT="%APP_NAME%.EXE failed to build!  See %CD%\..\vs2010express\XBMC\%buildconfig%\objs\XBMC.log"
-	IF %promptlevel%==noprompt (
-		type "%CD%\..\vs2010express\XBMC\%buildconfig%\objs\XBMC.log"
-	)
-  	goto DIE
+    set DIETEXT="%APP_NAME%.EXE failed to build!  See %CD%\..\vs2010express\XBMC\%buildconfig%\objs\XBMC.log"
+    IF %promptlevel%==noprompt (
+      type "%CD%\..\vs2010express\XBMC\%buildconfig%\objs\XBMC.log"
+    )
+    goto DIE
   )
   ECHO Done!
   ECHO ------------------------------------------------------------
@@ -142,11 +144,11 @@ set WORKSPACE=%CD%\..\..
   ECHO Compiling %APP_NAME% branch %BRANCH%...
   %NET% %OPTS_EXE%
   IF %errorlevel%==1 (
-  	set DIETEXT="%APP_NAME%.EXE failed to build!  See %CD%\..\vs2010express\XBMC\%buildconfig%\objs\XBMC.log"
-	IF %promptlevel%==noprompt (
-		type "%CD%\..\vs2010express\XBMC\%buildconfig%\objs\XBMC.log"
-	)
-  	goto DIE
+    set DIETEXT="%APP_NAME%.EXE failed to build!  See %CD%\..\vs2010express\XBMC\%buildconfig%\objs\XBMC.log"
+    IF %promptlevel%==noprompt (
+      type "%CD%\..\vs2010express\XBMC\%buildconfig%\objs\XBMC.log"
+    )
+    goto DIE
   )
   ECHO Done!
   ECHO ------------------------------------------------------------
@@ -163,10 +165,13 @@ set WORKSPACE=%CD%\..\..
   Echo exclude.txt>>exclude.txt
   Echo xbmc.log>>exclude.txt
   Echo xbmc.old.log>>exclude.txt
+  Echo kodi.log>>exclude.txt
+  Echo kodi.old.log>>exclude.txt
   rem Exclude userdata files
   Echo userdata\advancedsettings.xml>>exclude.txt
   Echo userdata\guisettings.xml>>exclude.txt
   Echo userdata\mediasources.xml>>exclude.txt
+  Echo userdata\ModeLines_template.xml>>exclude.txt
   Echo userdata\passwords.xml>>exclude.txt
   Echo userdata\profiles.xml>>exclude.txt
   Echo userdata\sources.xml>>exclude.txt
@@ -200,34 +205,31 @@ set WORKSPACE=%CD%\..\..
   copy ..\..\LICENSE.GPL BUILD_WIN32\application > NUL
   copy ..\..\known_issues.txt BUILD_WIN32\application > NUL
   xcopy dependencies\*.* BUILD_WIN32\application /Q /I /Y /EXCLUDE:exclude.txt  > NUL
-  
-  xcopy ..\..\language BUILD_WIN32\application\language /E /Q /I /Y /EXCLUDE:exclude.txt  > NUL
+
   xcopy ..\..\addons BUILD_WIN32\application\addons /E /Q /I /Y /EXCLUDE:exclude.txt > NUL
   xcopy ..\..\system BUILD_WIN32\application\system /E /Q /I /Y /EXCLUDE:exclude.txt  > NUL
   xcopy ..\..\media BUILD_WIN32\application\media /E /Q /I /Y /EXCLUDE:exclude.txt  > NUL
   xcopy ..\..\sounds BUILD_WIN32\application\sounds /E /Q /I /Y /EXCLUDE:exclude.txt  > NUL
   
-  ECHO ------------------------------------------------------------
-  call buildpvraddons.bat
-  IF %errorlevel%==1 (
-    set DIETEXT="failed to build pvr addons"
-    goto DIE
-  )
-    
-  IF EXIST error.log del error.log > NUL
   SET build_path=%CD%
-  ECHO ------------------------------------------------------------
-  ECHO Building addons...
-  cd ..\..\tools\buildsteps\win32
-  call make-addons.bat
-  IF %errorlevel%==1 (
-    set DIETEXT="failed to build addons"
+  IF %buildbinaryaddons%==true (
+    ECHO ------------------------------------------------------------
+    ECHO Building addons...
+    cd ..\..\tools\buildsteps\win32
+    IF %buildmode%==clean (
+      call make-addons.bat clean
+    )
+    call make-addons.bat
+    IF %errorlevel%==1 (
+      set DIETEXT="failed to build addons"
+      cd %build_path%
+      goto DIE
+    )
+
     cd %build_path%
-    goto DIE
+    IF EXIST error.log del error.log > NUL
   )
 
-  cd %build_path%
-  IF EXIST error.log del error.log > NUL
   ECHO ------------------------------------------------------------
   ECHO Building Confluence Skin...
   cd ..\..\addons\skin.confluence
@@ -268,7 +270,7 @@ set WORKSPACE=%CD%\..\..
   ECHO Creating installer %APP_SETUPFILE%...
   IF EXIST %APP_SETUPFILE% del %APP_SETUPFILE% > NUL
   rem get path to makensis.exe from registry, first try tab delim
-  FOR /F "tokens=2* delims=	" %%A IN ('REG QUERY "HKLM\Software\NSIS" /ve') DO SET NSISExePath=%%B
+  FOR /F "tokens=2* delims=  " %%A IN ('REG QUERY "HKLM\Software\NSIS" /ve') DO SET NSISExePath=%%B
 
   IF NOT EXIST "%NSISExePath%" (
     rem try with space delim instead of tab
@@ -277,7 +279,7 @@ set WORKSPACE=%CD%\..\..
       
   IF NOT EXIST "%NSISExePath%" (
     rem fails on localized windows (Default) becomes (Par D�faut)
-    FOR /F "tokens=3* delims=	" %%A IN ('REG QUERY "HKLM\Software\NSIS" /ve') DO SET NSISExePath=%%B
+    FOR /F "tokens=3* delims=  " %%A IN ('REG QUERY "HKLM\Software\NSIS" /ve') DO SET NSISExePath=%%B
   )
 
   IF NOT EXIST "%NSISExePath%" (
@@ -287,7 +289,7 @@ set WORKSPACE=%CD%\..\..
   rem proper x64 registry checks
   IF NOT EXIST "%NSISExePath%" (
     ECHO using x64 registry entries
-    FOR /F "tokens=2* delims=	" %%A IN ('REG QUERY "HKLM\Software\Wow6432Node\NSIS" /ve') DO SET NSISExePath=%%B
+    FOR /F "tokens=2* delims=  " %%A IN ('REG QUERY "HKLM\Software\Wow6432Node\NSIS" /ve') DO SET NSISExePath=%%B
   )
   IF NOT EXIST "%NSISExePath%" (
     rem try with space delim instead of tab
@@ -295,7 +297,7 @@ set WORKSPACE=%CD%\..\..
   )
   IF NOT EXIST "%NSISExePath%" (
     rem on win 7 x64, the previous fails
-    FOR /F "tokens=3* delims=	" %%A IN ('REG QUERY "HKLM\Software\Wow6432Node\NSIS" /ve') DO SET NSISExePath=%%B
+    FOR /F "tokens=3* delims=  " %%A IN ('REG QUERY "HKLM\Software\Wow6432Node\NSIS" /ve') DO SET NSISExePath=%%B
   )
   IF NOT EXIST "%NSISExePath%" (
     rem try with space delim instead of tab
@@ -305,8 +307,8 @@ set WORKSPACE=%CD%\..\..
   SET NSISExe=%NSISExePath%\makensis.exe
   "%NSISExe%" /V1 /X"SetCompressor /FINAL lzma" /Dapp_root="%CD%\BUILD_WIN32" /DAPP_NAME="%APP_NAME%" /DCOMPANY="%COMPANY%" /DWEBSITE="%WEBSITE%" /Dapp_revision="%GIT_REV%" /Dapp_target="%target%" /Dapp_branch="%BRANCH%" "genNsisInstaller.nsi"
   IF NOT EXIST "%APP_SETUPFILE%" (
-	  set DIETEXT=Failed to create %APP_SETUPFILE%. NSIS installed?
-	  goto DIE
+    set DIETEXT=Failed to create %APP_SETUPFILE%. NSIS installed?
+    goto DIE
   )
   copy %PDB% %APP_PDBFILE% > nul
   ECHO ------------------------------------------------------------
@@ -333,7 +335,7 @@ set WORKSPACE=%CD%\..\..
   copy %log% ./buildlog.html > NUL
 
   IF %promptlevel%==noprompt (
-  goto END
+    goto END
   )
 
   set /P APP_BUILD_ANSWER=View the build log in your HTML browser? [y/n]
@@ -346,7 +348,7 @@ set WORKSPACE=%CD%\..\..
 
 :END
   IF %promptlevel% NEQ noprompt (
-  ECHO Press any key to exit...
-  pause > NUL
+    ECHO Press any key to exit...
+    pause > NUL
   )
   EXIT /B %exitcode%

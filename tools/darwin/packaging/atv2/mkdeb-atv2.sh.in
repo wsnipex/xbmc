@@ -4,7 +4,7 @@
 XBMC_DEPENDS_ROOT=@DEPENDS_ROOT_FOR_XCODE@
 SWITCH=`echo $1 | tr [A-Z] [a-z]`
 DIRNAME=`dirname $0`
-DSYM_TARGET_DIR=${XBMC_DEPENDS_ROOT}/dSyms
+DSYM_TARGET_DIR=/Users/Shared/xbmc-depends/dSyms
 DSYM_FILENAME=@APP_NAME@.frappliance.dSYM
 
 if [ ${SWITCH:-""} = "debug" ]; then
@@ -48,7 +48,12 @@ fi
 PACKAGE=org.xbmc.@APP_NAME_LC@-atv2
 
 VERSION=@APP_VERSION_MAJOR@.@APP_VERSION_MINOR@
-REVISION=0~@APP_VERSION_TAG_LC@
+REVISION=0
+
+if [ "@APP_VERSION_TAG_LC@" != "" ]; then
+  REVISION=$REVISION~@APP_VERSION_TAG_LC@
+fi
+
 ARCHIVE=${PACKAGE}_${VERSION}-${REVISION}_iphoneos-arm.deb
 SIZE="$(du -s -k ${APP} | awk '{print $1}')"
 

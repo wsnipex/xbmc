@@ -36,6 +36,7 @@
 #include "utils/CharsetConverter.h"
 #include "guilib/GUIWindowManager.h"
 #include "input/MouseStat.h"
+#include "input/InputManager.h"
 
 #if defined(HAS_XRANDR)
 #include <X11/extensions/Xrandr.h>
@@ -461,8 +462,8 @@ bool CWinEventsX11Imp::MessagePump()
           case XLookupChars:
           case XLookupBoth:
           {
-            CStdString   data(WinEvents->m_keybuf, len);
-            CStdStringW keys;
+            std::string data(WinEvents->m_keybuf, len);
+            std::wstring keys;
             g_charsetConverter.utf8ToW(data, keys, false);
 
             if (keys.length() == 0)
@@ -541,7 +542,7 @@ bool CWinEventsX11Imp::MessagePump()
       // lose mouse coverage
       case LeaveNotify:
       {
-        g_Mouse.SetActive(false);
+        CInputManager::Get().SetMouseActive(false);
         break;
       }
 
@@ -615,7 +616,7 @@ bool CWinEventsX11Imp::MessagePump()
       case SDL_JOYHATMOTION:
       case SDL_JOYDEVICEADDED:
       case SDL_JOYDEVICEREMOVED:
-        g_Joystick.Update(event);
+        CInputManager::Get().UpdateJoystick(event);
         ret = true;
         break;
 

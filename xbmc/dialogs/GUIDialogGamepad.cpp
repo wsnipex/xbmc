@@ -25,17 +25,17 @@
 #include "guilib/GUIWindowManager.h"
 #include "GUIDialogOK.h"
 #include "utils/StringUtils.h"
-#include "guilib/Key.h"
+#include "input/Key.h"
 #include "guilib/LocalizeStrings.h"
 
 CGUIDialogGamepad::CGUIDialogGamepad(void)
     : CGUIDialogBoxBase(WINDOW_DIALOG_GAMEPAD, "DialogGamepad.xml")
 {
   m_bCanceled = false;
-  m_strUserInput = "";
-  m_strPassword = "";
   m_iRetries = 0;
   m_bUserInputCleanup = true;
+  m_bHideInputChars = true;
+  m_cHideInputChar = '*';
 }
 
 CGUIDialogGamepad::~CGUIDialogGamepad(void)

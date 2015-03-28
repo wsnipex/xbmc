@@ -26,9 +26,9 @@
 #include "utils/TimeUtils.h"
 #include "Application.h"
 #include "ApplicationMessenger.h"
-#include "Key.h"
+#include "input/Key.h"
 
-CGUIDialog::CGUIDialog(int id, const CStdString &xmlFile)
+CGUIDialog::CGUIDialog(int id, const std::string &xmlFile)
     : CGUIWindow(id, xmlFile)
 {
   m_bModal = true;
@@ -160,7 +160,7 @@ void CGUIDialog::UpdateVisibility()
   }
 }
 
-void CGUIDialog::DoModal_Internal(int iWindowID /*= WINDOW_INVALID */, const CStdString &param /* = "" */)
+void CGUIDialog::DoModal_Internal(int iWindowID /*= WINDOW_INVALID */, const std::string &param /* = "" */)
 {
   //Lock graphic context here as it is sometimes called from non rendering threads
   //maybe we should have a critical section per window instead??
@@ -176,7 +176,7 @@ void CGUIDialog::DoModal_Internal(int iWindowID /*= WINDOW_INVALID */, const CSt
   // the main rendering thread (this should really be handled via
   // a thread message though IMO)
   m_active = true;
-  g_windowManager.RouteToWindow(this);
+  g_windowManager.RegisterDialog(this);
 
   // active this window...
   CGUIMessage msg(GUI_MSG_WINDOW_INIT, 0, 0, WINDOW_INVALID, iWindowID);
@@ -213,14 +213,14 @@ void CGUIDialog::Show_Internal()
   // a thread message though IMO)
   m_active = true;
   m_closing = false;
-  g_windowManager.AddModeless(this);
+  g_windowManager.RegisterDialog(this);
 
   // active this window...
   CGUIMessage msg(GUI_MSG_WINDOW_INIT, 0, 0);
   OnMessage(msg);
 }
 
-void CGUIDialog::DoModal(int iWindowID /*= WINDOW_INVALID */, const CStdString &param)
+void CGUIDialog::DoModal(int iWindowID /*= WINDOW_INVALID */, const std::string &param)
 {
   if (!g_application.IsCurrentThread())
   {

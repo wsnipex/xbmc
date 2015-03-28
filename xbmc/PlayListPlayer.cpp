@@ -35,7 +35,7 @@
 #include "dialogs/GUIDialogKaiToast.h"
 #include "guilib/LocalizeStrings.h"
 #include "interfaces/AnnouncementManager.h"
-#include "guilib/Key.h"
+#include "input/Key.h"
 #include "URL.h"
 
 using namespace PLAYLIST;
@@ -90,7 +90,7 @@ bool CPlayListPlayer::OnMessage(CGUIMessage &message)
       for (int i = PLAYLIST_MUSIC; i <= PLAYLIST_VIDEO; i++)
       {
         CPlayList &playlist = GetPlaylist(i);
-        CFileItemPtr item = boost::static_pointer_cast<CFileItem>(message.GetItem());
+        CFileItemPtr item = std::static_pointer_cast<CFileItem>(message.GetItem());
         playlist.UpdateItem(item.get());
       }
     }
@@ -487,7 +487,7 @@ void CPlayListPlayer::SetShuffle(int iPlaylist, bool bYesNo, bool bNotify /* = f
 
     if (bNotify)
     {
-      CStdString shuffleStr = StringUtils::Format("%s: %s", g_localizeStrings.Get(191).c_str(), g_localizeStrings.Get(bYesNo ? 593 : 591).c_str()); // Shuffle: All/Off
+      std::string shuffleStr = StringUtils::Format("%s: %s", g_localizeStrings.Get(191).c_str(), g_localizeStrings.Get(bYesNo ? 593 : 591).c_str()); // Shuffle: All/Off
       CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Info, g_localizeStrings.Get(559),  shuffleStr);
     }
 

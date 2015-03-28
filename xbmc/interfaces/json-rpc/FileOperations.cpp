@@ -93,7 +93,7 @@ JSONRPC_STATUS CFileOperations::GetDirectory(const std::string &method, ITranspo
   else if (media == "music")
   {
     regexps = g_advancedSettings.m_audioExcludeFromListingRegExps;
-    extensions = g_advancedSettings.m_musicExtensions;
+    extensions = g_advancedSettings.GetMusicExtensions();
   }
   else if (media == "pictures")
   {
@@ -103,6 +103,14 @@ JSONRPC_STATUS CFileOperations::GetDirectory(const std::string &method, ITranspo
 
   if (CDirectory::GetDirectory(strPath, items, extensions))
   {
+    // we might need to get additional information for music items
+    if (media == "music")
+    {
+      JSONRPC_STATUS status = CAudioLibrary::GetAdditionalDetails(parameterObject, items);
+      if (status != OK)
+        return status;
+    }
+
     CFileItemList filteredFiles;
     for (unsigned int i = 0; i < (unsigned int)items.Size(); i++)
     {
@@ -302,7 +310,7 @@ bool CFileOperations::FillFileItemList(const CVariant &parameterObject, CFileIte
       else if (media == "music")
       {
         regexps = g_advancedSettings.m_audioExcludeFromListingRegExps;
-        extensions = g_advancedSettings.m_musicExtensions;
+        extensions = g_advancedSettings.GetMusicExtensions();
       }
       else if (media == "pictures")
       {

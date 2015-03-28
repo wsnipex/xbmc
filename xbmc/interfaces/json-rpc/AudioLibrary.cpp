@@ -508,6 +508,10 @@ JSONRPC_STATUS CAudioLibrary::SetSongDetails(const std::string &method, ITranspo
     song.strComment = parameterObject["comment"].asString();
   if (ParameterNotNull(parameterObject, "musicbrainztrackid"))
     song.strMusicBrainzTrackID = parameterObject["musicbrainztrackid"].asString();
+  if (ParameterNotNull(parameterObject, "playcount"))
+    song.iTimesPlayed = parameterObject["playcount"].asInteger();
+  if (ParameterNotNull(parameterObject, "lastplayed"))
+    song.lastPlayed.SetFromDBDateTime(parameterObject["lastplayed"].asString());
 
   if (musicdatabase.UpdateSong(id, song) <= 0)
     return InternalError;
@@ -649,6 +653,20 @@ bool CAudioLibrary::FillFileItemList(const CVariant &parameterObject, CFileItemL
 void CAudioLibrary::FillAlbumItem(const CAlbum &album, const std::string &path, CFileItemPtr &item)
 {
   item = CFileItemPtr(new CFileItem(path, album));
+}
+
+JSONRPC_STATUS CAudioLibrary::GetAdditionalDetails(const CVariant &parameterObject, CFileItemList &items)
+{
+  if (items.IsEmpty())
+    return OK;
+
+  CMusicDatabase musicdb;
+  if (MediaTypes::IsMediaType(items.GetContent(), MediaTypeAlbum))
+    return GetAdditionalAlbumDetails(parameterObject, items, musicdb);
+  else if (MediaTypes::IsMediaType(items.GetContent(), MediaTypeSong))
+    return GetAdditionalSongDetails(parameterObject, items, musicdb);
+
+  return OK;
 }
 
 JSONRPC_STATUS CAudioLibrary::GetAdditionalAlbumDetails(const CVariant &parameterObject, CFileItemList &items, CMusicDatabase &musicdatabase)

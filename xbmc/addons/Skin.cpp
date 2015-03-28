@@ -41,7 +41,7 @@
 using namespace std;
 using namespace XFILE;
 
-boost::shared_ptr<ADDON::CSkinInfo> g_SkinInfo;
+std::shared_ptr<ADDON::CSkinInfo> g_SkinInfo;
 
 namespace ADDON
 {
@@ -202,7 +202,7 @@ int CSkinInfo::GetStartWindow() const
 {
   int windowID = CSettings::Get().GetInt("lookandfeel.startupwindow");
   assert(m_startupWindows.size());
-  for (vector<CStartupWindow>::const_iterator it = m_startupWindows.begin(); it != m_startupWindows.end(); it++)
+  for (vector<CStartupWindow>::const_iterator it = m_startupWindows.begin(); it != m_startupWindows.end(); ++it)
   {
     if (windowID == (*it).m_id)
       return windowID;
@@ -287,9 +287,9 @@ bool CSkinInfo::OnPreInstall()
   return false;
 }
 
-void CSkinInfo::OnPostInstall(bool restart, bool update)
+void CSkinInfo::OnPostInstall(bool restart, bool update, bool modal)
 {
-  if (restart || (!update && CGUIDialogYesNo::ShowAndGetInput(Name(), g_localizeStrings.Get(24099),"","")))
+  if (restart || (!update && !modal && CGUIDialogYesNo::ShowAndGetInput(Name(), g_localizeStrings.Get(24099),"","")))
   {
     CGUIDialogKaiToast *toast = (CGUIDialogKaiToast *)g_windowManager.GetWindow(WINDOW_DIALOG_KAI_TOAST);
     if (toast)
@@ -470,7 +470,7 @@ void CSkinInfo::SettingOptionsStartupWindowsFiller(const CSetting *setting, std:
 
   const vector<CStartupWindow> &startupWindows = g_SkinInfo->GetStartupWindows();
 
-  for (vector<CStartupWindow>::const_iterator it = startupWindows.begin(); it != startupWindows.end(); it++)
+  for (vector<CStartupWindow>::const_iterator it = startupWindows.begin(); it != startupWindows.end(); ++it)
   {
     string windowName = it->m_name;
     if (StringUtils::IsNaturalNumber(windowName))

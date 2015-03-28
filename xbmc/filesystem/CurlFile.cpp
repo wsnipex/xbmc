@@ -29,6 +29,7 @@
 
 #include <vector>
 #include <climits>
+#include <cassert>
 
 #ifdef TARGET_POSIX
 #include <errno.h>
@@ -225,6 +226,7 @@ CCurlFile::CReadState::CReadState()
   m_multiHandle = NULL;
   m_overflowBuffer = NULL;
   m_overflowSize = 0;
+  m_stillRunning = 0;
   m_filePos = 0;
   m_fileSize = 0;
   m_bufferSize = 0;
@@ -374,6 +376,9 @@ CCurlFile::~CCurlFile()
 }
 
 CCurlFile::CCurlFile()
+ : m_writeOffset(0)
+ , m_overflowBuffer(NULL)
+ , m_overflowSize(0)
 {
   g_curlInterface.Load(); // loads the curl dll and resolves exports etc.
   m_opened = false;
@@ -870,7 +875,7 @@ bool CCurlFile::Download(const std::string& strURL, const std::string& strFileNa
   if (pdwSize != NULL)
     *pdwSize = written > 0 ? written : 0;
 
-  return written == strData.size();
+  return written == static_cast<ssize_t>(strData.size());
 }
 
 // Detect whether we are "online" or not! Very simple and dirty!
@@ -1115,7 +1120,7 @@ bool CCurlFile::Exists(const CURL& url)
   g_curlInterface.easy_setopt(m_state->m_easyHandle, CURLOPT_NOBODY, 1);
   g_curlInterface.easy_setopt(m_state->m_easyHandle, CURLOPT_WRITEDATA, NULL); /* will cause write failure*/
 
-  if(url2.IsProtocol("ftp"))
+  if(url2.IsProtocol("ftp") || url2.IsProtocol("ftps"))
   {
     g_curlInterface.easy_setopt(m_state->m_easyHandle, CURLOPT_FILETIME, 1);
     // nocwd is less standard, will return empty list for non-existed remote dir on some ftp server, avoid it.
@@ -1558,7 +1563,7 @@ bool CCurlFile::CReadState::FillBuffer(unsigned int want)
         do
         {
           unsigned int time_left = endTime.MillisLeft();
-          struct timeval t = { time_left / 1000, (time_left % 1000) * 1000 };
+          struct timeval t = { (int)time_left / 1000, ((int)time_left % 1000) * 1000 };
 
           // Wait until data is available or a timeout occurs.
           rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &t);
@@ -1670,6 +1675,28 @@ bool CCurlFile::GetMimeType(const CURL &url, std::string &content, const std::st
     return true;
   }
   CLog::Log(LOGDEBUG, "CCurlFile::GetMimeType - %s -> failed", redactUrl.c_str());
+  content.clear();
+  return false;
+}
+
+bool CCurlFile::GetContentType(const CURL &url, std::string &content, const std::string &useragent)
+{
+  CCurlFile file;
+  if (!useragent.empty())
+    file.SetUserAgent(useragent);
+
+  struct __stat64 buffer;
+  std::string redactUrl = url.GetRedacted();
+  if (file.Stat(url, &buffer) == 0)
+  {
+    if (buffer.st_mode == _S_IFDIR)
+      content = "x-directory/normal";
+    else
+      content = file.GetContent();
+    CLog::Log(LOGDEBUG, "CCurlFile::GetConentType - %s -> %s", redactUrl.c_str(), content.c_str());
+    return true;
+  }
+  CLog::Log(LOGDEBUG, "CCurlFile::GetConentType - %s -> failed", redactUrl.c_str());
   content.clear();
   return false;
 }

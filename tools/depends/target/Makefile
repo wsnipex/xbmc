@@ -10,13 +10,14 @@ DEPENDS = \
 	openssl gmp nettle gnutls libssh2 curl \
 	libjpeg-turbo tiff jasper libpng \
 	libogg libvorbis libflac fribidi libmpeg2 \
-	libass \
+	libass libsquish \
 	libmodplug librtmp libxml2 yajl libmicrohttpd mysql libffi \
-	python26 afpfs-ng libshairplay \
+	python26 libshairplay \
 	libplist libcec libbluray boost tinyxml dummy-libxbmc \
 	libamplayer libssh taglib libusb libnfs libmp3lame \
-	xbmc-pvr-addons xbmc-audioencoder-addons \
 	pythonmodule-pil libxslt ffmpeg
+
+FFMPEG_DEPENDS = gnutls
 
 ifeq ($(ENABLE_GPLV3),1)
   DEPENDS+=samba-gplv3 libcdio-gplv3
@@ -26,17 +27,16 @@ endif
 
 ifeq ($(OS),ios)
   DEPENDS += Backrow
-  EXCLUDED_DEPENDS = libcec libusb gmp nettle gnutls
+  EXCLUDED_DEPENDS = libcec libusb
 endif
 
 ifeq ($(OS),osx)
   DEPENDS += libGLEW libsdl
-  EXCLUDED_DEPENDS = libusb gmp nettle gnutls
+  EXCLUDED_DEPENDS = libusb
 endif
 
 ifeq ($(OS),android)
   DEPENDS += mdnsresponder android-sources-ics
-  EXCLUDED_DEPENDS = gmp nettle gnutls
 endif
 
 DEPENDS := $(filter-out $(EXCLUDED_DEPENDS),$(DEPENDS))
@@ -63,7 +63,6 @@ ifeq ($(OS),linux)
   endif
   DEPENDS += alsa-lib
   ALSA_LIB = alsa-lib
-  FFMPEG_DEPENDS = gnutls
 endif
 
 .PHONY: $(DEPENDS)
@@ -81,15 +80,12 @@ libvorbis: libogg
 libflac: libogg gettext
 libass: fontconfig libpng freetype2 expat $(ICONV)
 librtmp: openssl
-libmicrohttpd: openssl libgpg-error libgcrypt
+libmicrohttpd: gnutls libgcrypt libgpg-error
 python26: expat gettext libxml2 sqlite3 openssl libffi
 libcdio: $(ICONV)
-afpfs-ng: libgcrypt $(ICONV)
 libplist: libxml2 $(ZLIB)
 libbluray: $(ICONV) libxml2
 libssh: openssl
-xbmc-pvr-addons: boost mysql
-xbmc-audioencoder-addons: libvorbis libflac libmp3lame libogg
 mysql: openssl
 libzip: $(ZLIB)
 libmp3lame: $(ICONV)

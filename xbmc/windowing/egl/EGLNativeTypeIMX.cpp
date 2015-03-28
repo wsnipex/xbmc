@@ -18,6 +18,8 @@
  *
  */
 
+#include <cstdlib>
+
 #include "system.h"
 #include <EGL/egl.h>
 
@@ -25,9 +27,13 @@
 #include <math.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
+#ifdef HAS_IMXVPU
+#include <linux/mxcfb.h>
+#endif
 #include "utils/log.h"
 #include "utils/RegExp.h"
 #include "utils/StringUtils.h"
+#include "utils/SysfsUtils.h"
 #include "utils/Environment.h"
 #include "guilib/gui3d.h"
 #include "windowing/WindowingFactory.h"
@@ -54,33 +60,74 @@ void CEGLNativeTypeIMX::Initialize()
 {
   int fd;
 
+  // Check if we can change the framebuffer resolution
+  fd = open("/sys/class/graphics/fb0/mode", O_RDWR);
+  if (fd >= 0)
+  {
+    CLog::Log(LOGNOTICE, "%s - graphics sysfs is writable\n", __FUNCTION__);
+    m_readonly = false;
+  }
+  else
+  {
+    CLog::Log(LOGNOTICE, "%s - graphics sysfs is read-only\n", __FUNCTION__);
+    m_readonly = true;
+  }
+  close(fd);
+
+  bool alphaBlending = false;
+  std::string bpp;
+  if (SysfsUtils::GetString("/sys/class/graphics/fb0/bits_per_pixel", bpp))
+  {
+    CLog::Log(LOGWARNING, "%s - determining current bits per pixel failed, assuming 16bpp\n", __FUNCTION__);
+  }
+  else
+  {
+    StringUtils::Trim(bpp);
+    if (bpp == "32")
+    {
+      CLog::Log(LOGNOTICE, "%s - 32bpp: configure alpha blending\n", __FUNCTION__);
+      alphaBlending = true;
+    }
+    else
+    {
+      CLog::Log(LOGNOTICE, "%s - %sbpp: configure color keying\n", __FUNCTION__, bpp.c_str());
+    }
+  }
+
   fd = open("/dev/fb0",O_RDWR);
   if (fd < 0)
   {
     CLog::Log(LOGERROR, "%s - Error while opening /dev/fb0.\n", __FUNCTION__);
     return;
   }
+#ifdef HAS_IMXVPU
+  struct mxcfb_color_key colorKey;
+  struct mxcfb_gbl_alpha gbl_alpha;
+  struct mxcfb_loc_alpha lalpha;
+  memset(&lalpha, 0, sizeof(lalpha));
 
+  // Configure local alpha
+  lalpha.enable = alphaBlending?1:0;
+  lalpha.alpha_in_pixel = 1;
+  if (ioctl(fd, MXCFB_SET_LOC_ALPHA, &lalpha) < 0)
+    CLog::Log(LOGERROR, "%s - Failed to setup alpha blending\n", __FUNCTION__);
+
+  gbl_alpha.alpha = 255;
+  gbl_alpha.enable = alphaBlending?0:1;
+  if (ioctl(fd, MXCFB_SET_GBL_ALPHA, &gbl_alpha) < 0)
+    CLog::Log(LOGERROR, "%s - Failed to setup global alpha\n", __FUNCTION__);
+
+  colorKey.enable = alphaBlending?0:1;
+  colorKey.color_key = (16 << 16)|(8 << 8)|16;
+  if (ioctl(fd, MXCFB_SET_CLR_KEY, &colorKey) < 0)
+    CLog::Log(LOGERROR, "%s - Failed to setup color keying\n", __FUNCTION__);
+#endif
   // Unblank the fb
   if (ioctl(fd, FBIOBLANK, 0) < 0)
   {
     CLog::Log(LOGERROR, "%s - Error while unblanking fb0.\n", __FUNCTION__);
   }
 
-  close(fd);
-
-  // Check if we can change the framebuffer resolution
-  fd = open("/sys/class/graphics/fb0/mode", O_RDWR);
-  if (fd >= 0)
-  {
-    CLog::Log(LOGNOTICE, "%s - graphics sysfs is writable", __FUNCTION__);
-    m_readonly = false;
-  }
-  else
-  {
-    CLog::Log(LOGNOTICE, "%s - graphics sysfs is read-only", __FUNCTION__);
-    m_readonly = true;
-  }
   close(fd);
 
   return;
@@ -190,7 +237,7 @@ bool CEGLNativeTypeIMX::DestroyNativeWindow()
 bool CEGLNativeTypeIMX::GetNativeResolution(RESOLUTION_INFO *res) const
 {
   std::string mode;
-  get_sysfs_str("/sys/class/graphics/fb0/mode", mode);
+  SysfsUtils::GetString("/sys/class/graphics/fb0/mode", mode);
   return ModeToResolution(mode, res);
 }
 
@@ -200,14 +247,14 @@ bool CEGLNativeTypeIMX::SetNativeResolution(const RESOLUTION_INFO &res)
     return false;
 
   std::string mode;
-  get_sysfs_str("/sys/class/graphics/fb0/mode", mode);
+  SysfsUtils::GetString("/sys/class/graphics/fb0/mode", mode);
   if (res.strId == mode)
     return false;
 
   DestroyNativeWindow();
   DestroyNativeDisplay();
 
-  set_sysfs_str("/sys/class/graphics/fb0/mode", res.strId);
+  SysfsUtils::SetString("/sys/class/graphics/fb0/mode", res.strId + "\n");
 
   CreateNativeDisplay();
 
@@ -225,7 +272,7 @@ bool CEGLNativeTypeIMX::ProbeResolutions(std::vector<RESOLUTION_INFO> &resolutio
     return false;
 
   std::string valstr;
-  get_sysfs_str("/sys/class/graphics/fb0/modes", valstr);
+  SysfsUtils::GetString("/sys/class/graphics/fb0/modes", valstr);
   std::vector<std::string> probe_str;
   probe_str = StringUtils::Split(valstr, "\n");
 
@@ -255,41 +302,6 @@ bool CEGLNativeTypeIMX::ShowWindow(bool show)
     CLog::Log(LOGERROR, "EGL error in %s: %x",__FUNCTION__, result);
 
   return false;
-}
-
-int CEGLNativeTypeIMX::get_sysfs_str(std::string path, std::string& valstr) const
-{
-  int len;
-  char buf[256] = {0};
-
-  int fd = open(path.c_str(), O_RDONLY);
-  if (fd >= 0)
-  {
-    while ((len = read(fd, buf, 255)) > 0)
-      valstr.append(buf, len);
-    close(fd);
-  }
-  else
-  {
-    CLog::Log(LOGERROR, "%s: error reading %s",__FUNCTION__, path.c_str());
-    valstr = "fail";
-    return -1;
-  }
-  return 0;
-}
-
-int CEGLNativeTypeIMX::set_sysfs_str(std::string path, std::string val) const
-{
-  int fd = open(path.c_str(), O_WRONLY);
-  if (fd >= 0)
-  {
-    val += '\n';
-    write(fd, val.c_str(), val.size());
-    close(fd);
-    return 0;
-  }
-  CLog::Log(LOGERROR, "%s: error writing %s",__FUNCTION__, path.c_str());
-  return -1;
 }
 
 bool CEGLNativeTypeIMX::ModeToResolution(std::string mode, RESOLUTION_INFO *res) const

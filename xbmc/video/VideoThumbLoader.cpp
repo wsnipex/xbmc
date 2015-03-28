@@ -18,6 +18,8 @@
  *
  */
 
+#include <cstdlib>
+
 #include "VideoThumbLoader.h"
 #include "filesystem/StackDirectory.h"
 #include "utils/URIUtils.h"
@@ -45,12 +47,19 @@ using namespace XFILE;
 using namespace std;
 using namespace VIDEO;
 
-CThumbExtractor::CThumbExtractor(const CFileItem& item, const CStdString& listpath, bool thumb, const CStdString& target)
+CThumbExtractor::CThumbExtractor(const CFileItem& item,
+                                 const std::string& listpath,
+                                 bool thumb,
+                                 const std::string& target,
+                                 int64_t pos,
+                                 bool fillStreamDetails)
 {
   m_listpath = listpath;
   m_target = target;
   m_thumb = thumb;
   m_item = item;
+  m_pos = pos;
+  m_fillStreamDetails = fillStreamDetails;
 
   if (item.IsVideoDb() && item.HasVideoInfoTag())
     m_item.SetPath(item.GetVideoInfoTag()->m_strFileNameAndPath);
@@ -68,7 +77,8 @@ bool CThumbExtractor::operator==(const CJob* job) const
   if (strcmp(job->GetType(),GetType()) == 0)
   {
     const CThumbExtractor* jobExtract = dynamic_cast<const CThumbExtractor*>(job);
-    if (jobExtract && jobExtract->m_listpath == m_listpath)
+    if (jobExtract && jobExtract->m_listpath == m_listpath
+                   && jobExtract->m_target == m_target)
       return true;
   }
   return false;
@@ -101,7 +111,7 @@ bool CThumbExtractor::DoWork()
     // construct the thumb cache file
     CTextureDetails details;
     details.file = CTextureCache::GetCacheFile(m_target) + ".jpg";
-    result = CDVDFileInfo::ExtractThumb(m_item.GetPath(), details, &m_item.GetVideoInfoTag()->m_streamDetails);
+    result = CDVDFileInfo::ExtractThumb(m_item.GetPath(), details, m_fillStreamDetails ? &m_item.GetVideoInfoTag()->m_streamDetails : NULL, (int) m_pos);
     if(result)
     {
       CTextureCache::Get().AddCachedTexture(m_target, details);
@@ -137,16 +147,25 @@ bool CThumbExtractor::DoWork()
       if (URIUtils::IsStack(m_listpath))
       {
         // Don't know the total time of the stack, so set duration to zero to avoid confusion
-        m_item.GetVideoInfoTag()->m_streamDetails.SetVideoDuration(0, 0);
+        info->m_streamDetails.SetVideoDuration(0, 0);
 
         // Restore original stack path
         m_item.SetPath(m_listpath);
       }
 
       if (info->m_iFileId < 0)
-        db.SetStreamDetailsForFile(info->m_streamDetails, !info->m_strFileNameAndPath.empty() ? info->m_strFileNameAndPath : m_item.GetPath());
+        db.SetStreamDetailsForFile(info->m_streamDetails, !info->m_strFileNameAndPath.empty() ? info->m_strFileNameAndPath : static_cast<const std::string&>(m_item.GetPath()));
       else
         db.SetStreamDetailsForFileId(info->m_streamDetails, info->m_iFileId);
+
+      // overwrite the runtime value if the one from streamdetails is available
+      if (info->m_iDbId > 0 && info->m_duration != static_cast<int>(info->GetDuration()))
+      {
+        info->m_duration = info->GetDuration();
+
+        // store the updated information in the database
+        db.SetDetailsForItem(info->m_iDbId, info->m_type, *info, m_item.GetArt());
+      }
 
       db.Close();
     }
@@ -182,13 +201,13 @@ void CVideoThumbLoader::OnLoaderFinish()
   CThumbLoader::OnLoaderFinish();
 }
 
-static void SetupRarOptions(CFileItem& item, const CStdString& path)
+static void SetupRarOptions(CFileItem& item, const std::string& path)
 {
-  CStdString path2(path);
+  std::string path2(path);
   if (item.IsVideoDb() && item.HasVideoInfoTag())
     path2 = item.GetVideoInfoTag()->m_strFileNameAndPath;
   CURL url(path2);
-  CStdString opts = url.GetOptions();
+  std::string opts = url.GetOptions();
   if (opts.find("flags") != std::string::npos)
     return;
   if (opts.size())
@@ -340,14 +359,14 @@ bool CVideoThumbLoader::LoadItemLookup(CFileItem* pItem)
   if (!pItem->m_bIsFolder && pItem->IsVideo())
   {
     // An auto-generated thumb may have been cached on a different device - check we have it here
-    CStdString url = pItem->GetArt("thumb");
+    std::string url = pItem->GetArt("thumb");
     if (StringUtils::StartsWith(url, "image://video@") && !CTextureCache::Get().HasCachedImage(url))
       pItem->SetArt("thumb", "");
 
     if (!pItem->HasArt("thumb"))
     {
       // create unique thumb for auto generated thumbs
-      CStdString thumbURL = GetEmbeddedThumbURL(*pItem);
+      std::string thumbURL = GetEmbeddedThumbURL(*pItem);
       if (CTextureCache::Get().HasCachedImage(thumbURL))
       {
         CTextureCache::Get().BackgroundCacheImage(thumbURL);
@@ -367,7 +386,7 @@ bool CVideoThumbLoader::LoadItemLookup(CFileItem* pItem)
                CSettings::Get().GetBool("myvideos.extractflags"))
       {
         CFileItem item(*pItem);
-        CStdString path(item.GetPath());
+        std::string path(item.GetPath());
         if (URIUtils::IsInRAR(item.GetPath()))
           SetupRarOptions(item,path);
 
@@ -385,7 +404,7 @@ bool CVideoThumbLoader::LoadItemLookup(CFileItem* pItem)
         !pItem->GetVideoInfoTag()->HasStreamDetails() ) )
     {
       CFileItem item(*pItem);
-      CStdString path(item.GetPath());
+      std::string path(item.GetPath());
       if (URIUtils::IsInRAR(item.GetPath()))
         SetupRarOptions(item,path);
       CThumbExtractor* extract = new CThumbExtractor(item,path,false);
@@ -460,7 +479,7 @@ bool CVideoThumbLoader::FillThumb(CFileItem &item)
 {
   if (item.HasArt("thumb"))
     return true;
-  CStdString thumb = GetCachedImage(item, "thumb");
+  std::string thumb = GetCachedImage(item, "thumb");
   if (thumb.empty())
   {
     thumb = GetLocalArt(item, "thumb");
@@ -509,9 +528,9 @@ std::string CVideoThumbLoader::GetLocalArt(const CFileItem &item, const std::str
   return art;
 }
 
-CStdString CVideoThumbLoader::GetEmbeddedThumbURL(const CFileItem &item)
+std::string CVideoThumbLoader::GetEmbeddedThumbURL(const CFileItem &item)
 {
-  CStdString path(item.GetPath());
+  std::string path(item.GetPath());
   if (item.IsVideoDb() && item.HasVideoInfoTag())
     path = item.GetVideoInfoTag()->m_strFileNameAndPath;
   if (URIUtils::IsStack(path))
@@ -553,7 +572,7 @@ void CVideoThumbLoader::DetectAndAddMissingItemData(CFileItem &item)
     // check for custom stereomode setting in video settings
     CVideoSettings itemVideoSettings;
     m_videoDatabase->Open();
-    if (m_videoDatabase->GetVideoSettings(path, itemVideoSettings) && itemVideoSettings.m_StereoMode != RENDER_STEREO_MODE_OFF)
+    if (m_videoDatabase->GetVideoSettings(item, itemVideoSettings) && itemVideoSettings.m_StereoMode != RENDER_STEREO_MODE_OFF)
       stereoMode = CStereoscopicsManager::Get().ConvertGuiStereoModeToString( (RENDER_STEREO_MODE) itemVideoSettings.m_StereoMode );
     m_videoDatabase->Close();
 

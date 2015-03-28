@@ -24,6 +24,7 @@
 #include "utils/AliasShortcutUtils.h"
 #include "URL.h"
 #include "utils/log.h"
+#include "filesystem/File.h"
 
 #ifdef HAVE_CONFIG_H
 #include "config.h" // for HAVE_POSIX_FADVISE
@@ -181,12 +182,18 @@ int64_t CPosixFile::Seek(int64_t iFilePosition, int iWhence /* = SEEK_SET*/)
   if (m_fd < 0)
     return -1;
   
+#ifdef TARGET_ANDROID
+  // TODO: properly support with detection in configure
+  // Android special case: Android doesn't substitute off64_t for off_t and similar functions
+  m_filePos = lseek64(m_fd, (off64_t)iFilePosition, iWhence);
+#else  // !TARGET_ANDROID
   const off_t filePosOffT = (off_t) iFilePosition;
   // check for parameter overflow
   if (sizeof(int64_t) != sizeof(off_t) && iFilePosition != filePosOffT)
     return -1;
   
   m_filePos = lseek(m_fd, filePosOffT, iWhence);
+#endif // !TARGET_ANDROID
   
   return m_filePos;
 }
@@ -310,6 +317,19 @@ bool CPosixFile::Rename(const CURL& url, const CURL& urlnew)
   
   if (errno == EACCES || errno == EPERM)
     CLog::LogF(LOGWARNING, "Can't access file \"%s\" for rename to \"%s\"", name.c_str(), newName.c_str());
+
+  // rename across mount points - need to copy/delete
+  if (errno == EXDEV)
+  {
+    CLog::LogF(LOGDEBUG, "Source file \"%s\" and target file \"%s\" are located on different filesystems, copy&delete will be used instead of rename", name.c_str(), newName.c_str());
+    if (XFILE::CFile::Copy(name, newName))
+    {
+      if (XFILE::CFile::Delete(name))
+        return true;
+      else
+        XFILE::CFile::Delete(newName);
+    }
+  }
 
   return false;
 }

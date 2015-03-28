@@ -80,8 +80,9 @@ static const TypeMapping types[] =
    {"xbmc.python.library",               ADDON_SCRIPT_LIBRARY,      24081, "DefaultAddonHelper.png" },
    {"xbmc.python.module",                ADDON_SCRIPT_MODULE,       24082, "DefaultAddonLibrary.png" },
    {"xbmc.subtitle.module",              ADDON_SUBTITLE_MODULE,     24012, "DefaultAddonSubtitles.png" },
+   {"kodi.context.item",                 ADDON_CONTEXT_ITEM,        24025, "DefaultAddonContextItem.png" },
    {"xbmc.gui.skin",                     ADDON_SKIN,                  166, "DefaultAddonSkin.png" },
-   {"xbmc.gui.webinterface",             ADDON_WEB_INTERFACE,         199, "DefaultAddonWebSkin.png" },
+   {"xbmc.webinterface",                 ADDON_WEB_INTERFACE,         199, "DefaultAddonWebSkin.png" },
    {"xbmc.addon.repository",             ADDON_REPOSITORY,          24011, "DefaultAddonRepository.png" },
    {"xbmc.pvrclient",                    ADDON_PVRDLL,              24019, "DefaultAddonPVRClient.png" },
    {"xbmc.addon.video",                  ADDON_VIDEO,                1037, "DefaultAddonVideo.png" },
@@ -89,7 +90,9 @@ static const TypeMapping types[] =
    {"xbmc.addon.image",                  ADDON_IMAGE,                1039, "DefaultAddonPicture.png" },
    {"xbmc.addon.executable",             ADDON_EXECUTABLE,           1043, "DefaultAddonProgram.png" },
    {"xbmc.audioencoder",                 ADDON_AUDIOENCODER,         200,  "DefaultAddonAudioEncoder.png" },
-   {"xbmc.service",                      ADDON_SERVICE,             24018, "DefaultAddonService.png" }};
+   {"kodi.audiodecoder",                 ADDON_AUDIODECODER,         201,  "DefaultAddonAudioDecoder.png" },
+   {"xbmc.service",                      ADDON_SERVICE,             24018, "DefaultAddonService.png" },
+   {"kodi.resource.language",            ADDON_RESOURCE_LANGUAGE,   24026, "DefaultAddonLanguage.png" }};
 
 const std::string TranslateType(const ADDON::TYPE &type, bool pretty/*=false*/)
 {
@@ -115,6 +118,7 @@ TYPE TranslateType(const std::string &string)
     if (string == map.name)
       return map.type;
   }
+
   return ADDON_UNKNOWN;
 }
 
@@ -154,7 +158,9 @@ AddonProps::AddonProps(const cp_extension_t *ext)
   fanart = URIUtils::AddFileToFolder(path, "fanart.jpg");
   changelog = URIUtils::AddFileToFolder(path, "changelog.txt");
   // Grab more detail from the props...
-  const cp_extension_t *metadata = CAddonMgr::Get().GetExtension(ext->plugin, "xbmc.addon.metadata");
+  const cp_extension_t *metadata = CAddonMgr::Get().GetExtension(ext->plugin, "xbmc.addon.metadata"); //<! backword compatibilty
+  if (!metadata)
+    metadata = CAddonMgr::Get().GetExtension(ext->plugin, "kodi.addon.metadata");
   if (metadata)
   {
     summary = CAddonMgr::Get().GetTranslatedString(metadata->configuration, "summary");
@@ -216,7 +222,7 @@ void AddonProps::Serialize(CVariant &variant) const
     variant["fanart"] = URIUtils::AddFileToFolder(path, fanart);
 
   variant["dependencies"] = CVariant(CVariant::VariantTypeArray);
-  for (ADDONDEPS::const_iterator it = dependencies.begin(); it != dependencies.end(); it++)
+  for (ADDONDEPS::const_iterator it = dependencies.begin(); it != dependencies.end(); ++it)
   {
     CVariant dep(CVariant::VariantTypeObject);
     dep["addonid"] = it->first;
@@ -229,7 +235,7 @@ void AddonProps::Serialize(CVariant &variant) const
   else
     variant["broken"] = broken;
   variant["extrainfo"] = CVariant(CVariant::VariantTypeArray);
-  for (InfoMap::const_iterator it = extrainfo.begin(); it != extrainfo.end(); it++)
+  for (InfoMap::const_iterator it = extrainfo.begin(); it != extrainfo.end(); ++it)
   {
     CVariant info(CVariant::VariantTypeObject);
     info["key"] = it->first;
@@ -295,9 +301,9 @@ CAddon::CAddon(const AddonProps &props)
 }
 
 CAddon::CAddon(const CAddon &rhs)
-  : m_props(rhs.Props())
+  : m_props(rhs.Props()),
+    m_settings(rhs.m_settings)
 {
-  m_settings  = rhs.m_settings;
   m_addonXmlDoc = rhs.m_addonXmlDoc;
   m_settingsLoaded = rhs.m_settingsLoaded;
   m_userSettingsLoaded = rhs.m_userSettingsLoaded;
@@ -317,12 +323,6 @@ AddonPtr CAddon::Clone() const
 
 bool CAddon::MeetsVersion(const AddonVersion &version) const
 {
-  // if the addon is one of xbmc's extension point definitions (addonid starts with "xbmc.")
-  // and the minversion is "0.0.0" i.e. no <backwards-compatibility> tag has been specified
-  // we need to assume that the current version is not backwards-compatible and therefore check against the actual version
-  if (StringUtils::StartsWithNoCase(m_props.id, "xbmc.") && m_props.minversion.empty())
-    return m_props.version == version;
-
   return m_props.minversion <= version && version <= m_props.version;
 }
 
@@ -363,6 +363,7 @@ void CAddon::BuildLibName(const cp_extension_t *extension)
     case ADDON_SUBTITLE_MODULE:        
     case ADDON_PLUGIN:
     case ADDON_SERVICE:
+    case ADDON_CONTEXT_ITEM:
       ext = ADDON_PYTHON_EXT;
       break;
     default:
@@ -393,9 +394,12 @@ void CAddon::BuildLibName(const cp_extension_t *extension)
       case ADDON_SCRAPER_LIBRARY:
       case ADDON_PVRDLL:
       case ADDON_PLUGIN:
+      case ADDON_WEB_INTERFACE:
       case ADDON_SERVICE:
       case ADDON_REPOSITORY:
       case ADDON_AUDIOENCODER:
+      case ADDON_CONTEXT_ITEM:
+      case ADDON_AUDIODECODER:
         {
           std::string temp = CAddonMgr::Get().GetExtValue(extension->configuration, "@library");
           m_strLibName = temp;

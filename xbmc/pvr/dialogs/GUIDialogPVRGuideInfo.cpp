@@ -40,6 +40,7 @@ using namespace EPG;
 #define CONTROL_BTN_SWITCH              5
 #define CONTROL_BTN_RECORD              6
 #define CONTROL_BTN_OK                  7
+#define CONTROL_BTN_PLAY_RECORDING      8
 
 CGUIDialogPVRGuideInfo::CGUIDialogPVRGuideInfo(void)
     : CGUIDialog(WINDOW_DIALOG_PVR_GUIDE_INFO, "DialogPVRGuideInfo.xml")
@@ -51,7 +52,7 @@ CGUIDialogPVRGuideInfo::~CGUIDialogPVRGuideInfo(void)
 {
 }
 
-bool CGUIDialogPVRGuideInfo::ActionStartTimer(const CEpgInfoTag *tag)
+bool CGUIDialogPVRGuideInfo::ActionStartTimer(const CEpgInfoTagPtr &tag)
 {
   bool bReturn = false;
 
@@ -59,7 +60,7 @@ bool CGUIDialogPVRGuideInfo::ActionStartTimer(const CEpgInfoTag *tag)
     return false;
 
   CPVRChannelPtr channel = tag->ChannelTag();
-  if (!channel || !g_PVRManager.CheckParentalLock(*channel))
+  if (!channel || !g_PVRManager.CheckParentalLock(channel))
     return false;
 
   // prompt user for confirmation of channel record
@@ -76,11 +77,10 @@ bool CGUIDialogPVRGuideInfo::ActionStartTimer(const CEpgInfoTag *tag)
     if (pDialog->IsConfirmed())
     {
       Close();
-      CPVRTimerInfoTag *newTimer = CPVRTimerInfoTag::CreateFromEpg(*tag);
+      CPVRTimerInfoTagPtr newTimer = CPVRTimerInfoTag::CreateFromEpg(tag);
       if (newTimer)
       {
-        bReturn = CPVRTimers::AddTimer(*newTimer);
-        delete newTimer;
+        bReturn = CPVRTimers::AddTimer(newTimer);
       }
       else
       {
@@ -142,7 +142,7 @@ bool CGUIDialogPVRGuideInfo::OnClickButtonRecord(CGUIMessage &message)
   {
     bReturn = true;
 
-    const CEpgInfoTag *tag = m_progItem->GetEPGInfoTag();
+    const CEpgInfoTagPtr tag(m_progItem->GetEPGInfoTag());
     if (!tag || !tag->HasPVRChannel())
     {
       /* invalid channel */
@@ -163,22 +163,22 @@ bool CGUIDialogPVRGuideInfo::OnClickButtonRecord(CGUIMessage &message)
   return bReturn;
 }
 
-bool CGUIDialogPVRGuideInfo::OnClickButtonSwitch(CGUIMessage &message)
+bool CGUIDialogPVRGuideInfo::OnClickButtonPlay(CGUIMessage &message)
 {
   bool bReturn = false;
 
-  if (message.GetSenderId() == CONTROL_BTN_SWITCH)
+  if (message.GetSenderId() == CONTROL_BTN_SWITCH || message.GetSenderId() == CONTROL_BTN_PLAY_RECORDING)
   {
     Close();
     PlayBackRet ret = PLAYBACK_CANCELED;
-    CEpgInfoTag *epgTag = m_progItem->GetEPGInfoTag();
+    CEpgInfoTagPtr epgTag(m_progItem->GetEPGInfoTag());
 
     if (epgTag)
     {
-      if (epgTag->HasRecording())
-        ret = g_application.PlayFile(CFileItem(*epgTag->Recording()));
+      if (message.GetSenderId() == CONTROL_BTN_PLAY_RECORDING && epgTag->HasRecording())
+        ret = g_application.PlayFile(CFileItem(epgTag->Recording()));
       else if (epgTag->HasPVRChannel())
-        ret = g_application.PlayFile(CFileItem(*epgTag->ChannelTag()));
+        ret = g_application.PlayFile(CFileItem(epgTag->ChannelTag()));
     }
     else
       ret = PLAYBACK_FAIL;
@@ -203,7 +203,7 @@ bool CGUIDialogPVRGuideInfo::OnClickButtonFind(CGUIMessage &message)
 
   if (message.GetSenderId() == CONTROL_BTN_FIND)
   {
-    const CEpgInfoTag *tag = m_progItem->GetEPGInfoTag();
+    const CEpgInfoTagPtr tag(m_progItem->GetEPGInfoTag());
     if (tag && tag->HasPVRChannel())
     {
       int windowSearchId = tag->ChannelTag()->IsRadio() ? WINDOW_RADIO_SEARCH : WINDOW_TV_SEARCH;
@@ -227,7 +227,7 @@ bool CGUIDialogPVRGuideInfo::OnMessage(CGUIMessage& message)
   case GUI_MSG_CLICKED:
     return OnClickButtonOK(message) ||
            OnClickButtonRecord(message) ||
-           OnClickButtonSwitch(message) ||
+           OnClickButtonPlay(message) ||
            OnClickButtonFind(message);
   }
 
@@ -248,11 +248,17 @@ void CGUIDialogPVRGuideInfo::OnInitWindow()
 {
   CGUIDialog::OnInitWindow();
 
-  const CEpgInfoTag *tag = m_progItem->GetEPGInfoTag();
+  const CEpgInfoTagPtr tag(m_progItem->GetEPGInfoTag());
   if (!tag)
   {
     /* no epg event selected */
     return;
+  }
+
+  if (!tag->HasRecording())
+  {
+    /* not recording. hide the play recording button */
+    SET_CONTROL_HIDDEN(CONTROL_BTN_PLAY_RECORDING);
   }
 
   if (tag->EndAsLocalTime() <= CDateTime::GetCurrentDateTime())
@@ -267,16 +273,16 @@ void CGUIDialogPVRGuideInfo::OnInitWindow()
   {
     /* no timer present on this tag */
     if (tag->StartAsLocalTime() < CDateTime::GetCurrentDateTime())
-      SET_CONTROL_LABEL(CONTROL_BTN_RECORD, 264);
+      SET_CONTROL_LABEL(CONTROL_BTN_RECORD, 264);    // Record
     else
-      SET_CONTROL_LABEL(CONTROL_BTN_RECORD, 19061);
+      SET_CONTROL_LABEL(CONTROL_BTN_RECORD, 19061);  // Add timer
   }
   else
   {
     /* timer present on this tag */
     if (tag->StartAsLocalTime() < CDateTime::GetCurrentDateTime())
-      SET_CONTROL_LABEL(CONTROL_BTN_RECORD, 19059);
+      SET_CONTROL_LABEL(CONTROL_BTN_RECORD, 19059);  // Stop recording
     else
-      SET_CONTROL_LABEL(CONTROL_BTN_RECORD, 19060);
+      SET_CONTROL_LABEL(CONTROL_BTN_RECORD, 19060);  // Delete timer
   }
 }

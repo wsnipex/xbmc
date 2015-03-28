@@ -17,16 +17,17 @@ SRCS=	\
 	TestFileUtils.cpp \
 	Testfstrcmp.cpp \
 	TestGlobalsHandling.cpp \
-	TestHTMLTable.cpp \
 	TestHTMLUtil.cpp \
 	TestHttpHeader.cpp \
 	TestHttpParser.cpp \
+	TestHttpRangeUtils.cpp \
 	TestHttpResponse.cpp \
 	TestJobManager.cpp \
 	TestJSONVariantParser.cpp \
 	TestJSONVariantWriter.cpp \
 	TestLabelFormatter.cpp \
 	TestLangCodeExpander.cpp \
+	TestLocale.cpp \
 	Testlog.cpp \
 	TestMathUtils.cpp \
 	Testmd5.cpp \
@@ -38,7 +39,6 @@ SRCS=	\
 	TestScraperParser.cpp \
 	TestScraperUrl.cpp \
 	TestSortUtils.cpp \
-	TestStdString.cpp \
 	TestStopwatch.cpp \
 	TestStreamDetails.cpp \
 	TestStreamUtils.cpp \

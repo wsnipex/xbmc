@@ -33,13 +33,12 @@ class CDecoder
 public:
   CDecoder();
  ~CDecoder();
-  virtual bool Open      (AVCodecContext* avctx, const enum PixelFormat, unsigned int surfaces = 0);
+  virtual bool Open      (AVCodecContext* avctx, AVCodecContext* mainctx, const enum PixelFormat, unsigned int surfaces = 0);
   virtual int  Decode    (AVCodecContext* avctx, AVFrame* frame);
   virtual bool GetPicture(AVCodecContext* avctx, AVFrame* frame, DVDVideoPicture* picture);
   virtual int  Check     (AVCodecContext* avctx);
   virtual void Close();
   virtual const std::string Name() { return "vda"; }
-  virtual CCriticalSection* Section() {  return NULL; }
   virtual unsigned GetAllowedReferences();
 
   int   GetBuffer(AVCodecContext *avctx, AVFrame *pic, int flags);

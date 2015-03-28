@@ -40,7 +40,7 @@
 #include "utils/md5.h"
 #include "utils/Variant.h"
 #include "settings/Settings.h"
-#include "guilib/Key.h"
+#include "input/Key.h"
 #include "URL.h"
 #include "cores/IPlayer.h"
 #include "interfaces/AnnouncementManager.h"
@@ -138,7 +138,7 @@ const char *eventStrings[] = {"playing", "paused", "loading", "stopped"};
 "<key>protovers</key>\r\n"\
 "<string>1.0</string>\r\n"\
 "<key>srcvers</key>\r\n"\
-"<string>"AIRPLAY_SERVER_VERSION_STR"</string>\r\n"\
+"<string>" AIRPLAY_SERVER_VERSION_STR "</string>\r\n"\
 "</dict>\r\n"\
 "</plist>\r\n"
 
@@ -273,7 +273,7 @@ void CAirPlayServer::AnnounceToClients(int state)
   CSingleLock lock (m_connectionLock);
   
   std::vector<CTCPClient>::iterator it;
-  for (it = m_connections.begin(); it != m_connections.end(); it++)
+  for (it = m_connections.begin(); it != m_connections.end(); ++it)
   {
     std::string reverseHeader;
     std::string reverseBody;
@@ -877,7 +877,7 @@ int CAirPlayServer::CTCPClient::ProcessRequest( std::string& responseHeader,
     {
       status = AIRPLAY_STATUS_NEED_AUTH;
     }
-    else
+    else if (contentType == "application/x-apple-binary-plist")
     {
       CAirPlayServer::m_isPlaying++;    
       
@@ -888,11 +888,7 @@ int CAirPlayServer::CTCPClient::ProcessRequest( std::string& responseHeader,
         const char* bodyChr = m_httpParser->getBody();
 
         plist_t dict = NULL;
-        if (contentType == "application/x-apple-binary-plist")
-          m_pLibPlist->plist_from_bin(bodyChr, m_httpParser->getContentLength(), &dict);
-        else
-          m_pLibPlist->plist_from_xml(bodyChr, m_httpParser->getContentLength(), &dict);
-
+        m_pLibPlist->plist_from_bin(bodyChr, m_httpParser->getContentLength(), &dict);
 
         if (m_pLibPlist->plist_dict_get_size(dict))
         {
@@ -949,6 +945,28 @@ int CAirPlayServer::CTCPClient::ProcessRequest( std::string& responseHeader,
           CLog::Log(LOGERROR, "Error parsing plist");
         }
         m_pLibPlist->Unload();
+      }
+    }
+    else
+    {
+      CAirPlayServer::m_isPlaying++;        
+      // Get URL to play
+      std::string contentLocation = "Content-Location: ";
+      size_t start = body.find(contentLocation);
+      if (start == std::string::npos)
+        return AIRPLAY_STATUS_NOT_IMPLEMENTED;
+      start += contentLocation.size();
+      int end = body.find('\n', start);
+      location = body.substr(start, end - start);
+
+      std::string startPosition = "Start-Position: ";
+      start = body.find(startPosition);
+      if (start != std::string::npos)
+      {
+        start += startPosition.size();
+        int end = body.find('\n', start);
+        std::string positionStr = body.substr(start, end - start);
+        position = (float)atof(positionStr.c_str());
       }
     }
 

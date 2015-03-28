@@ -24,7 +24,7 @@
 #include "PlayListPlayer.h"
 #include "playlists/PlayList.h"
 #include "guilib/GUIWindowManager.h"
-#include "guilib/Key.h"
+#include "input/Key.h"
 #include "GUIUserMessages.h"
 #include "pictures/GUIWindowSlideShow.h"
 #include "interfaces/Builtins.h"
@@ -168,9 +168,9 @@ JSONRPC_STATUS CPlayerOperations::GetItem(const std::string &method, ITransportL
       fileItem = CFileItemPtr(new CFileItem(g_application.CurrentFileItem()));
       if (IsPVRChannel())
       {
-        CPVRChannelPtr currentChannel;
-        if (g_PVRManager.GetCurrentChannel(currentChannel) && currentChannel.get() != NULL)
-          fileItem = CFileItemPtr(new CFileItem(*currentChannel.get()));
+        CPVRChannelPtr currentChannel(g_PVRManager.GetCurrentChannel());
+        if (currentChannel)
+          fileItem = CFileItemPtr(new CFileItem(currentChannel));
       }
       else if (player == Video)
       {
@@ -594,11 +594,11 @@ JSONRPC_STATUS CPlayerOperations::Open(const std::string &method, ITransportLaye
     if (channel == NULL)
       return InvalidParams;
 
-    if ((g_PVRManager.IsPlayingRadio() && channel.get()->IsRadio()) ||
-        (g_PVRManager.IsPlayingTV() && !channel.get()->IsRadio()))
-      g_PVRManager.PerformChannelSwitch(*channel.get(), false);
+    if ((g_PVRManager.IsPlayingRadio() && channel->IsRadio()) ||
+        (g_PVRManager.IsPlayingTV() && !channel->IsRadio()))
+      g_application.m_pPlayer->SwitchChannel(channel);
     else
-      CApplicationMessenger::Get().MediaPlay(CFileItem(*channel.get()));
+      CApplicationMessenger::Get().MediaPlay(CFileItem(channel));
 
     return ACK;
   }
@@ -1203,9 +1203,9 @@ JSONRPC_STATUS CPlayerOperations::GetPropertyValue(PlayerType player, const std:
           ms = (int)(g_application.GetTime() * 1000.0);
         else
         {
-          EPG::CEpgInfoTag epg;
-          if (GetCurrentEpg(epg))
-            ms = epg.Progress() * 1000;
+          EPG::CEpgInfoTagPtr epg(GetCurrentEpg());
+          if (epg)
+            ms = epg->Progress() * 1000;
         }
 
         MillisecondsToTimeObject(ms, result);
@@ -1232,9 +1232,9 @@ JSONRPC_STATUS CPlayerOperations::GetPropertyValue(PlayerType player, const std:
           result = g_application.GetPercentage();
         else
         {
-          EPG::CEpgInfoTag epg;
-          if (GetCurrentEpg(epg))
-            result = epg.ProgressPercentage();
+          EPG::CEpgInfoTagPtr epg(GetCurrentEpg());
+          if (epg)
+            result = epg->ProgressPercentage();
           else
             result = 0;
         }
@@ -1265,9 +1265,9 @@ JSONRPC_STATUS CPlayerOperations::GetPropertyValue(PlayerType player, const std:
           ms = (int)(g_application.GetTotalTime() * 1000.0);
         else
         {
-          EPG::CEpgInfoTag epg;
-          if (GetCurrentEpg(epg))
-            ms = epg.GetDuration() * 1000;
+          EPG::CEpgInfoTagPtr epg(GetCurrentEpg());
+          if (epg)
+            ms = epg->GetDuration() * 1000;
         }
         
         MillisecondsToTimeObject(ms, result);
@@ -1661,17 +1661,14 @@ bool CPlayerOperations::IsPVRChannel()
   return g_PVRManager.IsPlayingTV() || g_PVRManager.IsPlayingRadio();
 }
 
-bool CPlayerOperations::GetCurrentEpg(EPG::CEpgInfoTag &epg)
+EPG::CEpgInfoTagPtr CPlayerOperations::GetCurrentEpg()
 {
   if (!g_PVRManager.IsPlayingTV() && !g_PVRManager.IsPlayingRadio())
-    return false;
+    return EPG::CEpgInfoTagPtr();
 
-  CPVRChannelPtr currentChannel;
-  if (!g_PVRManager.GetCurrentChannel(currentChannel))
-    return false;
+  CPVRChannelPtr currentChannel(g_PVRManager.GetCurrentChannel());
+  if (!currentChannel)
+    return EPG::CEpgInfoTagPtr();
 
-  if (!currentChannel->GetEPGNow(epg))
-    return false;
-
-  return true;
+  return currentChannel->GetEPGNow();
 }

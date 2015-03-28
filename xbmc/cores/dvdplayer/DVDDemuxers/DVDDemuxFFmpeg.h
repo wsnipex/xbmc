@@ -110,7 +110,8 @@ public:
   bool SeekChapter(int chapter, double* startpts = NULL);
   int GetChapterCount();
   int GetChapter();
-  void GetChapterName(std::string& strChapterName);
+  void GetChapterName(std::string& strChapterName, int chapterIdx=-1);
+  int64_t GetChapterPos(int chapterIdx=-1);
   virtual void GetStreamCodecName(int iStreamId, std::string &strName);
 
   bool Aborted();
@@ -140,6 +141,8 @@ protected:
 
   std::string GetStereoModeFromMetadata(AVDictionary *pMetadata);
   std::string ConvertCodecToInternalStereoMode(const std::string &mode, const StereoModeConversionMap *conversionMap);
+
+  void GetL16Parameters(int &channels, int &samplerate);
 
   CCriticalSection m_critSection;
   std::map<int, CDemuxStream*> m_streams;
