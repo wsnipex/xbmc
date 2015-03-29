@@ -3,7 +3,7 @@
 SETLOCAL
 
 :: If KODI_MIRROR is not set externally to this script, set it to the default mirror URL
-IF "%KODI_MIRROR%" == "" SET KODI_MIRROR=http://mirrors.xbmc.org
+IF "%KODI_MIRROR%" == "" SET KODI_MIRROR=http://mirrors.kodi.tv
 echo Downloading from mirror %KODI_MIRROR%
 
 :: Locate the BuildDependencies directory, based on the path of this script
@@ -43,7 +43,6 @@ CALL get_mingw_env.bat
 POPD
 
 rem update fstab to install path
-IF NOT EXIST %MSYS_INSTALL_PATH%\etc md %MSYS_INSTALL_PATH%\etc
 SET FSTAB=%MINGW_INSTALL_PATH%
 SET FSTAB=%FSTAB:\=/%
 SET FSTAB=%FSTAB:"=%

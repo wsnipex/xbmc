@@ -3,7 +3,7 @@
 SETLOCAL
 
 :: If KODI_MIRROR is not set externally to this script, set it to the default mirror URL
-IF "%KODI_MIRROR%" == "" SET KODI_MIRROR=http://mirrors.xbmc.org
+IF "%KODI_MIRROR%" == "" SET KODI_MIRROR=http://mirrors.kodi.tv
 echo Downloading from mirror %KODI_MIRROR%
 
 :: Locate the BuildDependencies directory, based on the path of this script
@@ -44,7 +44,7 @@ IF NOT EXIST %FORMED_OK_FLAG% (
   ECHO.
   ECHO I tried to get the packages from %KODI_MIRROR%;
   ECHO if this download mirror seems to be having problems, try choosing another from
-  ECHO the list on http://mirrors.xbmc.org/list.html, and setting %%KODI_MIRROR%% to
+  ECHO the list on http://mirrors.kodi.tv/list.html, and setting %%KODI_MIRROR%% to
   ECHO point to it, like so:
   ECHO   C:\^> SET KODI_MIRROR=http://example.com/pub/xbmc/
   ECHO.
