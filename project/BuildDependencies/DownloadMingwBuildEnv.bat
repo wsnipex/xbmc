@@ -59,6 +59,6 @@ Move msys.bat msys.bat_dist
 ECHO CALL "%VS120COMNTOOLS%vsvars32.bat">>msys.bat
 TYPE msys.bat_dist>>msys.bat
 
-POPD %CUR_PATH%
+POPD
 
 IF EXIST %TMP_PATH% rmdir %TMP_PATH% /S /Q
