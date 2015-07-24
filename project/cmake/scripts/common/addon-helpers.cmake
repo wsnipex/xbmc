@@ -39,15 +39,18 @@ macro (build_addon target prefix libs)
     SET_TARGET_PROPERTIES(${target} PROPERTIES PREFIX "lib")
   ENDIF(OS STREQUAL "android")
 
-  GET_TARGET_PROPERTY(LIBRARY_LOCATION ${target} LOCATION)
+  SET(LIBRARY_LOCATION $<TARGET_FILE:${target}>)
+  SET(LIBRARY_FILENAME $<TARGET_FILE_NAME:${target}>)
+  SET(PLATFORM $<PLATFORM_ID>)
 
   # if there's an addon.xml.in we need to generate the addon.xml
   SET(GENERATED_ADDONXML OFF)
   IF(EXISTS ${PROJECT_SOURCE_DIR}/${target}/addon.xml.in)
     SET(GENERATED_ADDONXML ON)
     SET(PLATFORM ${CORE_SYSTEM_NAME})
-    GET_FILENAME_COMPONENT(LIBRARY_FILENAME "${LIBRARY_LOCATION}" NAME)
-    CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/${target}/addon.xml.in ${PROJECT_BINARY_DIR}/${target}/addon.xml @ONLY) # TODO
+    FILE(READ ${PROJECT_SOURCE_DIR}/${target}/addon.xml.in addon_file)
+    STRING(CONFIGURE ${addon_file} addon_file_conf @ONLY)
+    FILE(GENERATE OUTPUT ${PROJECT_SOURCE_DIR}/${target}/addon.xml CONTENT ${addon_file_conf})
   ENDIF()
 
   # set zip as default if addon-package is called without PACKAGE_XXX
@@ -110,9 +113,6 @@ macro (build_addon target prefix libs)
     endif()
     INSTALL(TARGETS ${target} DESTINATION ${CMAKE_INSTALL_LIBDIR}/addons/${target})
     INSTALL(DIRECTORY ${target} DESTINATION share/${APP_NAME_LC}/addons PATTERN "addon.xml.in" EXCLUDE)
-    IF(GENERATED_ADDONXML)
-      INSTALL(DIRECTORY ${PROJECT_BINARY_DIR}/${target} DESTINATION share/${APP_NAME_LC}/addons)
-    ENDIF()
   ENDIF(PACKAGE_ZIP OR PACKAGE_TGZ)
 endmacro()
 
