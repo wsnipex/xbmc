@@ -1,1 +1,1 @@
-platform https://github.com/Montellese/platform.git eb77b9ecaa0b468d381c2cafdea9a4a60c84715c
+platform https://github.com/wsnipex/platform.git master
