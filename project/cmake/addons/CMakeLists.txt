@@ -191,10 +191,21 @@ foreach(addon ${addons})
         if(deflength GREATER 2 AND "${SOURCE_DIR}" STREQUAL "")
           list(GET def 2 revision)
 
+          # resolve revision to git hash
+          execute_process(COMMAND git ls-remote ${url} ${revision} OUTPUT_VARIABLE rev_hash)
+          string(REPLACE "\t" ";" rev_list ${rev_hash})
+          list(GET rev_list 0 rev_hash)
+
           # Note: downloading specific revisions via http in the format below is probably github specific
           # if we ever use other repositories, this might need adapting
-          set(url ${url}/archive/${revision}.tar.gz)
-          set(archive_name ${archive_name}-${revision})
+          if(rev_hash AND NOT ${rev_hash} STREQUAL ${revision})
+            message(STATUS "Note: revision ${revision} resolved to git hash: ${rev_hash}")
+            set(url ${url}/archive/${rev_hash}.tar.gz)
+            set(archive_name ${archive_name}-${rev_hash})
+          else()
+            set(url ${url}/archive/${revision}.tar.gz)
+            set(archive_name ${archive_name}-${revision})
+          endif()
         elseif("${SOURCE_DIR}" STREQUAL "")
           # check if the URL starts with file://
           string(REGEX MATCH "^file://.*$" local_url "${url}")
