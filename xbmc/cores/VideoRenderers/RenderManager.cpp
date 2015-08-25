@@ -1141,10 +1141,6 @@ int CXBMCRenderManager::AddVideoPicture(DVDVideoPicture& pic)
   {
     CDVDCodecUtils::CopyYUV422PackedPicture(&image, &pic);
   }
-  else if(pic.format == RENDER_FMT_DXVA)
-  {
-    CDVDCodecUtils::CopyDXVA2Picture(&image, &pic);
-  }
   else if(pic.format == RENDER_FMT_VDPAU
        || pic.format == RENDER_FMT_VDPAU_420
        || pic.format == RENDER_FMT_OMXEGL
