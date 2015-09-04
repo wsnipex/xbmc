@@ -13863,6 +13863,7 @@
 					"-lSDL",
 					"-lbson",
 					"-lleveldb",
+					"-lkyotocabinet",
 				);
 				PRODUCT_NAME = Kodi;
 				USE_HEADERMAP = NO;
@@ -13933,6 +13934,7 @@
 					"-lSDL",
 					"-lbson",
 					"-lleveldb",
+					"-lkyotocabinet",
 				);
 				PRODUCT_NAME = Kodi;
 				USE_HEADERMAP = NO;
