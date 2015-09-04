@@ -13834,6 +13834,15 @@
 					"$(OTHER_CFLAGS)",
 					"-Wreorder",
 				);
+				OTHER_LDFLAGS = (
+					"-Wl,-search_paths_first",
+					"$(XBMC_OTHER_LDFLAGS_COMMON)",
+					"-lcdio",
+					"-lfontconfig",
+					"-lGLEW",
+					"-lSDL",
+					"-lbson",
+				);
 				PRODUCT_NAME = Kodi;
 				USE_HEADERMAP = NO;
 				WARNING_CFLAGS = "";
@@ -13893,6 +13902,15 @@
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-Wreorder",
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-search_paths_first",
+					"$(XBMC_OTHER_LDFLAGS_COMMON)",
+					"-lcdio",
+					"-lfontconfig",
+					"-lGLEW",
+					"-lSDL",
+					"-lbson",
 				);
 				PRODUCT_NAME = Kodi;
 				USE_HEADERMAP = NO;
