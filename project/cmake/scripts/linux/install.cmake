@@ -8,6 +8,11 @@ if(OPENGL_FOUND)
 else()
   set(USE_OPENGL 0)
 endif()
+if(OPENGLES_FOUND)
+  set(USE_OPENGLES 1)
+else()
+  set(USE_OPENGLES 0)
+endif()
 
 configure_file(${CORE_SOURCE_DIR}/tools/Linux/kodi.sh.in
                ${CORE_BUILD_DIR}/scripts/${APP_NAME_LC} @ONLY)
@@ -15,7 +20,9 @@ configure_file(${CORE_SOURCE_DIR}/tools/Linux/kodi-standalone.sh.in
                 ${CORE_BUILD_DIR}/scripts/${APP_NAME_LC}-standalone @ONLY)
 
 install(TARGETS ${APP_NAME_LC}.bin DESTINATION ${libdir}/kodi)
-install(TARGETS ${APP_NAME_LC}-xrandr DESTINATION ${libdir}/${APP_NAME_LC})
+if(ENABLE_X11 AND XRANDR_FOUND)
+  install(TARGETS ${APP_NAME_LC}-xrandr DESTINATION ${libdir}/${APP_NAME_LC})
+endif()
 install(FILES ${addon_bindings} DESTINATION ${includedir}/kodi)
 install(FILES ${cmake-files}
         DESTINATION ${libdir}/kodi)
