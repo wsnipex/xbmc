@@ -46,6 +46,7 @@ endif()
 # System options
 option(WITH_ARCH              "build with given arch" OFF)
 option(WITH_CPU               "build with given cpu" OFF)
+option(ENABLE_CCACHE          "Enable Ccache support" ON)
 
 set(CORE_SOURCE_DIR ${PROJECT_SOURCE_DIR}/../..)
 set(CORE_BUILD_DIR build)
@@ -163,6 +164,10 @@ endif()
 
 if(ENABLE_SKIN_TOUCHED)
   list(APPEND DEP_DEFINES "-DHAS_SKIN_TOUCHED=1")
+endif()
+
+if(ENABLE_CCACHE)
+  core_optional_dep(CCache)
 endif()
 
 add_custom_command(OUTPUT ${CORE_BUILD_DIR}/xbmc/CompileInfo.cpp
