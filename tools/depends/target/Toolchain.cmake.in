@@ -1,4 +1,6 @@
 SET(DEPENDS_PATH "@prefix@/@deps_dir@")
+SET(NATIVEPREFIX "@prefix@/@tool_dir@")
+
 SET(OS "@platform_os@")
 SET(CPU "@use_cpu@")
 SET(PLATFORM "@target_platform@")

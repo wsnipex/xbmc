@@ -78,6 +78,9 @@ if(CMAKE_CROSSCOMPILING)
     message(STATUS "CMAKE_CROSSCOMPILING: ${CMAKE_CROSSCOMPILING}")
     set(PKG_CONFIG_FOUND TRUE)
   endif()
+  set(TEXTUREPACKER_BIN ${NATIVEPREFIX}/bin/TexturePacker)
+else()
+  set(TEXTUREPACKER_BIN TexturePacker)
 endif()
 find_package(Threads REQUIRED)
 list(APPEND DEPLIBS ${CMAKE_THREAD_LIBS_INIT})
@@ -223,7 +226,7 @@ foreach(skin ${SKINS})
 endforeach()
 
 add_custom_target(pack-skins ALL
-                  DEPENDS TexturePacker export-files ${XBT_FILES})
+                  DEPENDS ${TEXTUREPACKER_BIN} export-files ${XBT_FILES})
 
 set(CXIMAGE_DEPLIBS ${ZLIB_LIBRARIES} ${JPEG_LIBRARIES}
                     ${TIFF_LIBRARIES} ${PNG_LIBRARIES}
@@ -246,7 +249,9 @@ configure_file(${CORE_SOURCE_DIR}/xbmc/DllPaths_generated.h.in
 
 # Build helpers
 add_executable(JsonSchemaBuilder ${CORE_SOURCE_DIR}/tools/depends/native/JsonSchemaBuilder/src/JsonSchemaBuilder.cpp)
-add_subdirectory(${CORE_SOURCE_DIR}/tools/depends/native/TexturePacker build/texturepacker)
+if(NOT CMAKE_CROSSCOMPILING)
+  add_subdirectory(${CORE_SOURCE_DIR}/tools/depends/native/TexturePacker build/texturepacker)
+endif()
 
 # Codegen
 add_subdirectory(${CORE_SOURCE_DIR}/xbmc/interfaces/swig build/swig)
