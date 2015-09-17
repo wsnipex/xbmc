@@ -248,8 +248,8 @@ configure_file(${CORE_SOURCE_DIR}/xbmc/DllPaths_generated.h.in
                ${CORE_BUILD_DIR}/DllPaths_generated.h @ONLY)
 
 # Build helpers
-add_executable(JsonSchemaBuilder ${CORE_SOURCE_DIR}/tools/depends/native/JsonSchemaBuilder/src/JsonSchemaBuilder.cpp)
 if(NOT CMAKE_CROSSCOMPILING)
+  add_executable(JsonSchemaBuilder ${CORE_SOURCE_DIR}/tools/depends/native/JsonSchemaBuilder/src/JsonSchemaBuilder.cpp)
   add_subdirectory(${CORE_SOURCE_DIR}/tools/depends/native/TexturePacker build/texturepacker)
 endif()
 
