@@ -75,5 +75,11 @@ foreach(dvdnav_header ${dvdnav_internal_headers})
                            ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/libdvd/include/dvdnav)
 endforeach()
 
-set(LIBDVD_INCLUDE_DIRS ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/libdvd/include)
-set(LIBDVD_FOUND 1)
+if(ENABLE_DVDCSS)
+  set(LIBDVD_INCLUDE_DIRS ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/libdvd/include)
+  set(LIBDVD_LIBRARIES ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/libdvd/lib/libdvdnav.a
+                       ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/libdvd/lib/libdvdread.a
+                       ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/libdvd/lib/libdvdcss.a
+      CACHE STRING "libdvd libraries" FORCE)
+  set(LIBDVD_FOUND 1 CACHE BOOL "libdvd found" FORCE)
+endif()

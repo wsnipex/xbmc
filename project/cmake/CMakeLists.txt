@@ -96,7 +96,7 @@ set(optional_deps MicroHttpd MySqlClient SSH
                   PulseAudio VDPAU VAAPI)
 
 # Required, dyloaded deps
-set(required_dyload Curl ASS Mpeg2 LibDvd)
+set(required_dyload Curl ASS Mpeg2)
 
 # Optional, dyloaded deps
 set(dyload_optional RTMP CEC Bluray
@@ -135,6 +135,10 @@ endif()
 
 if(ENABLE_NONFREE)
   list(APPEND DEP_DEFINES "-DHAVE_XBMC_NONFREE=1")
+endif()
+
+if(ENABLE_DVDCSS)
+  core_require_dep(LibDvd)
 endif()
 
 if(ENABLE_OPTICAL)
