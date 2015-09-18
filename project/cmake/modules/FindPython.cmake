@@ -11,13 +11,17 @@ endif()
 
 if(NOT PYTHON_FOUND)
   if(CMAKE_CROSSCOMPILING)
-    # hack job...
-    set(PYTHON_EXECUTABLE ${DEPENDS_PATH}/bin/python CACHE FILEPATH "python executable" FORCE)
-    find_package(PythonLibs)
-    unset(PYTHON_INCLUDE_DIRS)
-    unset(PYTHON_INCLUDE_DIR)
+    find_program(PYTHON_EXECUTABLE python ONLY_CMAKE_FIND_ROOT_PATH)
+    find_library(PYTHON_LIBRARY NAMES python2.6 python2.7)
     find_path(PYTHON_INCLUDE_DIRS NAMES Python.h PATHS ${DEPENDS_PATH}/include/python2.6 ${DEPENDS_PATH}/include/python2.7)
     set(PYTHON_INCLUDE_DIR ${PYTHON_INCLUDE_DIRS} CACHE PATH "python include dir" FORCE)
+
+    find_library(FFI_LIBRARY ffi)
+    find_library(EXPAT_LIBRARY expat)
+    find_library(INTL_LIBRARY intl)
+
+    set(PYTHON_LIBRARIES ${PYTHON_LIBRARY} ${FFI_LIBRARY} ${EXPAT_LIBRARY} ${INTL_LIBRARY} -lpthread -ldl -lutil
+        CACHE INTERNAL "python libraries" FORCE)
   else()
     find_package(PythonLibs)
   endif()
@@ -26,4 +30,4 @@ endif()
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Python DEFAULT_MSG PYTHON_INCLUDE_DIRS PYTHON_LIBRARIES)
 
-mark_as_advanced(PYTHON_INCLUDE_DIRS PYTHON_LIBRARIES)
+mark_as_advanced(PYTHON_INCLUDE_DIRS PYTHON_LIBRARIES PYTHON_LDFLAGS)

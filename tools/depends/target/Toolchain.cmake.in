@@ -42,11 +42,11 @@ ENDIF()
 SET(CMAKE_C_FLAGS "@platform_cflags@ @platform_includes@ -isystem @prefix@/@deps_dir@/include")
 SET(CMAKE_CXX_FLAGS "@platform_cxxflags@ @platform_includes@ -isystem @prefix@/@deps_dir@/include")
 SET(CMAKE_CPP_FLAGS "@platform_cflags@ @platform_includes@ -isystem @prefix@/@deps_dir@/include")
-set(CMAKE_EXE_LINKER_FLAGS "-L@prefix@/@deps_dir@/lib @platform_ldflags@")
+SET(CMAKE_EXE_LINKER_FLAGS "-L@prefix@/@deps_dir@/lib @platform_ldflags@")
 SET(ENV{CFLAGS} ${CMAKE_C_FLAGS})
 SET(ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS})
 SET(ENV{CPPFLAGS} ${CMAKE_CPP_FLAGS})
-SET(ENV{LDFLAGS} ${CMAKE_LD_FLAGS})
+SET(ENV{LDFLAGS} ${CMAKE_EXE_LINKER_FLAGS})
 # search for programs in the build host directories
 SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 # for libraries and headers in the target directories
