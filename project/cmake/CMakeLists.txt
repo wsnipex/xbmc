@@ -41,6 +41,7 @@ if(UNIX)
   option(ENABLE_EGL         "Enable EGL?" OFF)
   option(ENABLE_VAAPI       "Enable VAAPI support?" ON)
   option(ENABLE_VDPAU       "Enable VDPAU support?" ON)
+  option(ENABLE_MMAL        "Enable MMAL support?" OFF)
   option(ENABLE_OPTICAL     "Enable optical support?" ON)
 endif()
 # System options
@@ -168,6 +169,10 @@ if(NOT WIN32)
       core_optional_dep(X ENABLE_X11)
       core_optional_dep(Sdl)
     endif()
+  endif()
+
+  if(ENABLE_MMAL)
+    core_require_dep(MMAL)
   endif()
 endif()
 
