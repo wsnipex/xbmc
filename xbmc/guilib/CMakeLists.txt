@@ -86,6 +86,7 @@ endif()
 
 if(GLES_FOUND)
   list(APPEND SOURCES TextureGL.cpp
+                      TexturePi.cpp
                       GUIFontTTFGL.cpp
                       GUITextureGLES.cpp
                       MatrixGLES.cpp
