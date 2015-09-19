@@ -78,10 +78,12 @@ if(CMAKE_CROSSCOMPILING)
     message(STATUS "CMAKE_CROSSCOMPILING: ${CMAKE_CROSSCOMPILING}")
     set(PKG_CONFIG_FOUND TRUE)
   endif()
+  core_require_dep(Squish)
   set(TEXTUREPACKER_BIN ${NATIVEPREFIX}/bin/TexturePacker)
 else()
   set(TEXTUREPACKER_BIN TexturePacker)
 endif()
+
 find_package(Threads REQUIRED)
 list(APPEND DEPLIBS ${CMAKE_THREAD_LIBS_INIT})
 
