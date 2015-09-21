@@ -30,10 +30,6 @@ install(PROGRAMS ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/scripts/${APP_NAME_LC}
                 ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/scripts/${APP_NAME_LC}-standalone
         DESTINATION ${bindir})
 
-# Backwards compat
-install(DIRECTORY ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/include/xbmc DESTINATION ${includedir})
-install(DIRECTORY ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/lib/xbmc DESTINATION ${libdir})
-
 configure_file(${CORE_SOURCE_DIR}/tools/Linux/kodi-xsession.desktop.in
                ${CORE_BUILD_DIR}/${APP_NAME_LC}-xsession.desktop)
 install(FILES ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/${APP_NAME_LC}-xsession.desktop
@@ -65,7 +61,8 @@ foreach(file ${install_data})
           DESTINATION ${datarootdir}/kodi/${dir})
 endforeach()
 
-install(CODE "file(STRINGS ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/extra-installs dirs)
+if(EXISTS ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/extra-installs)
+  install(CODE "file(STRINGS ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/extra-installs dirs)
               foreach(dir \${dirs})
                 file(GLOB_RECURSE FILES RELATIVE ${CMAKE_BINARY_DIR} \${dir}/*)
                 foreach(file \${FILES})
@@ -73,6 +70,8 @@ install(CODE "file(STRINGS ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/extra-installs 
                   file(INSTALL \${file} DESTINATION ${datarootdir}/kodi/\${dir})
                 endforeach()
               endforeach()")
+endif()
+
 if(NOT "$ENV{DESTDIR}" STREQUAL "")
   set(DESTDIR ${CMAKE_BINARY_DIR}/$ENV{DESTDIR})
 endif()
