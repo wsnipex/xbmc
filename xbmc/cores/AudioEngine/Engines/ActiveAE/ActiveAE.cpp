@@ -2246,6 +2246,9 @@ CSampleBuffer* CActiveAE::SyncStream(CActiveAEStream *stream)
   {
     stream->m_syncClock = CActiveAEStream::MUTE;
     stream->m_syncError.Flush();
+    stream->m_resampleBuffers->m_resampleRatio = 1.0;
+    stream->m_resampleIntegral = 0;
+    CLog::Log(LOGDEBUG,"ActiveAE - start sync of audio stream");
     return ret;
   }
 
@@ -2260,6 +2263,7 @@ CSampleBuffer* CActiveAE::SyncStream(CActiveAEStream *stream)
   {
     stream->m_syncClock = CActiveAEStream::ADJUST;
     stream->m_resampleBuffers->m_resampleRatio = 1.0;
+    stream->m_resampleIntegral = 0;
     CLog::Log(LOGDEBUG,"ActiveAE - average error %f above threshold of %f", error, threshold);
   }
   else if (newerror && stream->m_syncClock == CActiveAEStream::MUTE)
@@ -2326,13 +2330,13 @@ CSampleBuffer* CActiveAE::SyncStream(CActiveAEStream *stream)
       stream->m_syncError.Flush(1000);
       stream->m_resampleIntegral = 0;
       stream->m_resampleBuffers->m_resampleRatio = 1.0;
-      CLog::Log(LOGDEBUG,"ActiveAE - average error %f below threshold of %f", error, 50.0);
+      CLog::Log(LOGDEBUG,"ActiveAE - average error %f below threshold of %f", error, 30.0);
     }
 
     return ret;
   }
 
-  if (!newerror)
+  if (!newerror || stream->m_syncClock != CActiveAEStream::INSYNC)
     return ret;
 
   if (stream->m_resampleMode)
