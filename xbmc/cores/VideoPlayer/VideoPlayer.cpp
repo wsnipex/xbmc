@@ -3530,7 +3530,8 @@ bool CVideoPlayer::OpenVideoStream(CDVDStreamInfo& hint, bool reset)
     return false;
 
   // set desired refresh rate
-  if (m_PlayerOptions.fullscreen && hint.fpsrate != 0 && hint.fpsscale != 0)
+  if (m_PlayerOptions.fullscreen && g_graphicsContext.IsFullScreenVideo() &&
+      hint.fpsrate != 0 && hint.fpsscale != 0)
   {
     if (CSettings::GetInstance().GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) != ADJUST_REFRESHRATE_OFF)
     {
