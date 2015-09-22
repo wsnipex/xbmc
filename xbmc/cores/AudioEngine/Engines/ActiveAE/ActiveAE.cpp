@@ -2249,7 +2249,6 @@ CSampleBuffer* CActiveAE::SyncStream(CActiveAEStream *stream)
     stream->m_resampleBuffers->m_resampleRatio = 1.0;
     stream->m_resampleIntegral = 0;
     CLog::Log(LOGDEBUG,"ActiveAE - start sync of audio stream");
-    return ret;
   }
 
   double error;
@@ -2276,7 +2275,7 @@ CSampleBuffer* CActiveAE::SyncStream(CActiveAEStream *stream)
     CSampleBuffer *buf = stream->m_resampleBuffers->m_outputSamples.front();
     for(int i=0; i<buf->pkt->planes; i++)
     {
-      memset(buf->pkt->data[i], 0, buf->pkt->nb_samples);
+      memset(buf->pkt->data[i], 0, buf->pkt->linesize);
     }
   }
   else if (stream->m_syncClock == CActiveAEStream::ADJUST)
@@ -2289,13 +2288,17 @@ CSampleBuffer* CActiveAE::SyncStream(CActiveAEStream *stream)
         int framesToDelay = error / 1000 * ret->pkt->config.sample_rate;
         if (framesToDelay > ret->pkt->max_nb_samples)
           framesToDelay = ret->pkt->max_nb_samples;
-        ret->pkt->nb_samples = framesToDelay;
         if (m_mode == MODE_TRANSCODE)
         {
           if (framesToDelay > m_encoderFormat.m_frames / 2)
             framesToDelay = m_encoderFormat.m_frames;
           else
             framesToDelay = 0;
+        }
+        ret->pkt->nb_samples = framesToDelay;
+        for(int i=0; i<ret->pkt->planes; i++)
+        {
+          memset(ret->pkt->data[i], 0, ret->pkt->linesize);
         }
         stream->m_syncError.Correction(-framesToDelay*1000/ret->pkt->config.sample_rate);
         error -= framesToDelay*1000/ret->pkt->config.sample_rate;
