@@ -13,6 +13,7 @@ ifeq ($(OS),osx)
 endif
 ifeq ($(OS),ios)
   HOSTPLATFORM=_PYTHON_HOST_PLATFORM="darwin"
+  LINK_ICONV="-framework CoreFoundation -liconv"
 endif
 
 # configuration settings
