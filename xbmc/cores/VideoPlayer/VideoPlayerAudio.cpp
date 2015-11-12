@@ -549,6 +549,7 @@ void CVideoPlayerAudio::Process()
     {
       double cachetotal = DVD_SEC_TO_TIME(m_dvdAudio.GetCacheTotal());
       double cachetime = m_dvdAudio.GetDelay();
+      CLog::Log(LOGDEBUG, "CVideoPlayerAudio::Process cachetime: %i, cachetotal/2: %i", cachetime, cachetotal / 2);
       if (cachetime >= cachetotal * 0.5)
       {
         m_syncState = IDVDStreamPlayer::SYNC_WAITSYNC;
@@ -560,6 +561,8 @@ void CVideoPlayerAudio::Process()
         msg.timestamp = m_audioClock;
         m_messageParent.Put(new CDVDMsgType<SStartMsg>(CDVDMsg::PLAYER_STARTED, msg));
       }
+      else
+        CLog::Log(LOGDEBUG, "CVideoPlayerAudio::Process audio cache stalled");
     }
   }
 }
