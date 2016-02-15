@@ -181,7 +181,7 @@ enum AVPixelFormat CDVDVideoCodecFFmpeg::GetFormat( struct AVCodecContext * avct
   return avcodec_default_get_format(avctx, fmt);
 }
 
-CDVDVideoCodecFFmpeg::CDVDVideoCodecFFmpeg() : CDVDVideoCodec()
+CDVDVideoCodecFFmpeg::CDVDVideoCodecFFmpeg(CProcessInfo &processInfo) : CDVDVideoCodec(processInfo)
 {
   m_pCodecContext = nullptr;
   m_pFrame = nullptr;
@@ -418,10 +418,12 @@ void CDVDVideoCodecFFmpeg::SetFilters()
 
   if (mDeintMode != VS_DEINTERLACEMODE_OFF)
   {
-    if(mInt == VS_INTERLACEMETHOD_DEINTERLACE_HALF)
+    if (mInt == VS_INTERLACEMETHOD_DEINTERLACE)
+      filters = FILTER_DEINTERLACE_ANY;
+    if (mInt == VS_INTERLACEMETHOD_DEINTERLACE_HALF)
       filters = FILTER_DEINTERLACE_ANY | FILTER_DEINTERLACE_HALFED;
     else
-      filters = FILTER_DEINTERLACE_ANY;
+      filters = m_processInfo.GetFallbackDeintMethod();
 
     if (mDeintMode == VS_DEINTERLACEMODE_AUTO && filters)
       filters |= FILTER_DEINTERLACE_FLAGGED;
