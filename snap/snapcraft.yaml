@@ -1,0 +1,128 @@
+name: kodi
+version: 18.0-alpha1
+summary: Kodi Media Center
+description: Kodi Media Center
+icon: media/icon120x120.png
+confinement: strict
+grade: devel
+
+
+plugs:
+  dbus-login1:
+    interface: dbus
+    name: org.freedesktop.login1.Manager
+    bus: session
+  dbus-upower:
+    interface: dbus
+    name: org.freedesktop.UPower
+    bus: session
+  dbus-avahi:
+    interface: dbus
+    name: org.freedesktop.Avahi.Server
+    bus: session
+
+
+apps:
+  kodi:
+    command: kodi
+    desktop: usr/share/xsessions/kodi.desktop
+    plugs:
+      - alsa
+      - dbus-login1
+      - dbus-upower
+      - dbus-avahi
+      - home
+      - joystick
+      - network
+      - network-bind
+      - mir
+      - x11
+      - opengl
+      - optical-drive
+      - pulseaudio
+      - unity7
+      - locale-control
+      - screen-inhibit-control
+      - removable-media
+      - avahi-observe
+      - hardware-observe
+      - mount-observe
+      - network-observe
+      - system-observe
+      - upower-observe
+      - udisks2
+      - shutdown
+
+
+parts:
+  kodi:
+    plugin: cmake
+    after: [alsa-lib]
+    #source: https://github.com/xbmc/xbmc.git
+    source: .
+    configflags:
+      #- -DCMAKE_BUILD_TYPE=Release
+      - -DCMAKE_BUILD_TYPE=Debug
+      - -DCMAKE_INSTALL_PREFIX=/usr
+      - -DENABLE_SNAPMODE=ON
+      - -DENABLE_AIRTUNES=ON
+      - -DENABLE_ALSA=ON
+      - -DENABLE_AVAHI=ON
+      - -DENABLE_BLURAY=ON
+      - -DENABLE_CEC=ON
+      - -DENABLE_DBUS=ON
+      - -DENABLE_DVDCSS=ON
+      - -DENABLE_EGL=ON
+      - -DENABLE_EVENTCLIENTS=ON
+      - -DENABLE_INTERNAL_FFMPEG=ON
+      - -DENABLE_INTERNAL_CROSSGUID=OFF
+      - -DENABLE_MICROHTTPD=ON
+      - -DENABLE_MYSQLCLIENT=ON
+      - -DENABLE_NFS=ON
+      - -DENABLE_NONFREE=ON
+      - -DENABLE_OPENSSL=ON
+      - -DENABLE_OPTICAL=ON
+      - -DENABLE_PULSEAUDIO=ON
+      - -DENABLE_SMBCLIENT=ON
+      - -DENABLE_SSH=ON
+      - -DENABLE_UDEV=ON
+      - -DENABLE_UPNP=ON
+      - -DENABLE_VAAPI=ON
+      - -DENABLE_VDPAU=ON
+      - -DENABLE_X11=ON
+      - -DENABLE_XSLT=ON
+      - -DENABLE_LIRC=ON
+    build-packages: [gawk,gdc,gettext,git-core,gperf,libass-dev,libbz2-dev,libcap-dev,libcdio-dev,libcurl3,libcurl4-openssl-dev,libdbus-1-dev,libfontconfig1-dev,libegl1-mesa-dev,libfreetype6-dev,libfribidi-dev,libgif-dev,libiso9660-dev,libjpeg-dev,liblzo2-dev,libmicrohttpd-dev,libmodplug-dev,libmysqlclient-dev,libnfs-dev,libpcre3-dev,libplist-dev,libpng-dev,libpulse-dev,libsdl2-dev,libsmbclient-dev,libsqlite3-dev,libssh-dev,libssl-dev,libtinyxml-dev,libtool,libudev-dev,libusb-dev,libva-dev,libvdpau-dev,libxml2-dev,libxmu-dev,libxrandr-dev,libxrender-dev,libxslt1-dev,libxt-dev,mesa-utils,nasm,pmount,python-dev,python-imaging,python-sqlite,swig,unzip,uuid-dev,yasm,zip,zlib1g-dev,libcrossguid-dev,rapidjson-dev,libfmt3-dev,libcec4-dev]
+    stage-packages: [i965-va-driver,libegl1-mesa-dev,libegl1-mesa,libva1,libva-egl1,libva-x11-1,libva-glx1,libva-drm1,libgl1-mesa-dri,vainfo,mesa-vdpau-drivers,libvdpau1,curl,libcurl3,mesa-utils,x11-utils,fonts-liberation,python-bluez,python-lightblue,python-imaging,python-simplejson,libmad0,libass5,libgif7,libssh-4,libnfs8,libbluray2,libshairplay0,libaacs0,libcec4,librtmp1,libgnutls30,libxslt1.1,gdb,strace,nvidia-375]
+
+  binary-addons:
+    after: [kodi,alsa-lib]
+    plugin: make
+    build: |
+      make -j$(nproc) -C tools/depends/target/binary-addons PREFIX=$SNAPCRAFT_PART_INSTALL/usr
+    organize:
+      usr/lib/kodi/addons: usr/lib/x86_64-linux-gnu/kodi/addons
+
+  alsa-lib:
+    plugin: autotools
+    source: https://launchpad.net/ubuntu/+archive/primary/+files/alsa-lib_1.1.3.orig.tar.bz2
+    source-type: tar
+    configflags:
+      - --prefix=/usr
+      - --sysconfdir=/etc
+      - --libexec=/usr/lib/x86_64-linux-gnu
+      - --libdir=/usr/lib/x86_64-linux-gnu
+      - --localstatedir=/var
+      - --with-configdir=/snap/kodi/current/usr/share/alsa
+    organize:
+      snap/kodi/current/usr/share/alsa: usr/share/alsa
+
+
+
+
+
+
+##
+# run this to connect all snap interfaces:
+# for PERM in alsa avahi-observe hardware-observe locale-control mount-observe network-observe removable-media shutdown system-observe; do sudo snap connect kodi:${PERM}; done
+##
