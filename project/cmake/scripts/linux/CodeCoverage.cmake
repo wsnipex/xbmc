@@ -67,6 +67,7 @@ if(LCOV_EXECUTABLE AND GENINFO_EXECUTABLE AND GENHTML_EXECUTABLE)
     COMMAND ${CMAKE_COMMAND} -E echo "Coverage report: file://${COVERAGE_BINARY_DIR}/html/index.html"
     WORKING_DIRECTORY ${COVERAGE_BINARY_DIR}
     VERBATIM
+    DEPENDS ${APP_NAME_LC} ${APP_NAME_LC}-test
     COMMENT "Generate code coverage html report"
   )
 else()
