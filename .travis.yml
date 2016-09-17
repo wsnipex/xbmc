@@ -99,14 +99,14 @@ before_script:
       if [[ "$TOOLS" == "Autotools" ]]; then
         ./configure --enable-debug;
       elif [[ "$TOOLS" == "CMake" ]]; then
-        cmake -DCMAKE_BUILD_TYPE=Debug ../project/cmake;
+        cmake -DENABLE_INTERNAL_FFMPEG=ON -DCMAKE_BUILD_TYPE=Debug ../project/cmake;
       fi
     fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" && "$BUILD" == "Kodi" && "$CXX" == "clang++" ]]; then
       if [[ "$TOOLS" == "Autotools" ]]; then
         CXXFLAGS="-Qunused-arguments" ./configure;
       elif [[ "$TOOLS" == "CMake" ]]; then
-        cmake -DCMAKE_CXX_FLAGS="-Qunused-arguments" ../project/cmake;
+        cmake -DENABLE_INTERNAL_FFMPEG=ON -DCMAKE_CXX_FLAGS="-Qunused-arguments" ../project/cmake;
       fi
     fi
   - if [[ "$BUILD" != "Kodi" ]] && [[ "$ADDONS" == "adsp" || "$ADDONS" == "audiodecoder" || "$ADDONS" == "audioencoder" ||
