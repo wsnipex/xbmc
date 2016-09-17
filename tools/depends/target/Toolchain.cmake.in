@@ -76,3 +76,6 @@ set(ENV{PKG_CONFIG_LIBDIR} @prefix@/@deps_dir@/lib/pkgconfig)
 if(NOT OS STREQUAL "linux")
   set(ADDONS_PREFER_STATIC_LIBS ON)
 endif()
+
+# FFMPEG
+set(ENABLE_INTERNAL_FFMPEG ON)
