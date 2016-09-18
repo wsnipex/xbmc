@@ -4,6 +4,9 @@ cmake_minimum_required(VERSION 2.8)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 
+if(NOT FFMPEG_INSTALL_PREFIX)
+  set(FFMPEG_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+endif()
 set(ffmpeg_conf "")
 
 if(CROSSCOMPILING)
@@ -52,7 +55,7 @@ include(ExternalProject)
 externalproject_add(ffmpeg
                     SOURCE_DIR ${CMAKE_SOURCE_DIR}
                     CONFIGURE_COMMAND ${pkgconf} <SOURCE_DIR>/configure
-                      --prefix=${CMAKE_INSTALL_PREFIX}
+                      --prefix=${FFMPEG_INSTALL_PREFIX}
                       --extra-version="kodi-${FFMPEG_VER}"
                       --disable-devices
                       --disable-doc
