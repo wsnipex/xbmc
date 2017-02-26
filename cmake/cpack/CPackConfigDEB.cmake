@@ -264,7 +264,7 @@ foreach(file ${DEBIAN_PACKAGES})
     message(FATAL_ERROR "DEB Generator: Mandatory variable CPACK_DEBIAN_${COMPONENT}_PACKAGE_PRIORITY is not set.")
   endif()
 
-  if(DEB_PACKAGE_SHLIBDEPS)
+  if(DEB_PACKAGE_SHLIBDEPS AND USE_SHLIBDEPS)
     set(CPACK_DEBIAN_${COMPONENT}_PACKAGE_SHLIBDEPS ON)
   endif()
 

@@ -357,6 +357,17 @@ if(EXISTS ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/extra-installs)
               endforeach()")
 endif()
 
+# Install depends if requested
+if(KODI_DEPENDSBUILD AND DEB_INCLUDE_DEPENDS)
+  install(DIRECTORY ${DEPENDS_PATH}/lib/python2.7
+          DESTINATION ${libdir}
+          COMPONENT kodi-bin)
+  install(DIRECTORY ${DEPENDS_PATH}/lib
+          DESTINATION ${prefix}
+          COMPONENT kodi-bin
+          FILES_MATCHING PATTERN "lib*.so[0-9.]*")
+endif()
+
 if(NOT "$ENV{DESTDIR}" STREQUAL "")
   set(DESTDIR ${CMAKE_BINARY_DIR}/$ENV{DESTDIR})
 endif()
