@@ -44,3 +44,7 @@ endif()
 if(ENABLE_MIR)
   set(ENABLE_VDPAU OFF CACHE BOOL "Disabling VDPAU since no Mir support" FORCE)
 endif()
+
+if(ENABLE_SNAPMODE)
+  list(APPEND ARCH_DEFINES -DSNAPMODE)
+endif()

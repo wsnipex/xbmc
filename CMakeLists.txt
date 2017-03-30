@@ -50,6 +50,7 @@ if(UNIX)
   option(FFMPEG_PATH        "Path to external ffmpeg?" "")
   option(ENABLE_INTERNAL_CROSSGUID "Enable internal crossguid?" ON)
   option(ENABLE_OPENSSL     "Enable OpenSSL?" ON)
+  option(ENABLE_SNAPMODE    "Enable Snapd confined mode support" OFF)
 endif()
 # System options
 if(NOT WIN32)
