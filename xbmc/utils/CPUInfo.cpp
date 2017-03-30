@@ -268,10 +268,12 @@ CCPUInfo::CCPUInfo(void)
   if (m_fProcTemperature == NULL)
     m_fProcTemperature = fopen("/proc/acpi/thermal_zone/TZ0/temperature", "r");
   // read from the new location of the temperature data on new kernels, 2.6.39, 3.0 etc
-  if (m_fProcTemperature == NULL)   
+#ifndef SNAPMODE
+  if (m_fProcTemperature == NULL)
     m_fProcTemperature = fopen("/sys/class/hwmon/hwmon0/temp1_input", "r");
-  if (m_fProcTemperature == NULL)   
+  if (m_fProcTemperature == NULL)
     m_fProcTemperature = fopen("/sys/class/thermal/thermal_zone0/temp", "r");  // On Raspberry PIs
+#endif
 
   m_fCPUFreq = fopen ("/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq", "r");
   if (!m_fCPUFreq)

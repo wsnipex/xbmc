@@ -105,8 +105,10 @@ void CThread::SetThreadInfo()
   {
     // start thread with nice level of application
     int appNice = getpriority(PRIO_PROCESS, getpid());
+#ifndef SNAPMODE
     if (setpriority(PRIO_PROCESS, m_ThreadOpaque.LwpId, appNice) != 0)
       if (logger) logger->Log(LOGERROR, "%s: error %s", __FUNCTION__, strerror(errno));
+#endif
   }
 #endif
 }
@@ -186,10 +188,12 @@ bool CThread::SetPriority(const int iPriority)
     if (prio)
       prio = prio > 0 ? appNice-1 : appNice+1;
 
+#ifndef SNAPMODE
     if (setpriority(PRIO_PROCESS, m_ThreadOpaque.LwpId, prio) == 0)
       bReturn = true;
     else
       if (logger) logger->Log(LOGERROR, "%s: error %s", __FUNCTION__, strerror(errno));
+#endif
   }
 #endif
 
