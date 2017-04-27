@@ -91,7 +91,7 @@ if(CORE_SYSTEM_NAME STREQUAL windows)
                       Sinks/AESinkWASAPI.h)
 endif()
 
-if(CORE_SYSTEM_NAME STREQUAL rbpi)
+if(CORE_PLATFORM_NAME STREQUAL RPI)
   list(APPEND SOURCES Engines/ActiveAE/ActiveAEResamplePi.cpp
                       Sinks/AESinkPi.cpp)
   list(APPEND HEADERS Engines/ActiveAE/ActiveAEResamplePi.h
