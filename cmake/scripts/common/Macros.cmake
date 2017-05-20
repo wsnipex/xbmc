@@ -363,7 +363,7 @@ endfunction()
 # helper macro for optional deps
 macro(setup_enable_switch)
   string(TOUPPER ${dep} depup)
-  if(ARGV1)
+  if(${ARGV1})
     set(enable_switch ${ARGV1})
   else()
     set(enable_switch ENABLE_${depup})
