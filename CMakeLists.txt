@@ -111,7 +111,7 @@ foreach(dep ${PLATFORM_REQUIRED_DEPS})
   # We need to specify ENABLE_${PLATFORM_REQUIRED_DEPS} in order for the
   # optional subdirectory for the specified platform to get built.
   string(TOUPPER ${dep} depup)
-  set(ENABLE_${depup} "ON" CACHE BOOL "Enable ${depup} support" FORCE)
+  set(ENABLE_${depup} "ON" CACHE BOOL "Force enabling required ${depup} support" FORCE)
 endforeach()
 
 # Required dependencies. Keep in alphabetical order please
