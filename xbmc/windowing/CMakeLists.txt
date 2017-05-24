@@ -7,7 +7,7 @@ set(HEADERS WindowingFactory.h
             XBMC_events.h
             VideoSync.h)
 
-if(CORE_SYSTEM_NAME STREQUAL linux AND NOT MIR_FOUND)
+if((CORE_SYSTEM_NAME STREQUAL linux OR CORE_SYSTEM_NAME STREQUAL rbpi) AND NOT MIR_FOUND)
   list(APPEND SOURCES WinEventsLinux.cpp)
   list(APPEND HEADERS WinEventsLinux.h)
 endif()
