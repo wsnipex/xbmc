@@ -104,14 +104,16 @@ endif()
 
 set(CORE_PLATFORM_NAME ${_DEFAULT_PLATFORM} CACHE STRING "Platform port to build")
 unset(_DEFAULT_PLATFORM)
+string(TOLOWER ${CORE_PLATFORM_NAME} CORE_PLATFORM_NAME_LC)
+
 list(APPEND final_message "Platform: ${CORE_PLATFORM_NAME}")
-if(EXISTS ${CMAKE_SOURCE_DIR}/cmake/platform/${CORE_SYSTEM_NAME}/${CORE_PLATFORM_NAME}.cmake)
-  include(${CMAKE_SOURCE_DIR}/cmake/platform/${CORE_SYSTEM_NAME}/${CORE_PLATFORM_NAME}.cmake)
+if(EXISTS ${CMAKE_SOURCE_DIR}/cmake/platform/${CORE_SYSTEM_NAME}/${CORE_PLATFORM_NAME_LC}.cmake)
+  include(${CMAKE_SOURCE_DIR}/cmake/platform/${CORE_SYSTEM_NAME}/${CORE_PLATFORM_NAME_LC}.cmake)
 else()
   file(GLOB _platformnames RELATIVE ${CMAKE_SOURCE_DIR}/cmake/platform/${CORE_SYSTEM_NAME}/
                                     ${CMAKE_SOURCE_DIR}/cmake/platform/${CORE_SYSTEM_NAME}/*.cmake)
   string(REPLACE ".cmake" " " _platformnames ${_platformnames})
-  message(FATAL_ERROR "invalid CORE_PLATFORM_NAME: ${CORE_PLATFORM_NAME}\nValid platforms: ${_platformnames}")
+  message(FATAL_ERROR "invalid CORE_PLATFORM_NAME: ${CORE_PLATFORM_NAME_LC}\nValid platforms: ${_platformnames}")
 endif()
 
 foreach(dep ${PLATFORM_REQUIRED_DEPS})
