@@ -19,7 +19,6 @@
  */
 
 #include "RBP.h"
-#if defined(TARGET_RASPBERRY_PI)
 
 #include <assert.h>
 #include "ServiceBroker.h"
