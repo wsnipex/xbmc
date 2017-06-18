@@ -137,12 +137,6 @@ if(ADDON_SRC_PREFIX)
   message(STATUS "Overriding addon source directory prefix: ${ADDON_SRC_PREFIX}")
 endif()
 
-if(NOT APP_LIB_DIR)
-  set(APP_LIB_DIR "${ADDON_DEPENDS_PATH}/lib/kodi")
-else()
-  file(TO_CMAKE_PATH "${APP_LIB_DIR}" APP_LIB_DIR)
-endif()
-
 set(APP_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
 # check for platform specific stuff
@@ -169,15 +163,19 @@ if(NOT WIN32)
   endif()
 endif()
 
+# add the location of PrepareEnv.cmake to CMAKE_MODULE_PATH so that it is found
+list(APPEND CMAKE_MODULE_PATH ${CORE_SOURCE_DIR}/cmake/scripts/common)
+
+# include PrepareEnv.cmake which contains the logic to install the addon header bindings etc
+include(PrepareEnv)
+list(REMOVE_ITEM CMAKE_MODULE_PATH ${CORE_SOURCE_DIR}/cmake/scripts/common)
+
 ### prepare the build environment for the binary addons
 # copy the PrepareEnv.cmake script to the depends path so that we can include it
 file(COPY ${CORE_SOURCE_DIR}/cmake/scripts/common/PrepareEnv.cmake DESTINATION ${APP_LIB_DIR})
 
 # add the location of PrepareEnv.cmake to CMAKE_MODULE_PATH so that it is found
 list(APPEND CMAKE_MODULE_PATH ${APP_LIB_DIR})
-
-# include PrepareEnv.cmake which contains the logic to install the addon header bindings etc
-include(PrepareEnv)
 
 ### add the depends subdirectory for any general dependencies
 message(STATUS "\n-- ---- Preparing general dependencies ----")

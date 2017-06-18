@@ -23,8 +23,8 @@ set(APP_INCLUDE_DIR ${ADDON_DEPENDS_PATH}/include/${APP_NAME_LC})
 if(NOT EXISTS "${APP_INCLUDE_DIR}/")
   file(MAKE_DIRECTORY ${APP_INCLUDE_DIR})
 endif()
-
 # make sure C++11 is always set
+
 if(NOT WIN32)
   string(REGEX MATCH "-std=(gnu|c)\\+\\+11" cxx11flag "${CMAKE_CXX_FLAGS}")
   if(NOT cxx11flag)
@@ -32,8 +32,14 @@ if(NOT WIN32)
   endif()
 endif()
 
-# generate the proper KodiConfig.cmake file
-configure_file(${CORE_SOURCE_DIR}/cmake/KodiConfig.cmake.in ${APP_LIB_DIR}/KodiConfig.cmake @ONLY)
+# generate the proper ${APP_NAME}Config.cmake file
+configure_file(${CORE_SOURCE_DIR}/cmake/KodiConfig.cmake.in ${APP_LIB_DIR}/${APP_NAME}Config.cmake @ONLY)
+# generate fallback KodiConfig.cmake file
+if(NOT EXISTS ${ADDON_DEPENDS_PATH}/lib/kodi/KodiConfig.cmake)
+  file(READ ${APP_LIB_DIR}/${APP_NAME}Config.cmake _CONFIG_TMP)
+  string(REPLACE "${APP_NAME_UC}" "KODI" _CONFIG_TMP ${_CONFIG_TMP})
+  file(WRITE ${ADDON_DEPENDS_PATH}/lib/kodi/KodiConfig.cmake ${_CONFIG_TMP})
+endif()
 
 # copy cmake helpers to lib/kodi
 file(COPY ${CORE_SOURCE_DIR}/cmake/scripts/common/AddonHelpers.cmake
