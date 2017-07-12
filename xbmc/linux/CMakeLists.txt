@@ -35,7 +35,7 @@ if(DBUS_FOUND)
                       DBusUtil.h)
 endif()
 
-if(CORE_PLATFORM_NAME STREQUAL rbpi)
+if(CORE_PLATFORM_NAME_LC STREQUAL rbpi)
   list(APPEND SOURCES RBP.cpp
                       OMXClock.cpp
                       OMXCore.cpp)

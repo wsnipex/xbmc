@@ -186,7 +186,7 @@ if(OPENGLES_FOUND)
                       TextureGL.h)
 endif()
 
-if(CORE_PLATFORM_NAME STREQUAL rbpi)
+if(CORE_PLATFORM_NAME_LC STREQUAL rbpi)
   list(APPEND SOURCES TexturePi.cpp)
   list(APPEND HEADERS TexturePi.h)
 endif()

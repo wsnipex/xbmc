@@ -6,7 +6,7 @@ set(HEADERS DataCacheCore.h
             IPlayer.h
             IPlayerCallback.h)
 
-if(CORE_PLATFORM_NAME STREQUAL rbpi)
+if(CORE_PLATFORM_NAME_LC STREQUAL rbpi)
   add_subdirectory(omxplayer)
 endif()
 

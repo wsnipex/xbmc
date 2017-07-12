@@ -14,7 +14,7 @@ if(CORE_SYSTEM_NAME STREQUAL linux AND NOT MIR_FOUND)
   list(APPEND HEADERS WinEventsLinux.h)
 endif()
 
-if(CORE_PLATFORM_NAME STREQUAL rbpi)
+if(CORE_PLATFORM_NAME_LC STREQUAL rbpi)
   add_subdirectory(rpi)
 endif()
 
