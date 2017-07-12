@@ -472,4 +472,3 @@ AVRpiZcFrameGeometry CRBP::GetFrameGeometry(uint32_t encoding, unsigned short vi
   }
   return geo;
 }
-#endif
