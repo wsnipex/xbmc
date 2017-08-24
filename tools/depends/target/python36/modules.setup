@@ -206,10 +206,14 @@ _socket socketmodule.c
 
 # Socket module helper for SSL support; you must comment out the other
 # socket line above, and possibly edit the SSL variable:
-SSL=/usr/local/ssl
+SSLDEFINES='-DUSE_SSL'
 _ssl _ssl.c \
-	-DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
-	-L$(SSL)/lib -lssl -lcrypto
+	$(SSLDEFINES) -I$(prefix)/include -I$(prefix)/include/openssl \
+	-L$(prefix)/lib -lssl -lcrypto
+
+_hashlib _hashopenssl.c \
+        $(SSLDEFINES) -I$(prefix)/include -I$(prefix)/include/openssl \
+        -L$(prefix)/lib -lssl -lcrypto
 
 # The crypt module is now disabled by default because it breaks builds
 # on many systems (where -lcrypt is needed), e.g. Linux (I believe).
