@@ -1,4 +1,4 @@
-kodi (2:18.0+git20171029.0201-910143c-0artful) artful; urgency=high
+kodi (2:18.0+git20171029.2201-282115f-0artful) artful; urgency=high
 
   [Kai Sommerfeld]
    * [PVR] Fix epg and pvr database reset (was completely broken).
@@ -12128,10 +12128,5 @@ kodi (2:18.0+git20171029.0201-910143c-0artful) artful; urgency=high
 
   [wsnipex]
    * [cmake] use common download dir for tarballs
-
-
-
-
- * dummy
 
  -- wsnipex <wsnipex@a1.net>  Sun, 04 Nov 2012 09:41:54 +0100
