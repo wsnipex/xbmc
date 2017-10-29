@@ -1,0 +1,83 @@
+#!/usr/bin/make -f
+
+# These are used for cross-compiling and for saving the configure script
+# from having to guess our platform (since we know it already)
+DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
+DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+
+UBUNTU_RELEASE ?= $(shell sed -n '/VERSION_ID/ s/VERSION_ID="\([0-9.]*\)"/\1/p' /etc/os-release)
+BUILD_WAYLAND := $(shell dpkg --compare-versions $(UBUNTU_RELEASE) ge 17.10 && echo yes || echo no)
+
+DVDREAD = $(shell ls -1tr tools/depends/target/libdvdread/libdvdread-*.tar.gz | tail -1)
+DVDNAV = $(shell ls -1tr tools/depends/target/libdvdnav/libdvdnav-*.tar.gz | tail -1)
+DVDCSS = $(shell ls -1tr tools/depends/target/libdvdcss/libdvdcss-*.tar.gz | tail -1)
+FFMPEG = $(shell ls -1tr tools/depends/target/ffmpeg/ffmpeg-*.tar.gz | tail -1)
+
+KODI_OPTS=\
+-DVERBOSE=1 \
+-DCMAKE_BUILD_TYPE=Release \
+-DCMAKE_INSTALL_PREFIX=/usr \
+-DENABLE_AIRTUNES=ON \
+-DENABLE_ALSA=ON \
+-DENABLE_AVAHI=ON \
+-DENABLE_BLURAY=ON \
+-DENABLE_CEC=ON \
+-DENABLE_DBUS=ON \
+-DENABLE_DVDCSS=ON \
+-DENABLE_EGL=ON \
+-DENABLE_EVENTCLIENTS=ON \
+-DENABLE_INTERNAL_FFMPEG=ON \
+-DENABLE_INTERNAL_CROSSGUID=OFF \
+-DENABLE_MICROHTTPD=ON \
+-DENABLE_MYSQLCLIENT=ON \
+-DENABLE_NFS=ON \
+-DENABLE_NONFREE=ON \
+-DENABLE_OPENSSL=ON \
+-DENABLE_OPTICAL=ON \
+-DENABLE_PULSEAUDIO=ON \
+-DENABLE_SMBCLIENT=ON \
+-DENABLE_SSH=ON \
+-DENABLE_UDEV=ON \
+-DENABLE_UPNP=ON \
+-DENABLE_VAAPI=ON \
+-DENABLE_VDPAU=ON \
+-DENABLE_X11=ON \
+-DENABLE_XSLT=ON \
+-DENABLE_LIRC=ON \
+-DLIBDVDREAD_URL=${DVDREAD} \
+-DLIBDVDNAV_URL=${DVDNAV} \
+-DLIBDVDCSS_URL=${DVDCSS} \
+-DFFMPEG_URL=${FFMPEG}
+
+WAYLAND_OPTS=\
+-DCORE_PLATFORM_NAME=wayland \
+-DWAYLAND_RENDER_SYSTEM=gl \
+-DENABLE_VDPAU=OFF
+
+%:
+	dh $@ --parallel --buildsystem cmake
+
+
+override_dh_auto_configure:
+	dh_auto_configure --builddir kodi_build_x11 -- ${KODI_OPTS}
+ifeq ($(BUILD_WAYLAND),yes)
+	dh_auto_configure --builddir kodi_build_wayland -- ${KODI_OPTS} ${WAYLAND_OPTS}
+endif
+
+override_dh_auto_build:
+	dh_auto_build --builddir kodi_build_x11
+ifeq ($(BUILD_WAYLAND),yes)
+	dh_auto_build --builddir kodi_build_wayland
+endif
+
+override_dh_auto_install:
+	dh_auto_install --builddir kodi_build_x11 --destdir debian/tmp
+ifeq ($(BUILD_WAYLAND),yes)
+	@cp kodi_build_wayland/kodi.bin debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/kodi/kodi-wayland
+endif
+
+
+override_dh_auto_test:
+
