@@ -167,7 +167,8 @@ Description: Kodi Media Center (arch-independent data package)
 
 Package: kodi-x11
 Architecture: i386 amd64 armhf
-Depends: ${shlibs:Depends},
+Depends: kodi (= ${binary:Version}),
+         ${shlibs:Depends},
          ${misc:Depends}
 Recommends: ${shlibs:Recommends}
 Provides: kodi-x11, kodi-common, kodi-bin, xbmc-common, xbmc-bin
@@ -196,7 +197,9 @@ Description: Kodi Media Center for X11 (binary data package)
 
 Package: kodi-wayland
 Architecture: i386 amd64 armhf
-Depends: ${shlibs:Depends},
+Depends: kodi-x11 (= ${binary:Version}),
+         kodi (= ${binary:Version}),
+         ${shlibs:Depends},
          ${misc:Depends}
 Recommends: ${shlibs:Recommends}
 Provides: kodi-wayland
