@@ -1,4 +1,4 @@
-kodi (2:18.0+git20171029.2201-282115f-0artful) artful; urgency=high
+kodi (2:18.0+git20171029.2223-282115f-0artful) artful; urgency=high
 
   [Kai Sommerfeld]
    * [PVR] Fix epg and pvr database reset (was completely broken).
