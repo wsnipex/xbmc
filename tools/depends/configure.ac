@@ -102,16 +102,20 @@ OLD_PATH="${PATH}"
 if test -n "$use_toolchain"; then
   PATH="${use_toolchain}/bin:${use_toolchain}/usr/bin:$PATH"
   case $host in
-    *linux-android*)
-      AC_PROG_CXX([clang++ gcc g++])
+    arm*-*linux-android*|aarch64*-*linux-android*)
+      COMPILER_LIST="clang++ gcc g++"
+    ;;
+    *)
+      COMPILER_LIST=""
     ;;
   esac
 fi
+AC_PROG_CXX([$COMPILER_LIST])
 AX_CXX_COMPILE_STDCXX_11([noext],[mandatory])
 c11_flags=$(echo "$CFLAGS" | sed 's/-O@<:@123@:>@//g;s/-g //g;s/ //g')
 cxx11_flags=$(echo "$CXXFLAGS" | sed 's/-O@<:@123@:>@//g;s/-g //g;s/ //g')
 PATH="${OLD_PATH}"
-
+$COMPILER_LIST
 if test "$use_ccache" = "yes"; then
   AC_CHECK_PROG(HAVE_CCACHE,ccache,"yes","no",)
   if test "x$HAVE_CCACHE" = "xno" ; then
