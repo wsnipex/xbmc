@@ -4,7 +4,9 @@ include(${CORE_SOURCE_DIR}/cmake/scripts/common/CheckTargetPlatform.cmake)
 function(add_addon_depends addon searchpath)
   # input: string addon string searchpath
 
-  set(OUTPUT_DIR ${ADDON_DEPENDS_PATH})
+  if(NOT OUTPUT_DIR)
+    set(OUTPUT_DIR ${ADDON_DEPENDS_PATH})
+  endif()
   # look for platform-specific dependencies
   file(GLOB_RECURSE cmake_input_files ${searchpath}/${CORE_SYSTEM_NAME}/*.txt)
   # backward compatibility
@@ -47,6 +49,7 @@ function(add_addon_depends addon searchpath)
         set(url "")
         if(deflength GREATER 1)
           list(GET def 1 url)
+          string(REPLACE "%BASE_URL%" "${BASE_URL}" url "${url}")
           message(STATUS "${id} url: ${url}")
         endif()
 
@@ -139,7 +142,7 @@ function(add_addon_depends addon searchpath)
 
 
         # if there's an install.txt use it to properly install the built files
-        set(INSTALL_COMMAND "")
+        set(INSTALL_COMMAND "${DEFAULT_INSTALL_COMMAND}")
         if(EXISTS ${dir}/install.txt)
           set(INSTALL_COMMAND INSTALL_COMMAND ${CMAKE_COMMAND}
                                               -DINPUTDIR=${BUILD_DIR}/${id}/src/${id}-build/
