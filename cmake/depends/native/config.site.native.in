@@ -1,0 +1,36 @@
+LD="${LD:-@LD@}"
+CC="${CC:-@CCACHE@ @CC@}"
+CXX="${CXX:-@CCACHE@ @CXX@}"
+AR="${AR:-@AR@}"
+RANLIB="${RANLIB:-@RANLIB@}"
+AS="${AS:-@AS@}"
+NM="${NM:-@NM@}"
+STRIP="${STRIP:-@STRIP@}"
+READELF="${READELF:-@READELF@}"
+OBJDUMP="${OBJDUMP:-@OBJDUMP@}"
+
+CFLAGS="-I@CMAKE_INSTALL_PREFIX@/include $CFLAGS"
+LDFLAGS="-L@CMAKE_INSTALL_PREFIX@/lib $LDFLAGS"
+CPPFLAGS="-I@CMAKE_INSTALL_PREFIX@/include $CPPFLAGS"
+CXXFLAGS="-I@CMAKE_INSTALL_PREFIX@/include $CXXFLAGS"
+
+#PKG_CONFIG=@prefix@/@tool_dir@/bin/pkg-config
+export PKG_CONFIG_LIBDIR=@NATIVE_PKG_CONFIG_LIBDIR@
+
+PATH=@CMAKE_INSTALL_PREFIX@/bin:$PATH
+
+LD_LIBRARY_PATH=@CMAKE_INSTALL_PREFIX@/lib:$LD_LIBRARY_PATH
+NASM=@CMAKE_INSTALL_PREFIX@/bin/yasm
+
+if test "@platform_os@" = "osx" ; then
+  # Xcode 8 + 10.11, clock_gettime and getentropy is present
+  # in 10.12 but will get wrongly detected if building on 10.11
+  ac_cv_search_clock_gettime=no
+  ac_cv_func_clock_gettime=no
+  ac_cv_func_getentropy=no
+  ac_cv_func_futimes=no
+  ac_cv_func_futimesat=no
+  ac_cv_func_futimens=no
+  ac_cv_func_utimensat=no
+fi
+
