@@ -53,6 +53,12 @@ function(add_addon_depends addon searchpath)
           message(STATUS "${id} url: ${url}")
         endif()
 
+        if(EXISTS ${dir}/${id}.sha256)
+          file(STRINGS ${dir}/${id}.sha256 sha256sum)
+          string(REPLACE "\n" "" sha256sum "${sha256sum}")
+          set(URL_HASH_COMMAND URL_HASH SHA256=${sha256sum})
+        endif()
+
         # check if there are any library specific flags that need to be passed on
         if(EXISTS ${dir}/flags.txt)
           set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${dir}/flags.txt)
@@ -239,6 +245,7 @@ function(add_addon_depends addon searchpath)
 
             externalproject_add(${id}
                                 URL ${url}
+                                "${URL_HASH_COMMAND}"
                                 DOWNLOAD_DIR ${BUILD_DIR}/download
                                 CONFIGURE_COMMAND ${CONFIGURE_COMMAND}
                                 "${EXTERNALPROJECT_SETUP}")
