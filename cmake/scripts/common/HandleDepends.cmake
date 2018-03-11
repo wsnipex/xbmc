@@ -7,6 +7,10 @@ function(add_addon_depends addon searchpath)
   if(NOT OUTPUT_DIR)
     set(OUTPUT_DIR ${ADDON_DEPENDS_PATH})
   endif()
+  if(NOT TARBALL_DIR)
+    set(TARBALL_DIR ${BUILD_DIR}/download)
+  endif()
+
   # look for platform-specific dependencies
   file(GLOB_RECURSE cmake_input_files ${searchpath}/${CORE_SYSTEM_NAME}/*.txt)
   # backward compatibility
@@ -246,7 +250,7 @@ function(add_addon_depends addon searchpath)
             externalproject_add(${id}
                                 URL ${url}
                                 "${URL_HASH_COMMAND}"
-                                DOWNLOAD_DIR ${BUILD_DIR}/download
+                                DOWNLOAD_DIR ${TARBALL_DIR}
                                 CONFIGURE_COMMAND ${CONFIGURE_COMMAND}
                                 "${EXTERNALPROJECT_SETUP}")
           endif()
