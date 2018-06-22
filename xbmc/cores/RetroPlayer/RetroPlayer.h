@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "RetroPlayerAutoSave.h"
 #include "cores/RetroPlayer/guibridge/IGameCallback.h"
 #include "cores/IPlayer.h"
 #include "games/GameTypes.h"
@@ -37,13 +38,16 @@ namespace GAME
 
 namespace RETRO
 {
-  class CRetroPlayerAutoSave;
   class CRetroPlayerInput;
   class CRPProcessInfo;
   class CRPRenderManager;
   class CRPStreamManager;
+  class IPlayback;
 
-  class CRetroPlayer : public IPlayer, public IRenderLoop, public IGameCallback
+  class CRetroPlayer : public IPlayer,
+                       public IRenderLoop,
+                       public IGameCallback,
+                       public IAutoSaveCallback
   {
   public:
     explicit CRetroPlayer(IPlayerCallback& callback);
@@ -76,6 +80,10 @@ namespace RETRO
     // Implementation of IGameCallback
     std::string GameClientID() const override;
 
+    // Implementation of IAutoSaveCallback
+    bool IsAutoSaveEnabled() const override;
+    std::string CreateSavestate() override;
+
   private:
     void SetSpeedInternal(double speed);
 
@@ -84,6 +92,10 @@ namespace RETRO
      * \param newSpeed The new speed, possibly equal to the previous speed
      */
     void OnSpeedChange(double newSpeed);
+
+    // Playback functions
+    void CreatePlayback(bool bRestoreState);
+    void ResetPlayback();
 
     /*!
      * \brief Closes the OSD and shows the FullscreenGame window
@@ -117,6 +129,7 @@ namespace RETRO
     std::unique_ptr<CRPRenderManager>  m_renderManager;
     std::unique_ptr<CRPStreamManager>  m_streamManager;
     std::unique_ptr<CRetroPlayerInput> m_input;
+    std::unique_ptr<IPlayback>         m_playback;
     std::unique_ptr<CRetroPlayerAutoSave> m_autoSave;
     GAME::GameClientPtr                m_gameClient;
     CCriticalSection                   m_mutex;
