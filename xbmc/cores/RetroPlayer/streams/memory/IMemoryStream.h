@@ -25,7 +25,7 @@
 
 namespace KODI
 {
-namespace GAME
+namespace RETRO
 {
   /*!
    * \brief Stream of serialized states from game clients

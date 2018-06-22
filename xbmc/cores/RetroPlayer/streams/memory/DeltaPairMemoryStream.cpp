@@ -22,7 +22,7 @@
 #include "utils/log.h"
 
 using namespace KODI;
-using namespace GAME;
+using namespace RETRO;
 
 void CDeltaPairMemoryStream::Reset()
 {

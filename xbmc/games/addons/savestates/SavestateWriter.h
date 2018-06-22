@@ -31,7 +31,6 @@ namespace KODI
 namespace GAME
 {
   class CGameClient;
-  class IMemoryStream;
 
   class CSavestateWriter
   {
@@ -39,7 +38,7 @@ namespace GAME
     ~CSavestateWriter();
 
     bool Initialize(const CGameClient* gameClient, uint64_t frameHistoryCount);
-    bool WriteSave(IMemoryStream* memoryStream);
+    bool WriteSave(const uint8_t *data, size_t size);
     void WriteThumb();
     bool CommitToDatabase();
     void CleanUpTransaction();

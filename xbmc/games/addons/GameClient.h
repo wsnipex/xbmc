@@ -38,6 +38,7 @@ namespace KODI
 {
 namespace RETRO
 {
+  class IPlayback;
   class IStreamManager;
 }
 
@@ -47,7 +48,6 @@ namespace GAME
 class CGameClientInGameSaves;
 class CGameClientInput;
 class CGameClientProperties;
-class IGameClientPlayback;
 class IGameInputCallback;
 
 /*!
@@ -96,7 +96,7 @@ public:
 
   // Playback control
   bool IsPlaying() const { return m_bIsPlaying; }
-  IGameClientPlayback* GetPlayback() { return m_playback.get(); }
+  RETRO::IPlayback* GetPlayback() { return m_playback.get(); }
   double GetFrameRate() const { return m_framerate; }
   double GetSampleRate() const { return m_samplerate; }
   void RunFrame();
@@ -163,7 +163,7 @@ private:
   IGameInputCallback*   m_input = nullptr;     // The input callback passed to OpenFile()
   double                m_framerate = 0.0;     // Video frame rate (fps)
   double                m_samplerate = 0.0;    // Audio sample rate (Hz)
-  std::unique_ptr<IGameClientPlayback> m_playback; // Interface to control playback
+  std::unique_ptr<RETRO::IPlayback> m_playback; // Interface to control playback
   GAME_REGION           m_region;              // Region of the loaded game
 
   // In-game saves
