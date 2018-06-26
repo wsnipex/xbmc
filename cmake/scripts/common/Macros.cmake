@@ -64,6 +64,7 @@ endfunction()
 #   SOURCES the sources of the library
 #   HEADERS the headers of the library (only for IDE support)
 #   OTHERS  other library related files (only for IDE support)
+#   DEPENDS targets this library depends on
 # On return:
 #   Library will be built, optionally added to ${core_DEPENDS}
 #   Sets CORE_LIBRARY for calls for setting target specific options
@@ -76,7 +77,7 @@ function(core_add_library name)
     if(NOT CORE_SYSTEM_NAME STREQUAL windowsstore)
       list(APPEND lib_DEPS dvdnav)
     endif()
-    add_dependencies(${name} ${lib_DEPS})
+    add_dependencies(${name} ${lib_DEPS} ${DEPENDS})
     set(CORE_LIBRARY ${name} PARENT_SCOPE)
 
     # Add precompiled headers to Kodi main libraries
@@ -92,6 +93,9 @@ function(core_add_library name)
     endforeach()
     target_sources(lib${APP_NAME_LC} PRIVATE ${FILES})
     set(CORE_LIBRARY lib${APP_NAME_LC} PARENT_SCOPE)
+    if(DEPENDS)
+      add_dependencies(lib${APP_NAME_LC} ${DEPENDS})
+    endif()
   endif()
   foreach(src ${SOURCES})
     list(APPEND sca_sources ${CMAKE_CURRENT_SOURCE_DIR}/${src})
@@ -517,6 +521,7 @@ endfunction()
 function(core_add_subdirs_from_filelist files)
   # Adds subdirectories from a sorted list of files
   # Input: [list: filenames] [bool: sort]
+  # Sets EXTRA_INCLUDES for including additional directories
   foreach(arg ${ARGN})
     list(APPEND files ${arg})
   endforeach()
@@ -537,6 +542,7 @@ function(core_add_subdirs_from_filelist files)
       add_subdirectory(${CMAKE_SOURCE_DIR}/${subdir_src} ${CORE_BUILD_DIR}/${subdir_dest})
     endforeach()
   endforeach()
+  set(EXTRA_INCLUDES ${EXTRA_INCLUDES} PARENT_SCOPE)
 endfunction()
 
 macro(core_add_optional_subdirs_from_filelist pattern)
@@ -813,3 +819,32 @@ macro(find_addon_xml_in_files)
   # Append also versions.h to depends
   list(APPEND ADDON_XML_DEPENDS "${CORE_SOURCE_DIR}/xbmc/addons/kodi-addon-dev-kit/include/kodi/versions.h")
 endmacro()
+
+# Compile flatbuffer messages
+#
+# Arguments:
+#   name Name of the target to add
+#
+# Implicit arguments:
+#   MESSAGES The flatbuffer message files
+#
+# On return:
+#   Messages will be compiled
+#   Sets EXTRA_INCLUDES for including message directories
+function(core_add_messages name)
+  # FlatBuffers module will fail silently if any file is not found
+  if(NOT FLATBUFFERS_FOUND)
+    message(FATAL_ERROR "Could not find a file provided by \"FlatBuffers\"")
+  endif()
+
+  # Generate flatbuffer message C++ headers
+  flatbuffers_generate_c_headers(${name} ${MESSAGES})
+
+  set(FILES ${${name}_OUTPUTS})
+  add_custom_target(${name} DEPENDS ${FILES})
+  set_target_properties(${name} PROPERTIES FOLDER "Generated Messages")
+  set_target_properties(${name} PROPERTIES SOURCES "${FILES}")
+
+  # Set output variables
+  set(EXTRA_INCLUDES ${CMAKE_CURRENT_BINARY_DIR} PARENT_SCOPE)
+endfunction()

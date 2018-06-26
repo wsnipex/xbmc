@@ -116,6 +116,7 @@ set(required_deps ASS
                   CrossGUID
                   Curl
                   FFMPEG
+                  FlatBuffers
                   Fmt
                   FreeType
                   FriBidi
@@ -241,7 +242,10 @@ if(WIN32)
   set(RESOURCES $<TARGET_OBJECTS:resources>)
 endif()
 
-include_directories(${INCLUDES} ${SYSTEM_INCLUDES})
+# Generate messages
+core_add_subdirs_from_filelist(${CMAKE_SOURCE_DIR}/cmake/messages/flatbuffers/*.txt)
+
+include_directories(${INCLUDES} ${SYSTEM_INCLUDES} ${EXTRA_INCLUDES})
 add_compile_options(${ARCH_DEFINES} "${SYSTEM_DEFINES}" ${DEP_DEFINES} ${PATH_DEFINES})
 
 set(core_DEPENDS "" CACHE STRING "" FORCE)
