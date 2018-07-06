@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2016-2017 Team Kodi
+ *      Copyright (C) 2018 Team Kodi
  *      http://kodi.tv
  *
  *  This Program is free software; you can redistribute it and/or modify
@@ -20,19 +20,21 @@
 
 #pragma once
 
-#include "Savestate.h"
-
-#include <string>
-
 namespace KODI
 {
 namespace RETRO
 {
-  class CSavestateTranslator
+  /*!
+   * \brief Type of save action, either:
+   *
+   *   - automatic (saving was not prompted by the user)
+   *   - manual (user manually prompted the save)
+   */
+  enum class SAVE_TYPE
   {
-  public:
-    static SAVETYPE TranslateType(const std::string& type);
-    static std::string TranslateType(const SAVETYPE& type);
+    UNKNOWN,
+    AUTO,
+    MANUAL,
   };
 }
 }
