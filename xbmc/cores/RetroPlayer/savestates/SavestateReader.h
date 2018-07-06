@@ -31,23 +31,23 @@ namespace KODI
 namespace GAME
 {
   class CGameClient;
+}
 
-  class CSavestateWriter
+namespace RETRO
+{
+  class CSavestateReader
   {
   public:
-    ~CSavestateWriter();
+    ~CSavestateReader();
 
-    bool Initialize(const CGameClient* gameClient, uint64_t frameHistoryCount);
-    bool WriteSave(const uint8_t *data, size_t size);
-    void WriteThumb();
-    bool CommitToDatabase();
-    void CleanUpTransaction();
-    const std::string& GetPath() const { return m_savestate.Path(); }
+    bool Initialize(const std::string& path, const GAME::CGameClient* gameClient);
+    bool ReadSave(uint8_t *data, size_t size);
+    uint64_t GetFrameCount(void) const { return m_frameCount; }
 
   private:
     CSavestate         m_savestate;
-    double             m_fps = 0.0; //! @todo
     CSavestateDatabase m_db;
+    uint64_t           m_frameCount = 0;
   };
 }
 }

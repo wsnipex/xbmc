@@ -34,12 +34,12 @@ namespace KODI
 namespace GAME
 {
   class CGameClient;
-  class CSavestateReader;
-  class CSavestateWriter;
 }
 
 namespace RETRO
 {
+  class CSavestateReader;
+  class CSavestateWriter;
   class IMemoryStream;
 
   class CReversiblePlayback : public IPlayback,
@@ -89,8 +89,8 @@ namespace RETRO
     CCriticalSection m_mutex;
 
     // Savestate functionality
-    std::unique_ptr<GAME::CSavestateWriter> m_savestateWriter;
-    std::unique_ptr<GAME::CSavestateReader> m_savestateReader;
+    std::unique_ptr<CSavestateWriter> m_savestateWriter;
+    std::unique_ptr<CSavestateReader> m_savestateReader;
 
     // Playback stats
     uint64_t m_totalFrameCount;

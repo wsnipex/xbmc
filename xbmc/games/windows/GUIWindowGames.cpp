@@ -27,7 +27,6 @@
 #include "FileItem.h"
 #include "games/tags/GameInfoTag.h"
 #include "games/addons/GameClient.h"
-#include "games/addons/savestates/SavestateDatabase.h"
 #include "guilib/GUIComponent.h"
 #include "guilib/GUIWindowManager.h"
 #include "guilib/WindowIDs.h"

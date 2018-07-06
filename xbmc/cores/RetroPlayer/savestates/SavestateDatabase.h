@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2016-2017 Team Kodi
+ *      Copyright (C) 2012-2017 Team Kodi
  *      http://kodi.tv
  *
  *  This Program is free software; you can redistribute it and/or modify
@@ -22,29 +22,38 @@
 
 #include <string>
 
+#define SAVESTATES_DATABASE_NAME  "Savestates"
+
+class CFileItem;
+class CFileItemList;
+class CVariant;
+
 namespace KODI
 {
-namespace GAME
+namespace RETRO
 {
   class CSavestate;
 
-  class CSavestateUtils
+  class CSavestateDatabase
   {
   public:
-    /*!
-     * \brief Calculate a path for the specified savestate
-     *
-     * The savestate path is the game path with the extension replaced by ".sav".
-     */
-    static std::string MakePath(const CSavestate& save);
+    CSavestateDatabase();
+    virtual ~CSavestateDatabase() = default;
 
-    /*!
-     * \brief Calculate a metadata path for the specified savestate
-     *
-     * The savestate metadata path is the game path with the extension replaced
-     * by ".xml".
-     */
-    static std::string MakeMetadataPath(const std::string &gamePath);
+    bool AddSavestate(const CSavestate& save);
+
+    bool GetSavestate(const std::string& path, CSavestate& save);
+
+    bool GetSavestatesNav(CFileItemList& items, const std::string& gamePath, const std::string& gameClient = "");
+
+    bool RenameSavestate(const std::string& path, const std::string& label);
+
+    bool DeleteSavestate(const std::string& path);
+
+    bool ClearSavestatesOfGame(const std::string& gamePath, const std::string& gameClient = "");
+
+  private:
+    CFileItem* CreateFileItem(const CVariant& object) const;
   };
 }
 }

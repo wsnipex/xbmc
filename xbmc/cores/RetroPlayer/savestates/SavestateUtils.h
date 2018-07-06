@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2012-2017 Team Kodi
+ *      Copyright (C) 2016-2017 Team Kodi
  *      http://kodi.tv
  *
  *  This Program is free software; you can redistribute it and/or modify
@@ -18,22 +18,33 @@
  *
  */
 
-#include "SavestateUtils.h"
-#include "Savestate.h"
-#include "utils/URIUtils.h"
+#pragma once
 
-#define SAVESTATE_EXTENSION      ".sav"
-#define METADATA_EXTENSION       ".xml"
+#include <string>
 
-using namespace KODI;
-using namespace GAME;
-
-std::string CSavestateUtils::MakePath(const CSavestate& save)
+namespace KODI
 {
-  return URIUtils::ReplaceExtension(save.GamePath(), SAVESTATE_EXTENSION);
+namespace RETRO
+{
+  class CSavestate;
+
+  class CSavestateUtils
+  {
+  public:
+    /*!
+     * \brief Calculate a path for the specified savestate
+     *
+     * The savestate path is the game path with the extension replaced by ".sav".
+     */
+    static std::string MakePath(const CSavestate& save);
+
+    /*!
+     * \brief Calculate a metadata path for the specified savestate
+     *
+     * The savestate metadata path is the game path with the extension replaced
+     * by ".xml".
+     */
+    static std::string MakeMetadataPath(const std::string &gamePath);
+  };
 }
-
-std::string CSavestateUtils::MakeMetadataPath(const std::string &gamePath)
-{
-  return URIUtils::ReplaceExtension(gamePath, METADATA_EXTENSION);
 }

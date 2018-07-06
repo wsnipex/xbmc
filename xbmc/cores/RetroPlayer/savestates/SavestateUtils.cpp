@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2016-2017 Team Kodi
+ *      Copyright (C) 2012-2017 Team Kodi
  *      http://kodi.tv
  *
  *  This Program is free software; you can redistribute it and/or modify
@@ -18,21 +18,22 @@
  *
  */
 
-#pragma once
-
+#include "SavestateUtils.h"
 #include "Savestate.h"
+#include "utils/URIUtils.h"
 
-#include <string>
+#define SAVESTATE_EXTENSION      ".sav"
+#define METADATA_EXTENSION       ".xml"
 
-namespace KODI
+using namespace KODI;
+using namespace RETRO;
+
+std::string CSavestateUtils::MakePath(const CSavestate& save)
 {
-namespace GAME
-{
-  class CSavestateTranslator
-  {
-  public:
-    static SAVETYPE TranslateType(const std::string& type);
-    static std::string TranslateType(const SAVETYPE& type);
-  };
+  return URIUtils::ReplaceExtension(save.GamePath(), SAVESTATE_EXTENSION);
 }
+
+std::string CSavestateUtils::MakeMetadataPath(const std::string &gamePath)
+{
+  return URIUtils::ReplaceExtension(gamePath, METADATA_EXTENSION);
 }

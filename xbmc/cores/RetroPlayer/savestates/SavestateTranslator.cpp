@@ -22,7 +22,7 @@
 #include "SavestateDefines.h"
 
 using namespace KODI;
-using namespace GAME;
+using namespace RETRO;
 
 SAVETYPE CSavestateTranslator::TranslateType(const std::string& type)
 {
