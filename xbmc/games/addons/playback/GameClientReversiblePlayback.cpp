@@ -305,8 +305,6 @@ void CGameClientReversiblePlayback::UpdateMemoryStream()
 
   CGameSettings &gameSettings = CServiceBroker::GetGameServices().GameSettings();
 
-  gameSettings.UnregisterObserver(this);
-
   if (m_gameClient->SerializeSize() > 0)
     bRewindEnabled = gameSettings.RewindEnabled();
 
