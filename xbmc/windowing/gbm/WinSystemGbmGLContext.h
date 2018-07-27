@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2005-2013 Team XBMC
+ *      Copyright (C) 2005-2018 Team XBMC
  *      http://kodi.tv
  *
  *  This Program is free software; you can redistribute it and/or modify
@@ -21,17 +21,17 @@
 #pragma once
 
 #include "utils/EGLUtils.h"
-#include "rendering/gles/RenderSystemGLES.h"
+#include "rendering/gl/RenderSystemGL.h"
 #include "WinSystemGbmEGLContext.h"
 #include <memory>
 
 class CVaapiProxy;
 
-class CWinSystemGbmGLESContext : public CWinSystemGbmEGLContext, public CRenderSystemGLES
+class CWinSystemGbmGLContext : public CWinSystemGbmEGLContext, public CRenderSystemGL
 {
 public:
-  CWinSystemGbmGLESContext();
-  virtual ~CWinSystemGbmGLESContext() = default;
+  CWinSystemGbmGLContext();
+  virtual ~CWinSystemGbmGLContext() = default;
 
   // Implementation of CWinSystemBase via CWinSystemGbm
   CRenderSystemBase *GetRenderSystem() override { return this; }
