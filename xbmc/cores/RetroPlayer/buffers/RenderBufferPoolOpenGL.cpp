@@ -10,14 +10,23 @@
 #include "RenderBufferOpenGL.h"
 #include "cores/RetroPlayer/rendering/RenderContext.h"
 #include "cores/RetroPlayer/rendering/RenderVideoSettings.h"
+#include "cores/RetroPlayer/rendering/VideoRenderers/RPRendererOpenGL.h"
 #include "utils/GLUtils.h"
 
 using namespace KODI;
 using namespace RETRO;
 
 CRenderBufferPoolOpenGL::CRenderBufferPoolOpenGL(CRenderContext &context)
-  : CRenderBufferPoolOpenGLES(context)
+  : m_context(context)
 {
+}
+
+bool CRenderBufferPoolOpenGL::IsCompatible(const CRenderVideoSettings &renderSettings) const
+{
+  if (!CRPRendererOpenGL::SupportsScalingMethod(renderSettings.GetScalingMethod()))
+    return false;
+
+  return true;
 }
 
 IRenderBuffer *CRenderBufferPoolOpenGL::CreateRenderBuffer(void *header /* = nullptr */)
