@@ -30,7 +30,7 @@
 if(ENABLE_INTERNAL_FLATBUFFERS)
   include(ExternalProject)
   file(STRINGS ${CMAKE_SOURCE_DIR}/tools/depends/native/flatbuffers-native/Makefile VER REGEX "^[ ]*VERSION[ ]*=.+$")
-  string(REGEX MATCH "VERSION=[^ ]*" FLATBUFFERS_VER "${VER}")
+  string(REGEX REPLACE "^[ ]*VERSION[ ]*=[ ]*" "" FLATBUFFERS_VER "${VER}")
 
   # allow user to override the download URL with a local tarball
   # needed for offline build envs
@@ -44,8 +44,9 @@ if(ENABLE_INTERNAL_FLATBUFFERS)
     message(STATUS "FLATBUFFERS_URL: ${FLATBUFFERS_URL}")
   endif()
 
-  set(FLATBUFFERS_FLATC_EXECUTABLE ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/bin/flatc)
-  set(FLATBUFFERS_INCLUDE_DIR ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/include)
+  set(FLATBUFFERS_FLATC_EXECUTABLE ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/bin/flatc CACHE INTERNAL "Flatbuffer executeable")
+  set(FLATBUFFERS_INCLUDE_DIR ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/include CACHE INTERNAL "Flatbuffer include dir")
+  set(FLATBUFFERS_MESSAGES_INCLUDE_DIR ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/cores/RetroPlayer/messages CACHE INTERNAL "Generated Flatbuffer headers")
 
   externalproject_add(flatbuffers
                       URL ${FLATBUFFERS_URL}
@@ -63,35 +64,27 @@ if(ENABLE_INTERNAL_FLATBUFFERS)
                                  -DFLATBUFFERS_BUILD_SHAREDLIB=OFF
                                  "${EXTRA_ARGS}"
                       BUILD_BYPRODUCTS ${FLATBUFFERS_FLATC_EXECUTABLE})
-  set_target_properties(flatbuffers PROPERTIES FOLDER "External Projects")
+  set_target_properties(flatbuffers PROPERTIES FOLDER "External Projects"
+                                    INTERFACE_INCLUDE_DIRECTORIES ${FLATBUFFERS_INCLUDE_DIR} ${FLATC_OUTPUTS})
 else()
   find_program(FLATBUFFERS_FLATC_EXECUTABLE NAMES flatc)
   find_path(FLATBUFFERS_INCLUDE_DIR NAMES flatbuffers/flatbuffers.h)
 endif()
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(flatbuffers
-  DEFAULT_MSG FLATBUFFERS_FLATC_EXECUTABLE FLATBUFFERS_INCLUDE_DIR)
+find_package_handle_standard_args(FlatBuffers
+                                  REQUIRED_VARS FLATBUFFERS_FLATC_EXECUTABLE FLATBUFFERS_INCLUDE_DIR
+                                  VERSION_VAR FLATBUFFERS_VER)
 
-  function(FLATBUFFERS_GENERATE_C_HEADERS Name)
-    set(FLATC_OUTPUTS)
-    foreach(FILE ${ARGN})
-      get_filename_component(FLATC_OUTPUT ${FILE} NAME_WE)
-      set(FLATC_OUTPUT
-        "${CMAKE_CURRENT_BINARY_DIR}/${FLATC_OUTPUT}_generated.h")
-      list(APPEND FLATC_OUTPUTS ${FLATC_OUTPUT})
+if(FLATBUFFERS_FOUND)
+  set(FLATBUFFERS_INCLUDE_DIRS ${FLATBUFFERS_INCLUDE_DIR} ${FLATBUFFERS_MESSAGES_INCLUDE_DIR})
 
-      add_custom_command(OUTPUT ${FLATC_OUTPUT}
-        COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE}
-        ARGS -c -o "${CMAKE_CURRENT_BINARY_DIR}/" ${FILE}
-        DEPENDS ${FILE}
-        COMMENT "Building C++ header for ${FILE}"
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-    endforeach()
-    set(${Name}_OUTPUTS ${FLATC_OUTPUTS} PARENT_SCOPE)
-  endfunction()
+  if(NOT TARGET flatbuffers)
+    add_library(flatbuffers UNKNOWN IMPORTED)
+    set_target_properties(flatbuffers PROPERTIES
+                               FOLDER "External Projects"
+                               INTERFACE_INCLUDE_DIRECTORIES ${FLATBUFFERS_INCLUDE_DIR} ${FLATC_OUTPUTS})
+  endif()
+endif()
 
-set(FLATBUFFERS_INCLUDE_DIRS ${FLATBUFFERS_INCLUDE_DIR})
-include_directories(${CMAKE_BINARY_DIR})
-
-mark_as_advanced(FLATBUFFERS_INCLUDE_DIR)
+mark_as_advanced(FLATBUFFERS_FLATC_EXECUTABLE FLATBUFFERS_INCLUDE_DIR)

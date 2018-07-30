@@ -13,3 +13,4 @@ set(HEADERS ISavestate.h
 set(DEPENDS retroplayer_messages)
 
 core_add_library(retroplayer_savestates)
+add_dependencies(retroplayer_savestates retroplayer_messages)
