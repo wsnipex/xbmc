@@ -46,7 +46,6 @@ if(ENABLE_INTERNAL_FLATBUFFERS)
 
   set(FLATBUFFERS_FLATC_EXECUTABLE ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/bin/flatc CACHE INTERNAL "Flatbuffer executeable")
   set(FLATBUFFERS_INCLUDE_DIR ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/include CACHE INTERNAL "Flatbuffer include dir")
-  set(FLATBUFFERS_MESSAGES_INCLUDE_DIR ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/cores/RetroPlayer/messages CACHE INTERNAL "Generated Flatbuffer headers")
 
   externalproject_add(flatbuffers
                       URL ${FLATBUFFERS_URL}
@@ -67,6 +66,7 @@ if(ENABLE_INTERNAL_FLATBUFFERS)
   set_target_properties(flatbuffers PROPERTIES FOLDER "External Projects"
                                     INTERFACE_INCLUDE_DIRECTORIES ${FLATBUFFERS_INCLUDE_DIR} ${FLATC_OUTPUTS})
 else()
+  find_package(Flatbuffers REQUIRED)
   find_program(FLATBUFFERS_FLATC_EXECUTABLE NAMES flatc)
   find_path(FLATBUFFERS_INCLUDE_DIR NAMES flatbuffers/flatbuffers.h)
 endif()
@@ -77,6 +77,7 @@ find_package_handle_standard_args(FlatBuffers
                                   VERSION_VAR FLATBUFFERS_VER)
 
 if(FLATBUFFERS_FOUND)
+  set(FLATBUFFERS_MESSAGES_INCLUDE_DIR ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/cores/RetroPlayer/messages CACHE INTERNAL "Generated Flatbuffer headers")
   set(FLATBUFFERS_INCLUDE_DIRS ${FLATBUFFERS_INCLUDE_DIR} ${FLATBUFFERS_MESSAGES_INCLUDE_DIR})
 
   if(NOT TARGET flatbuffers)
