@@ -25,6 +25,11 @@
 #include "settings/Settings.h"
 #include "utils/Variant.h"
 
+#if defined(TARGET_WINDOWS)
+#include "platform/win32/WIN32Util.h"
+#include "utils/CharsetConverter.h"
+#endif
+
 using namespace XFILE;
 
 bool CFileUtils::DeleteItem(const std::string &strPath)
@@ -269,6 +274,32 @@ bool CFileUtils::CheckFileAccessAllowed(const std::string &filePath)
     }
     // check sources with realPath
     return CFileUtils::RemoteAccessAllowed(realPath);
+  }
+#elif defined(TARGET_WINDOWS)
+  CURL url(decodePath);
+  if (url.GetProtocol().empty())
+  {
+    std::wstring decodePathW;
+    g_charsetConverter.utf8ToW(decodePath, decodePathW, false);
+    CWIN32Util::AddExtraLongPathPrefix(decodePathW);
+    DWORD bufSize = GetFullPathNameW(decodePathW.c_str(), 0, nullptr, nullptr);
+    if (bufSize > 0)
+    {
+      std::wstring fullpathW;
+      fullpathW.resize(bufSize);
+      if (GetFullPathNameW(decodePathW.c_str(), bufSize, const_cast<wchar_t*>(fullpathW.c_str()), nullptr) <= bufSize - 1)
+      {
+        CWIN32Util::RemoveExtraLongPathPrefix(fullpathW);
+        std::string fullpath;
+        g_charsetConverter.wToUTF8(fullpathW, fullpath, false);
+        for (const std::string& whiteEntry : whitelist)
+        {
+          if (StringUtils::StartsWith(fullpath, whiteEntry))
+            return true;
+        }
+        return CFileUtils::RemoteAccessAllowed(fullpath);
+      }
+    }
   }
 #endif
   // if it isn't a local file, it must be a vfs entry
