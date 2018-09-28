@@ -5,6 +5,8 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  *  See LICENSES/README.md for more information.
  */
+#include <vector>
+
 #include "FileUtils.h"
 #include "ServiceBroker.h"
 #include "guilib/GUIKeyboardFactory.h"
@@ -13,9 +15,9 @@
 #include "JobManager.h"
 #include "FileOperationJob.h"
 #include "URIUtils.h"
-#include "filesystem/StackDirectory.h"
 #include "filesystem/MultiPathDirectory.h"
-#include <vector>
+#include "filesystem/SpecialProtocol.h"
+#include "filesystem/StackDirectory.h"
 #include "settings/MediaSourceSettings.h"
 #include "Util.h"
 #include "StringUtils.h"
@@ -200,4 +202,78 @@ CDateTime CFileUtils::GetModificationDate(const std::string& strFileNameAndPath,
     CLog::Log(LOGERROR, "%s unable to extract modification date for file (%s)", __FUNCTION__, strFileNameAndPath.c_str());
   }
   return dateAdded;
+}
+
+bool CFileUtils::CheckFileAccessAllowed(const std::string &filePath)
+{
+  // DENY access to paths matching
+  const std::vector<std::string> blacklist = {
+    "passwords.xml",
+    "sources.xml",
+    "guisettings.xml",
+    "advancedsettings.xml",
+    "/.ssh/",
+  };
+  // ALLOW kodi paths
+  // TODO: most likely many more needed
+  const std::vector<std::string> whitelist = {
+    CSpecialProtocol::TranslatePath("special://home"),
+    CSpecialProtocol::TranslatePath("special://xbmc")
+  };
+
+  // image urls come in the form of image://... sometimes with a / appended at the end
+  // strip this off to get the real file path
+  bool isImage = false;
+  std::string decodePath = CURL::Decode(filePath);
+  size_t pos = decodePath.find("image://");
+  if (pos != std::string::npos)
+  {
+    isImage = true;
+    decodePath.erase(pos, 8);
+    URIUtils::RemoveSlashAtEnd(decodePath);
+  }
+
+  // check blacklist
+  for (const auto &b : blacklist)
+  {
+    if (decodePath.find(b) != std::string::npos)
+    {
+      CLog::Log(LOGERROR,"%s denied access to %s",  __FUNCTION__, decodePath.c_str());
+      return false;
+    }
+  }
+
+#if defined(TARGET_POSIX)
+  std::string whiteEntry;
+  char *fullpath = realpath(decodePath.c_str(), nullptr);
+
+  // if this is a locally existing file, check access permissions
+  if (fullpath)
+  {
+    const std::string realPath = fullpath;
+    free(fullpath);
+
+    CLog::Log(LOGDEBUG,"%s filePath: %s decodePath: %s realpath: %s",  __FUNCTION__, filePath.c_str(), decodePath.c_str(), realPath.c_str()); // TODO: remove
+
+    // check whitelist
+    for (const auto &w : whitelist)
+    {
+      char *realtemp = realpath(w.c_str(), nullptr);
+      if (realtemp)
+      {
+        whiteEntry = realtemp;
+        free(realtemp);
+      }
+      if (StringUtils::StartsWith(realPath, whiteEntry))
+        return true;
+    }
+    // check sources with realPath
+    return CFileUtils::RemoteAccessAllowed(realPath);
+  }
+#endif
+  // if it isn't a local file, it must be a vfs entry
+  CLog::Log(LOGDEBUG,"%s filePath: %s decodePath: %s",  __FUNCTION__, filePath.c_str(), decodePath.c_str()); // TODO: remove
+  if (! isImage)
+    return CFileUtils::RemoteAccessAllowed(decodePath);
+  return true;
 }
