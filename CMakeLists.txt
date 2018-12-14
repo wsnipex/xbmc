@@ -113,6 +113,14 @@ foreach(depspec ${PLATFORM_REQUIRED_DEPS})
   set(ENABLE_${depup} "ON" CACHE BOOL "Force enabling required ${depup} support" FORCE)
 endforeach()
 
+foreach(forbiddendep ${PLATFORM_DISABLED_DEPS})
+  string(TOUPPER ${forbiddendep} depup)
+  if(${ENABLE_${depup}} AND NOT ${ENABLE_${depup}} STREQUAL AUTO)
+    message(WARNING "Your request to enable the dependency ${forbiddendep} on platform ${CORE_PLATFORM_NAME} was ignored. Please choose another platform or remove \"-DENABLE_${depup}=ON\" from your CMake command line to resolve this warning.")
+    set(ENABLE_${depup} "OFF" CACHE BOOL "Force disabling forbidden ${depup} support" FORCE)
+  endif()
+endforeach()
+
 # Required dependencies. Keep in alphabetical order please
 set(required_deps ASS
                   Cdio
