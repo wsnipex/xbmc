@@ -10,11 +10,7 @@
 
 #include <stdio.h>
 #include "dataset.h"
-#ifdef HAS_MYSQL
-#include "mysql/mysql.h"
-#elif defined(HAS_MARIADB)
-#include <mariadb/mysql.h>
-#endif
+#include "mysql.h"
 
 namespace dbiplus {
 /***************** Class MysqlDatabase definition ******************

@@ -23,10 +23,13 @@ endif()
 
 if(PKG_CONFIG_FOUND)
   pkg_check_modules(PC_MARIADBCLIENT mariadb QUIET)
+  if(PC_MARIADBCLIENT_FOUND)
+    set(MARIADB_H_EXTRA_NAMES mysql.h mysql/mysql.h)
+  endif()
 endif()
 
 
-find_path(MARIADBCLIENT_INCLUDE_DIR NAMES mariadb/mysql.h mariadb/server/mysql.h
+find_path(MARIADBCLIENT_INCLUDE_DIR NAMES mariadb/mysql.h mariadb/server/mysql.h ${MARIADB_H_EXTRA_NAMES}
                                            PATHS ${PC_MARIADBCLIENT_INCLUDEDIR})
 find_library(MARIADBCLIENT_LIBRARY_RELEASE NAMES mariadbclient mariadb
                                            PATHS ${PC_MARIADBCLIENT_LIBDIR}
