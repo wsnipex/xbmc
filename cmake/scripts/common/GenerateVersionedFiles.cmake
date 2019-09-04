@@ -24,23 +24,6 @@ foreach(loop_var ${ADDON_XML_IN_FILE})
   string(REPLACE ${CORE_SOURCE_DIR} ${CMAKE_BINARY_DIR} dest_dir ${source_dir})
   file(MAKE_DIRECTORY ${dest_dir})
 
-  # copy everything except addon.xml.in to build folder
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory "${source_dir}" "${CMAKE_BINARY_DIR}/addons"
-                  RESULT_VARIABLE copy_result
-                  OUTPUT_VARIABLE copy_output
-                  ERROR_VARIABLE copy_output)
-  if(NOT ${copy_result} EQUAL 0 )
-    message(WARN " ---------- GenerateVersionedFiles.cmake: Error ${copy_result} while copying ${source_dir}: ${copy_ouput}, retrying..")
-    execute_process(COMMAND ${CMAKE_COMMAND} -E sleep 2)
-    execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory "${source_dir}" "${CMAKE_BINARY_DIR}/addons"
-                    RESULT_VARIABLE copy_result
-                    OUTPUT_VARIABLE copy_output
-                    ERROR_VARIABLE copy_output)
-    if(NOT ${copy_result} EQUAL 0 )
-      message(FATAL_ERROR " ---------- GenerateVersionedFiles.cmake: Error ${copy_result} while copying ${source_dir}: ${copy_ouput}")
-    endif()
-  endif()
-
   configure_file(${source_dir}/addon.xml.in ${dest_dir}/addon.xml @ONLY)
 
   unset(source_dir)
