@@ -20,7 +20,6 @@
 
 #include <androidjni/MediaCodecList.h>
 
-
 CMediaCodecDecoderFilterManager::CMediaCodecDecoderFilterManager()
 {
   static const char *blacklisted_decoders[] = {
