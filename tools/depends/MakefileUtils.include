@@ -1,3 +1,4 @@
+all: .installed-$(PLATFORM)
 
 .PHONY: .downloadverify
 .downloadverify:
@@ -22,3 +23,5 @@
         break; \
       fi \
     done
+
+$(TARBALLS_LOCATION)/$(ARCHIVE): .downloadverify

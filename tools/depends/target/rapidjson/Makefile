@@ -1,13 +1,13 @@
--include ../../Makefile.include
-include ../../MakefileUtils.include
-DEPS = Makefile 0001-remove_custom_cxx_flags.patch
-
 # lib name, version
 LIBNAME=rapidjson
 VERSION=1.1.0
 SHA256=bf7ced29704a1e696fbccf2a2b4ea068e7774fa37f6d7dd4039d0787f8bed98e
 SOURCE=$(LIBNAME)-$(VERSION)
 ARCHIVE=$(SOURCE).tar.gz
+
+-include ../../Makefile.include
+include ../../MakefileUtils.include
+DEPS = Makefile 0001-remove_custom_cxx_flags.patch
 
 CMAKE_OPTIONS=-DRAPIDJSON_HAS_STDSTRING=ON -DRAPIDJSON_BUILD_DOC=OFF -DRAPIDJSON_BUILD_EXAMPLES=OFF -DRAPIDJSON_BUILD_TESTS=OFF -DRAPIDJSON_BUILD_THIRDPARTY_GTEST=OFF
 
@@ -32,7 +32,7 @@ endif
 
 all: .installed-$(PLATFORM)
 
-$(PLATFORM): .downloadverify $(DEPS)
+$(PLATFORM): $(TARBALLS_LOCATION)/$(ARCHIVE) $(DEPS)
 ifeq ($(PREFIX),)
 	@echo
 	@echo "ERROR: please set PREFIX to the kodi install path e.g. $(MAKE) PREFIX=/usr/local"
