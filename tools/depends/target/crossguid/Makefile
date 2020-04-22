@@ -1,4 +1,5 @@
 -include ../../Makefile.include
+include ../../MakefileUtils.include
 DEPS = Makefile
 
 # lib name, version
@@ -41,10 +42,7 @@ LIBDYLIB=$(PLATFORM)/lib$(LIBNAME).a
 
 all: .installed-$(PLATFORM)
 
-$(TARBALLS_LOCATION)/$(ARCHIVE):
-	cd $(TARBALLS_LOCATION); $(RETRIEVE_TOOL) $(RETRIEVE_TOOL_FLAGS) $(BASE_URL)/$(ARCHIVE)
-
-$(PLATFORM): $(TARBALLS_LOCATION)/$(ARCHIVE) $(DEPS)
+$(PLATFORM): .downloadverify $(DEPS)
 ifeq ($(PREFIX),)
 	@echo
 	@echo "ERROR: please set PREFIX to the kodi install path e.g. make PREFIX=/usr/local"
