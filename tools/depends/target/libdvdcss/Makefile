@@ -1,4 +1,5 @@
 -include ../../Makefile.include
+include ../../MakefileUtils.include
 include DVDCSS-VERSION
 DEPS= DVDCSS-VERSION Makefile
 
@@ -31,12 +32,10 @@ endif
 
 all: .installed-$(PLATFORM)
 
-download: $(TARBALLS_LOCATION)/$(ARCHIVE)
-
-$(TARBALLS_LOCATION)/$(ARCHIVE):
+download:
 	cd $(TARBALLS_LOCATION); $(RETRIEVE_TOOL) -o $(TARBALLS_LOCATION)/$(ARCHIVE) $(BASE_URL)/archive/$(VERSION).tar.gz
 
-$(PLATFORM): $(TARBALLS_LOCATION)/$(ARCHIVE) $(DEPS)
+$(PLATFORM): .downloadverify $(DEPS)
 	rm -rf $(PLATFORM); mkdir -p $(PLATFORM)
 	cd $(PLATFORM); $(ARCHIVE_TOOL) $(TARBALLS_LOCATION)/$(ARCHIVE)
 	cd $(PLATFORM); $(AUTORECONF) -vif && ac_cv_path_GIT= ./configure $(config)
