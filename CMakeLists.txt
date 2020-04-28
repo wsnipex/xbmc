@@ -48,6 +48,7 @@ option(ENABLE_AIRTUNES    "Enable AirTunes support?" ON)
 option(ENABLE_OPTICAL     "Enable optical support?" ON)
 option(ENABLE_PYTHON      "Enable python support?" ON)
 option(ENABLE_TESTING     "Enable testing support?" ON)
+option(ENABLE_PRECOMPILE_HEADERS     "Enable header precompiling?" ON)
 # use ffmpeg from depends or system
 option(ENABLE_INTERNAL_FFMPEG "Enable internal ffmpeg?" OFF)
 # unity builds
@@ -243,7 +244,10 @@ add_custom_command(OUTPUT ${CORE_BUILD_DIR}/xbmc/CompileInfo.cpp
 list(APPEND install_data ${ADDON_INSTALL_DATA})
 add_library(compileinfo OBJECT ${CORE_BUILD_DIR}/xbmc/CompileInfo.cpp)
 set_target_properties(compileinfo PROPERTIES FOLDER "Build Utilities")
-target_compile_options(compileinfo PRIVATE "${SYSTEM_DEFINES}")
+target_compile_options(compileinfo PRIVATE ${ARCH_DEFINES} "${SYSTEM_DEFINES}" ${DEP_DEFINES})
+if(ENABLE_PRECOMPILE_HEADERS)
+  target_precompile_headers(compileinfo PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/xbmc/platform/posix/pch.h>")
+endif()
 
 # RC File
 if(WIN32)
@@ -327,6 +331,8 @@ source_group_by_folder(lib${APP_NAME_LC} RELATIVE ${CMAKE_SOURCE_DIR}/xbmc)
 if(WIN32)
   add_precompiled_header(lib${APP_NAME_LC} pch.h ${CMAKE_SOURCE_DIR}/xbmc/platform/win32/pch.cpp)
   set_language_cxx(lib${APP_NAME_LC})
+elseif(ENABLE_PRECOMPILE_HEADERS)
+  target_precompile_headers(lib${APP_NAME_LC} REUSE_FROM compileinfo)
 endif()
 
 # main binary
@@ -353,6 +359,10 @@ if(ENABLE_UNITY_BUILD)
                               ${windowing_osx_UNITY_EXCLUDES}
                               PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 endif()
+if(ENABLE_PRECOMPILE_HEADERS)
+  target_precompile_headers(${APP_NAME_LC} REUSE_FROM compileinfo)
+endif()
+
 add_dependencies(${APP_NAME_LC} ${APP_NAME_LC}-libraries export-files pack-skins)
 whole_archive(_MAIN_LIBRARIES ${core_DEPENDS})
 target_link_libraries(${APP_NAME_LC} ${_MAIN_LIBRARIES} lib${APP_NAME_LC} ${DEPLIBS})
