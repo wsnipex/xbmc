@@ -3594,12 +3594,23 @@ bool CVideoPlayer::OpenVideoStream(CDVDStreamInfo& hint, bool reset)
   if (m_playerOptions.fullscreen && CServiceBroker::GetWinSystem()->GetGfxContext().IsFullScreenRoot() &&
       hint.fpsrate != 0 && hint.fpsscale != 0)
   {
-    if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) != ADJUST_REFRESHRATE_OFF)
+    CLog::Log(LOGDEBUG, "CVideoPlayer::OpenVideoStream - ITEM PATH {}, netflix {}",
+              m_item.GetPath(), m_item.GetPath().find("plugin.video.netflix") != std::string::npos);
+
+    if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(
+            CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) != ADJUST_REFRESHRATE_OFF &&
+        m_item.GetPath().find("plugin.video.netflix") == std::string::npos)
     {
       double framerate = DVD_TIME_BASE / CDVDCodecUtils::NormalizeFrameduration((double)DVD_TIME_BASE * hint.fpsscale / hint.fpsrate);
       RESOLUTION res = CResolutionUtils::ChooseBestResolution(static_cast<float>(framerate), hint.width, hint.height, !hint.stereo_mode.empty());
       CServiceBroker::GetWinSystem()->GetGfxContext().SetVideoResolution(res, false);
+      m_renderManager.InhibitUpdateResolution(false);
       m_renderManager.TriggerUpdateResolution(framerate, hint.width, hint.height, hint.stereo_mode);
+    }
+    else
+    {
+      CLog::Log(LOGDEBUG, "CVideoPlayer::OpenVideoStream - InhibitUpdateResolution");
+      m_renderManager.InhibitUpdateResolution(true);
     }
   }
 

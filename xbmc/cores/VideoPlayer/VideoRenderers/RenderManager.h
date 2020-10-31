@@ -66,6 +66,7 @@ public:
   RESOLUTION GetResolution();
   void UpdateResolution();
   void TriggerUpdateResolution(float fps, int width, int height, std::string &stereomode);
+  void InhibitUpdateResolution(bool inhibit) { m_bInhibitUpdateResolution = inhibit; }
   void SetViewMode(int iViewMode);
   void PreInit();
   void UnInit();
@@ -138,6 +139,7 @@ protected:
   CCriticalSection m_presentlock;
   CCriticalSection m_datalock;
   bool m_bTriggerUpdateResolution = false;
+  bool m_bInhibitUpdateResolution = false;
   bool m_bRenderGUI = true;
   bool m_renderedOverlay = false;
   bool m_renderDebug = false;
