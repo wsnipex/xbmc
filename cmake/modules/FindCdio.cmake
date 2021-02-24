@@ -10,7 +10,8 @@
 # CDIO_LIBRARIES - the cdio libraries
 
 if(PKG_CONFIG_FOUND)
-  pkg_check_modules(PC_CDIO libcdio>=0.80 QUIET)
+  pkg_check_modules(PC_CDIO libcdio>=2.1.0 QUIET)
+  pkg_check_modules(PC_CDIOPP libcdio++>=2.1.0 QUIET)
 endif()
 
 find_path(CDIO_INCLUDE_DIR NAMES cdio/cdio.h
@@ -19,7 +20,12 @@ find_path(CDIO_INCLUDE_DIR NAMES cdio/cdio.h
 find_library(CDIO_LIBRARY NAMES cdio libcdio
                           PATHS ${PC_CDIO_LIBDIR})
 
-set(CDIO_VERSION ${PC_CDIO_VERSION})
+find_path(CDIOPP_INCLUDE_DIR NAMES cdio++/cdio.hpp
+                             PATHS ${PC_CDIOPP_INCLUDEDIR} ${CDIO_INCLUDE_DIR})
+
+if(PC_CDIOPP_VERSION AND PC_CDIOPP_VERSION VERSION_EQUAL PC_CDIO_VERSION)
+  set(CDIO_VERSION ${PC_CDIO_VERSION})
+endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Cdio
@@ -31,4 +37,4 @@ if(CDIO_FOUND)
   set(CDIO_INCLUDE_DIRS ${CDIO_INCLUDE_DIR})
 endif()
 
-mark_as_advanced(CDIO_INCLUDE_DIR CDIO_LIBRARY)
+mark_as_advanced(CDIO_INCLUDE_DIR CDIOPP_INCLUDE_DIR CDIO_LIBRARY)
