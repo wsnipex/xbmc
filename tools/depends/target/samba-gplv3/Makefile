@@ -31,6 +31,10 @@ ifeq ($(OS), darwin_embedded)
   CFLAGS+= -Wno-error=implicit-function-declaration
 endif
 
+ifneq ($(BUILDTHREADS),)
+  WAFOPTS = -j $(BUILDTHREADS)
+endif
+
 export CC CXX CPP AR RANLIB LD AS NM STRIP TOOLCHAIN
 export CFLAGS CXXFLAGS CPPFLAGS LDFLAGS
 export HOST
@@ -58,15 +62,15 @@ endif
 	cd $(PLATFORM); $(CONFIGURE)
 
 $(LIBDYLIB): $(PLATFORM)
-	cd $(PLATFORM); WAF_MAKE=1 ./buildtools/bin/waf --targets=smbclient
+	cd $(PLATFORM); ./buildtools/bin/waf --targets=smbclient $(WAFOPTS)
 
 .installed-$(PLATFORM): $(LIBDYLIB)
-	cd $(PLATFORM); WAF_MAKE=1 ./buildtools/bin/waf install --targets=smbclient
+	cd $(PLATFORM); ./buildtools/bin/waf install --targets=smbclient $(WAFOPTS)
 	install $(LIBDYLIB) $(PREFIX)/lib
 	touch $@
 
 clean:
-	cd $(PLATFORM); WAF_MAKE=1 ./buildtools/bin/waf uninstall --targets=smbclient
+	cd $(PLATFORM); ./buildtools/bin/waf uninstall --targets=smbclient $(WAFOPTS)
 	rm -f .installed-$(PLATFORM)
 
 distclean::
