@@ -92,6 +92,10 @@ if(EXTRA_FLAGS)
   list(APPEND ffmpeg_conf ${EXTRA_FLAGS})
 endif()
 
+if(CMAKE_INTERPROCEDURAL_OPTIMIZATION)
+  list(APPEND ffmpeg_conf --enable-lto)
+endif()
+
 message(STATUS "FFMPEG_CONF: ${ffmpeg_conf}")
 
 set(MAKE_COMMAND $(MAKE))
