@@ -7,7 +7,7 @@ if(ENABLE_LLD AND NOT LLD_FOUND)
   execute_process(COMMAND ${CMAKE_CXX_COMPILER} -fuse-ld=lld -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_VERSION)
   if(LD_VERSION MATCHES "LLD")
     include(FindPackageHandleStandardArgs)
-    find_program(LLD_EXECUTABLE lld)
+    find_program(LLD_EXECUTABLE NAMES lld lld-13 lld-12)
     find_package_handle_standard_args(LLD REQUIRED_VARS LLD_EXECUTABLE)
 
     if(LLD_FOUND)
