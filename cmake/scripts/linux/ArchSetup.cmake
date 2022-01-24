@@ -70,6 +70,8 @@ if(CMAKE_BUILD_TYPE STREQUAL Release OR CMAKE_BUILD_TYPE STREQUAL MinSizeRel)
         elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
           # CLANG
           set(ENABLE_GOLD OFF CACHE BOOL "gold linker forced to off" FORCE)
+          # mold 1.1 causes build issues in ffmpeg
+          set(ENABLE_MOLD OFF CACHE BOOL "mold linker forced to off" FORCE)
           set(ENABLE_LLD ON CACHE BOOL "lld linker forced to on" FORCE)
 
           include(LLD)
@@ -106,11 +108,14 @@ if(KODI_DEPENDSBUILD)
   set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 endif()
 
-if(NOT ENABLE_LLD AND NOT LDGOLD_FOUND)
+if(NOT ENABLE_LLD AND NOT ENABLE_MOLD AND NOT LDGOLD_FOUND)
   include(LDGOLD)
 endif()
-if(NOT ENABLE_GOLD AND ENABLE_LLD AND NOT LDD_FOUND)
+if(NOT ENABLE_GOLD AND NOT ENABLE_MOLD AND ENABLE_LLD AND NOT LDD_FOUND)
   include(LLD)
+endif()
+if(ENABLE_MOLD AND NOT ENABLE_GOLD AND NOT ENABLE_LLD AND NOT MOLD_FOUND)
+  include(MOLD)
 endif()
 
 include(CheckIncludeFiles)
