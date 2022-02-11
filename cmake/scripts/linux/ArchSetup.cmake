@@ -43,6 +43,20 @@ else()
   endif()
 endif()
 
+# disable the default gold linker when an alternative was enabled by the user
+if(ENABLE_LLD OR ENABLE_MOLD)
+  set(ENABLE_GOLD OFF CACHE BOOL "" FORCE)
+elseif(ENABLE_GOLD)
+  include(LDGOLD)
+endif()
+if(ENABLE_LLD)
+  set(ENABLE_MOLD OFF CACHE BOOL "" FORCE)
+  include(LLD)
+elseif(ENABLE_MOLD)
+  set(ENABLE_LLD OFF CACHE BOOL "" FORCE)
+  include(MOLD)
+endif()
+
 
 if(CMAKE_BUILD_TYPE STREQUAL Release OR CMAKE_BUILD_TYPE STREQUAL MinSizeRel)
 
@@ -106,16 +120,6 @@ if(KODI_DEPENDSBUILD)
   # Binaries should be directly runnable from host, so include rpath to depends
   set(CMAKE_INSTALL_RPATH "${DEPENDS_PATH}/lib")
   set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-endif()
-
-if(NOT ENABLE_LLD AND NOT ENABLE_MOLD AND NOT LDGOLD_FOUND)
-  include(LDGOLD)
-endif()
-if(NOT ENABLE_GOLD AND NOT ENABLE_MOLD AND ENABLE_LLD AND NOT LDD_FOUND)
-  include(LLD)
-endif()
-if(ENABLE_MOLD AND NOT ENABLE_GOLD AND NOT ENABLE_LLD AND NOT MOLD_FOUND)
-  include(MOLD)
 endif()
 
 include(CheckIncludeFiles)

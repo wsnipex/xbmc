@@ -79,6 +79,10 @@ if(NOT WIN32)
 endif()
 if(CORE_SYSTEM_NAME STREQUAL linux)
   option(ENABLE_EVENTCLIENTS    "Enable event clients support?" OFF)
+  # Linkers
+  option(ENABLE_GOLD	"Enable gnu gold linker?" ON)
+  option(ENABLE_LLD	"Enable llvm lld linker?" OFF)
+  option(ENABLE_MOLD	"Enable mold linker?" OFF)
 endif()
 
 # set scope of INTERNAL_DEPS
