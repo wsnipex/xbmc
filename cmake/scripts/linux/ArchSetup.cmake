@@ -84,14 +84,6 @@ if(CMAKE_BUILD_TYPE STREQUAL Release OR CMAKE_BUILD_TYPE STREQUAL MinSizeRel)
         elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
           # CLANG
           set(ENABLE_GOLD OFF CACHE BOOL "gold linker forced to off" FORCE)
-          # mold 1.1 causes build issues in ffmpeg
-          set(ENABLE_MOLD OFF CACHE BOOL "mold linker forced to off" FORCE)
-          set(ENABLE_LLD ON CACHE BOOL "lld linker forced to on" FORCE)
-
-          include(LLD)
-          if(NOT LLD_FOUND)
-	    message(FATAL_ERROR "Clang LTO support requires lld, set ENABLE_LLD=ON")
-          endif()
 
           find_package(LLVM REQUIRED)
 
