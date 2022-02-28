@@ -32,32 +32,9 @@
 # --------
 #
 
-# Allows building with external ffmpeg not found in system paths,
-# without library version checks
-if(WITH_FFMPEG)
-  set(FFMPEG_PATH ${WITH_FFMPEG})
-  message(STATUS "Warning: FFmpeg version checking disabled")
-  set(REQUIRED_FFMPEG_VERSION undef)
-else()
-  # required ffmpeg library versions
-  set(REQUIRED_FFMPEG_VERSION 4.4.1)
-  set(_avcodec_ver ">=58.134.100")
-  set(_avfilter_ver ">=7.110.100")
-  set(_avformat_ver ">=58.76.100")
-  set(_avutil_ver ">=56.70.100")
-  set(_postproc_ver ">=55.9.100")
-  set(_swresample_ver ">=3.9.100")
-  set(_swscale_ver ">=5.9.100")
-endif()
-
-# Allows building with external ffmpeg not found in system paths,
-# with library version checks
-if(FFMPEG_PATH)
-  set(ENABLE_INTERNAL_FFMPEG OFF)
-endif()
-
-# external FFMPEG
-if(ENABLE_INTERNAL_FFMPEG)
+# Macro to build internal FFmpeg
+# Refactoring to a macro allows simple fallthrough callback if system ffmpeg failure
+macro(buildFFMPEG)
   include(ExternalProject)
   include(cmake/scripts/common/ModuleHelpers.cmake)
 
@@ -159,6 +136,36 @@ fi")
   set(FFMPEG_DEFINITIONS -DUSE_STATIC_FFMPEG=1)
   set(FFMPEG_FOUND 1)
   set_target_properties(ffmpeg PROPERTIES FOLDER "External Projects")
+endmacro()
+
+
+# Allows building with external ffmpeg not found in system paths,
+# without library version checks
+if(WITH_FFMPEG)
+  set(FFMPEG_PATH ${WITH_FFMPEG})
+  message(STATUS "Warning: FFmpeg version checking disabled")
+  set(REQUIRED_FFMPEG_VERSION undef)
+else()
+  # required ffmpeg library versions
+  set(REQUIRED_FFMPEG_VERSION 4.4.1)
+  set(_avcodec_ver ">=58.134.100")
+  set(_avfilter_ver ">=7.110.100")
+  set(_avformat_ver ">=58.76.100")
+  set(_avutil_ver ">=56.70.100")
+  set(_postproc_ver ">=55.9.100")
+  set(_swresample_ver ">=3.9.100")
+  set(_swscale_ver ">=5.9.100")
+endif()
+
+# Allows building with external ffmpeg not found in system paths,
+# with library version checks
+if(FFMPEG_PATH)
+  set(ENABLE_INTERNAL_FFMPEG OFF)
+endif()
+
+# external FFMPEG
+if(ENABLE_INTERNAL_FFMPEG)
+  buildFFMPEG()
 else()
   if(FFMPEG_PATH)
     list(APPEND CMAKE_PREFIX_PATH ${FFMPEG_PATH})
@@ -278,6 +285,8 @@ else()
         endif()
       endforeach()
     endif()
+  else()
+    buildFFMPEG()
   endif()
 endif()
 
