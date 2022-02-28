@@ -83,6 +83,7 @@ macro(buildFFMPEG)
                       PREFIX ${CORE_BUILD_DIR}/ffmpeg
                       CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}
                                  -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+                                 -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
                                  -DFFMPEG_VER=${FFMPEG_VER}
                                  -DCORE_SYSTEM_NAME=${CORE_SYSTEM_NAME}
                                  -DCORE_PLATFORM_NAME=${CORE_PLATFORM_NAME_LC}
@@ -99,9 +100,6 @@ macro(buildFFMPEG)
                                  -DPKG_CONFIG_PATH=${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/lib/pkgconfig
                       PATCH_COMMAND ${CMAKE_COMMAND} -E copy
                                     ${CMAKE_SOURCE_DIR}/tools/depends/target/ffmpeg/CMakeLists.txt
-                                    <SOURCE_DIR> &&
-                                    ${CMAKE_COMMAND} -E copy
-                                    ${CMAKE_SOURCE_DIR}/tools/depends/target/ffmpeg/FindGnuTls.cmake
                                     <SOURCE_DIR>)
 
   if (ENABLE_INTERNAL_DAV1D)
