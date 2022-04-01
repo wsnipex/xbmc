@@ -259,7 +259,7 @@ private:
   static void SetRefreshRateCallback(CVariant *rate);
   static void SetDisplayModeCallback(CVariant *mode);
 
-  static void RegisterDisplayListener();
+  static void RegisterDisplayListenerCallback(CVariant *reg);
   void UnregisterDisplayListener();
 
   ANativeActivity* m_activity{nullptr};

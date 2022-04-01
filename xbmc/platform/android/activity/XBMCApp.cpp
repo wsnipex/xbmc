@@ -243,7 +243,7 @@ void CXBMCApp::onStart()
     m_activityManager =
         std::make_unique<CJNIActivityManager>(getSystemService(CJNIContext::ACTIVITY_SERVICE));
     m_inputHandler.setDPI(GetDPI());
-    runNativeOnUiThread(RegisterDisplayListener, nullptr);
+    runNativeOnUiThread(RegisterDisplayListenerCallback, nullptr);
   }
 }
 
@@ -385,7 +385,7 @@ void CXBMCApp::onLostFocus()
   m_hasFocus = false;
 }
 
-void CXBMCApp::RegisterDisplayListener()
+void CXBMCApp::RegisterDisplayListenerCallback(CVariant* reg)
 {
   CJNIDisplayManager displayManager(getSystemService("display"));
   if (displayManager)
