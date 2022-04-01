@@ -243,7 +243,7 @@ void CXBMCApp::onStart()
     m_activityManager =
         std::make_unique<CJNIActivityManager>(getSystemService(CJNIContext::ACTIVITY_SERVICE));
     m_inputHandler.setDPI(GetDPI());
-    RegisterDisplayListener();
+    runNativeOnUiThread(RegisterDisplayListener, nullptr);
   }
 }
 
@@ -391,7 +391,7 @@ void CXBMCApp::RegisterDisplayListener()
   if (displayManager)
   {
     android_printf("CXBMCApp: installing DisplayManager::DisplayListener");
-    displayManager.registerDisplayListener(m_displayListener.get_raw());
+    displayManager.registerDisplayListener(CXBMCApp::Get().getDisplayListener());
   }
 }
 
