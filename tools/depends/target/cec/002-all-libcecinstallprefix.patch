@@ -1,0 +1,20 @@
+--- a/src/libcec/CMakeLists.txt
++++ b/src/libcec/CMakeLists.txt
+@@ -175,7 +175,7 @@
+                         ${CMAKE_INSTALL_PREFIX}/include)
+ 
+   install(FILES         ${CMAKE_CURRENT_SOURCE_DIR}/libcec.pc
+-          DESTINATION   ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
++          DESTINATION   lib/pkgconfig)
+ endif()
+ 
+ # install headers
+@@ -193,7 +193,7 @@
+ # libCEC shared target
+ add_library(cec SHARED ${CEC_SOURCES})
+ install(TARGETS cec
+-        DESTINATION ${LIB_DESTINATION})
++        DESTINATION lib)
+ set_target_properties(cec PROPERTIES VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
+                                      SOVERSION ${LIBCEC_VERSION_MAJOR})
+ target_link_libraries(cec ${cec_depends})

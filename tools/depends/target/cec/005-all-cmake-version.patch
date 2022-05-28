@@ -1,0 +1,47 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -43,3 +43,12 @@
+                  ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netfx/CecSharpTester.csproj)
+ endif()
+ endif()
++
++# handle version file
++include(CMakePackageConfigHelpers)
++write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
++                                 VERSION "${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}"
++                                 COMPATIBILITY AnyNewerVersion)
++
++install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
++        DESTINATION lib/cmake/${PROJECT_NAME})
+--- a/src/libcec/CMakeLists.txt
++++ b/src/libcec/CMakeLists.txt
+@@ -193,11 +193,25 @@
+ # libCEC shared target
+ add_library(cec SHARED ${CEC_SOURCES})
+ install(TARGETS cec
++        EXPORT libcec
+         DESTINATION lib)
+ set_target_properties(cec PROPERTIES VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
+                                      SOVERSION ${LIBCEC_VERSION_MAJOR})
+ target_link_libraries(cec ${cec_depends})
+ 
++install(EXPORT libcec
++  NAMESPACE
++    libcec::
++  DESTINATION
++    lib/cmake/libcec
++)
++
++install(FILES
++  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/libcec-config.cmake
++  DESTINATION
++    lib/cmake/libcec
++)
++
+ if (MSVC)
+   # generate pdb in release mode too
+   # Tell linker to include symbol data
+--- /dev/null
++++ b/src/libcec/cmake/libcec-config.cmake
+@@ -0,0 +1 @@
++include(${CMAKE_CURRENT_LIST_DIR}/libcec.cmake)

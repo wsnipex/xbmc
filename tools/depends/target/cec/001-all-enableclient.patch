@@ -1,0 +1,32 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -5,7 +5,7 @@
+ set(LIBCEC_VERSION_MINOR 0)
+ set(LIBCEC_VERSION_PATCH 7)
+ 
+-# cec-client
++if(ENABLE_CLIENT)
+ add_subdirectory(src/cec-client)
+ add_dependencies(cec-client cec)
+ 
+@@ -15,6 +15,7 @@
+ 
+ # pyCecClient
+ add_subdirectory(src/pyCecClient)
++endif()
+ 
+ # libCEC
+ add_subdirectory(src/libcec)
+@@ -25,6 +25,7 @@
+ 
+ # windows specific files
+ if(WIN32)
++if(ENABLE_CLIENT)
+   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/project/nsis/libcec-version.nsh.in
+                  ${CMAKE_CURRENT_SOURCE_DIR}/project/nsis/libcec-version.nsh)
+   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp/LibCecSharp.rc.in
+@@ -40,3 +40,4 @@
+   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netfx/CecSharpTester.csproj.in
+                  ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netfx/CecSharpTester.csproj)
+ endif()
++endif()
