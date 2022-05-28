@@ -208,6 +208,11 @@ set(optional_deps Alsa
                   XSLT
                   ${PLATFORM_OPTIONAL_DEPS})
 
+# Remove excluded platform specific optional_deps
+foreach(excludedep ${PLATFORM_OPTIONAL_DEPS_EXCLUDE})
+  list(REMOVE_ITEM optional_deps ${excludedep})
+endforeach()
+
 # Check optional deps first, since their availability can influence required ones, e.g. ffmpeg
 core_optional_dep(${optional_deps})
 core_require_dep(${required_deps})
