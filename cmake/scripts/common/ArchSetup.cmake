@@ -53,6 +53,8 @@ if(CMAKE_TOOLCHAIN_FILE)
   elseif(KODI_DEPENDSBUILD AND (NOT DEPENDS_PATH OR NOT NATIVEPREFIX))
     message(FATAL_ERROR "Toolchain did not define DEPENDS_PATH or NATIVEPREFIX. Possibly outdated depends.")
   endif()
+else()
+  list(APPEND CMAKE_PREFIX_PATH ${DEPENDS_PATH})
 endif()
 
 # While CMAKE_CROSSCOMPILING is set unconditionally if there's a toolchain file,

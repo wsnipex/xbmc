@@ -25,8 +25,8 @@ if(NOT TARGET fmt::fmt)
     SETUP_BUILD_VARS()
 
     # Check for existing FMT. If version >= FMT-VERSION file version, dont build
+    set(FMT_ROOT ${DEPENDS_PATH})
     find_package(FMT CONFIG QUIET)
-
     if(FMT_VERSION VERSION_LESS ${${MODULE}_VER})
 
       if(APPLE)
@@ -58,9 +58,9 @@ if(NOT TARGET fmt::fmt)
       BUILD_DEP_TARGET()
     else()
       # Populate paths for find_package_handle_standard_args
-      find_path(FMT_INCLUDE_DIR NAMES fmt/format.h)
-      find_library(FMT_LIBRARY_RELEASE NAMES fmt)
-      find_library(FMT_LIBRARY_DEBUG NAMES fmtd)
+      find_path(FMT_INCLUDE_DIR NAMES fmt/format.h HINTS ${FMT_ROOT}/include)
+      find_library(FMT_LIBRARY_RELEASE NAMES fmt HINTS ${FMT_ROOT}/lib)
+      find_library(FMT_LIBRARY_DEBUG NAMES fmtd HINTS ${FMT_ROOT}/lib)
     endif()
   else()
     find_package(FMT 6.1.2 CONFIG REQUIRED QUIET)
@@ -94,7 +94,9 @@ if(NOT TARGET fmt::fmt)
     set(FMT_LIBRARIES ${FMT_LIBRARY})
     set(FMT_INCLUDE_DIRS ${FMT_INCLUDE_DIR})
 
+message(STATUS "FMT_CONSIDERED_CONFIGS: ${FMT_CONSIDERED_CONFIGS} FMT_LIBRARY: ${FMT_LIBRARY}, FMT_INCLUDE_DIRS: ${FMT_INCLUDE_DIRS} FMT_LIBRARIES: ${FMT_LIBRARIES}")
     if(NOT TARGET fmt::fmt)
+message(STATUS "TARGET fmt::fmt NOT FOUND, adding")
       add_library(fmt::fmt UNKNOWN IMPORTED)
       if(FMT_LIBRARY_RELEASE)
         set_target_properties(fmt::fmt PROPERTIES
