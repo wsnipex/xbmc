@@ -9,6 +9,10 @@
 #   MODULENAME_BYPRODUCT will be set to parent scope
 function(get_versionfile_data)
 
+  if(NOT DEFINED LIB_TYPE)
+    set(LIB_TYPE "target")
+  endif()
+
   # Dependency path
   set(MODULE_PATH "${PROJECTSOURCE}/tools/depends/${LIB_TYPE}/${MODULE_LC}")
 
