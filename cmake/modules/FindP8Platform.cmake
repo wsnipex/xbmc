@@ -41,7 +41,8 @@ if(NOT P8Platform::P8Platform OR P8Platform_FIND_REQUIRED)
 
     set(patches "${CORE_SOURCE_DIR}/tools/depends/target/${MODULE_LC}/001-all-fix-c++17-support.patch"
                 "${CORE_SOURCE_DIR}/tools/depends/target/${MODULE_LC}/002-all-fixcmakeinstall.patch"
-                "${CORE_SOURCE_DIR}/tools/depends/target/${MODULE_LC}/003-all-cmake_tweakversion.patch")
+                "${CORE_SOURCE_DIR}/tools/depends/target/${MODULE_LC}/003-all-cmake_tweakversion.patch"
+                "${CORE_SOURCE_DIR}/tools/depends/target/${MODULE_LC}/004-linux-stringutils.patch")
 
     generate_patchcommand("${patches}")
 
@@ -60,7 +61,6 @@ if(NOT P8Platform::P8Platform OR P8Platform_FIND_REQUIRED)
     set(p8-platform_INCLUDE_DIRS ${${MODULE}_INCLUDE_DIR})
     set(p8-platform_LIBRARIES "${${MODULE}_LIBRARY}"
                               "${CMAKE_THREAD_LIBS_INIT}")
-
   else()
     # If Cmake-config didnt find anything, try pkg-config
     if(NOT p8-platform_FOUND)
@@ -95,7 +95,7 @@ if(NOT P8Platform::P8Platform OR P8Platform_FIND_REQUIRED)
 
       set_target_properties(P8Platform::P8Platform PROPERTIES
                                                    IMPORTED_LOCATION "${P8PLATFORM_LIBRARY}"
-                                                   INTERFACE_LINK_LIBRARIES "P8PLATFORM_LIBRARIES"
+                                                   INTERFACE_LINK_LIBRARIES "${P8PLATFORM_LIBRARIES}"
                                                    INTERFACE_INCLUDE_DIRECTORIES "${P8PLATFORM_INCLUDE_DIRS}")
       if(TARGET lib-p8-platform)
         add_dependencies(P8Platform::P8Platform lib-p8-platform)

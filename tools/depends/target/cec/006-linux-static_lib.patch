@@ -1,0 +1,62 @@
+diff --git a/src/cec-client/cec-client.cpp b/src/cec-client/cec-client.cpp
+index b209b1e..5fc3e2e 100644
+--- a/src/cec-client/cec-client.cpp
++++ b/src/cec-client/cec-client.cpp
+@@ -50,6 +50,7 @@
+ #endif
+ 
+ using namespace CEC;
++using namespace P8;
+ using namespace P8PLATFORM;
+ 
+ #include "cecloader.h"
+diff --git a/src/cec-client/curses/CursesControl.cpp b/src/cec-client/curses/CursesControl.cpp
+index d1c5e47..d13e391 100644
+--- a/src/cec-client/curses/CursesControl.cpp
++++ b/src/cec-client/curses/CursesControl.cpp
+@@ -35,6 +35,7 @@
+ #include "p8-platform/util/StringUtils.h"
+ #include <curses.h>
+ 
++using namespace P8;
+ void CCursesControl::Init()
+ {
+   initscr();
+diff --git a/src/libcec/CECTypeUtils.h b/src/libcec/CECTypeUtils.h
+index a3e27fd..ae46aa5 100644
+--- a/src/libcec/CECTypeUtils.h
++++ b/src/libcec/CECTypeUtils.h
+@@ -35,6 +35,8 @@
+ #include "env.h"
+ #include "p8-platform/util/StringUtils.h"
+ 
++using namespace P8;
++
+ namespace CEC
+ {
+   class CCECTypeUtils
+diff --git a/src/libcec/CMakeLists.txt b/src/libcec/CMakeLists.txt
+index 19a070b..2d0d322 100644
+--- a/src/libcec/CMakeLists.txt
++++ b/src/libcec/CMakeLists.txt
+@@ -191,7 +191,7 @@ install(FILES ${PROJECT_SOURCE_DIR}/../../include/cec.h
+ include(cmake/LinkPlatformSupport.cmake)
+ 
+ # libCEC shared target
+-add_library(cec SHARED ${CEC_SOURCES})
++add_library(cec STATIC ${CEC_SOURCES})
+ install(TARGETS cec
+         DESTINATION ${LIB_DESTINATION})
+ set_target_properties(cec PROPERTIES VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
+diff --git a/src/libcec/adapter/Pulse-Eight/USBCECAdapterDetection.cpp b/src/libcec/adapter/Pulse-Eight/USBCECAdapterDetection.cpp
+index 3cb49dd..21af48e 100644
+--- a/src/libcec/adapter/Pulse-Eight/USBCECAdapterDetection.cpp
++++ b/src/libcec/adapter/Pulse-Eight/USBCECAdapterDetection.cpp
+@@ -83,6 +83,7 @@ extern "C" {
+ #define CEC_PID2 0x1002
+ 
+ using namespace CEC;
++using namespace P8;
+ 
+ #if defined(HAVE_LIBUDEV) || defined(__linux__)
+ bool TranslateComPort(std::string& strString)

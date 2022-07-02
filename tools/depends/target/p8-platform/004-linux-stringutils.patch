@@ -1,0 +1,40 @@
+Author: wsnipex <wsnipex@a1.net>
+Date:   Sat Jul 2 08:37:38 2022 +0200
+
+    utils: add namespace for StringUtils
+
+diff --git a/src/util/StringUtils.cpp b/src/util/StringUtils.cpp
+index e8effd5..b27f043 100644
+--- a/src/util/StringUtils.cpp
++++ b/src/util/StringUtils.cpp
+@@ -46,6 +46,7 @@
+ #define FORMAT_BLOCK_SIZE 2048 // # of bytes to increment per try
+ 
+ using namespace std;
++namespace P8 {
+ 
+ /* empty string for use in returns by ref */
+ const std::string StringUtils::Empty = "";
+@@ -1147,3 +1148,4 @@ void StringUtils::Tokenize(const std::string& input, std::vector<std::string>& t
+     dataPos = input.find_first_not_of(delimiters, nextDelimPos);
+   }
+ }
++}
+diff --git a/src/util/StringUtils.h b/src/util/StringUtils.h
+index ca72d9f..f6c5eb1 100644
+--- a/src/util/StringUtils.h
++++ b/src/util/StringUtils.h
+@@ -54,6 +54,7 @@ enum TIME_FORMAT { TIME_FORMAT_GUESS       =  0,
+                    TIME_FORMAT_H_MM_SS     = 19,
+                    TIME_FORMAT_H_MM_SS_XX  = 27};
+ 
++namespace P8 {
+ class StringUtils
+ {
+ public:
+@@ -205,3 +206,4 @@ public:
+ private:
+   static std::string m_lastUUID;
+ };
++}
+

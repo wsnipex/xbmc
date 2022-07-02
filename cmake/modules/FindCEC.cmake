@@ -41,9 +41,12 @@ if(ENABLE_INTERNAL_CEC)
                 "${CORE_SOURCE_DIR}/tools/depends/target/${MODULE_LC}/remove_git_info.patch"
                 "${CORE_SOURCE_DIR}/tools/depends/target/${MODULE_LC}/005-all-cmake-version.patch")
 
+
     if(WIN32 OR WINDOWS_STORE)
       list(APPEND patches "${CORE_SOURCE_DIR}/tools/depends/target/${MODULE_LC}/003-win-remove_32bit_timet.patch")
       list(APPEND patches "${CORE_SOURCE_DIR}/tools/depends/target/${MODULE_LC}/004-win-pdbstatic.patch")
+    elseif(CORE_SYSTEM_NAME STREQUAL "linux")
+      list(APPEND patches "${CORE_SOURCE_DIR}/tools/depends/target/${MODULE_LC}/006-linux-static_lib.patch")
     endif()
 
     generate_patchcommand("${patches}")
@@ -59,6 +62,9 @@ if(ENABLE_INTERNAL_CEC)
 
     if(CORE_SYSTEM_NAME STREQUAL "osx")
       set(CEC_BYPRODUCT_EXTENSION "dylib")
+    elseif(CORE_SYSTEM_NAME STREQUAL "linux")
+      set(CEC_BYPRODUCT_EXTENSION "a")
+      set(CEC_STATIC_DEPENDS "${P8PLATFORM_LIBRARY}")
     endif()
 
     BUILD_DEP_TARGET()
@@ -107,7 +113,7 @@ find_package_handle_standard_args(CEC
                                   VERSION_VAR CEC_VERSION)
 
 if(CEC_FOUND)
-  set(CEC_LIBRARIES ${CEC_LIBRARY})
+  set(CEC_LIBRARIES ${CEC_LIBRARY} ${CEC_STATIC_DEPENDS})
   set(CEC_INCLUDE_DIRS ${CEC_INCLUDE_DIR})
   set(CEC_DEFINITIONS -DHAVE_LIBCEC=1)
 
@@ -119,6 +125,7 @@ if(CEC_FOUND)
     endif()
     set_target_properties(CEC::CEC PROPERTIES
                                    INTERFACE_INCLUDE_DIRECTORIES "${CEC_INCLUDE_DIR}"
+                                   INTERFACE_LINK_LIBRARIES "${CEC_STATIC_DEPENDS}"
                                    INTERFACE_COMPILE_DEFINITIONS HAVE_LIBCEC=1)
   endif()
   if(TARGET cec)
@@ -126,5 +133,4 @@ if(CEC_FOUND)
   endif()
   set_property(GLOBAL APPEND PROPERTY INTERNAL_DEPS_PROP CEC::CEC)
 endif()
-
 mark_as_advanced(CEC_INCLUDE_DIR CEC_LIBRARY)
