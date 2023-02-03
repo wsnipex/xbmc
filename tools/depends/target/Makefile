@@ -137,12 +137,14 @@ ifeq ($(OS),linux)
     EXCLUDED_DEPENDS += dbus libcec linux-system-x11-libs pipewire mesa
   endif
 endif
-
 DEPENDS := $(filter-out $(EXCLUDED_DEPENDS),$(DEPENDS))
 
-.PHONY: $(DEPENDS)
+.PHONY: $(DEPENDS) download
 
 all: .installed-$(PLATFORM)
+
+download:
+	@for d in $(DEPENDS); do $(MAKE) -C $$d download; done
 
 crossguid: $(LIBUUID)
 curl: openssl nghttp2
