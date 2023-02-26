@@ -133,9 +133,9 @@ ifeq ($(OS),linux)
   endif
 
   ifeq ($(TARGET_PLATFORM),webos)
-    DEPENDS += wayland waylandpp wayland-protocols webos-wayland-extensions
-    EXCLUDED_DEPENDS += dbus libcec pipewire
-    WAYLANDPP_DEPS += mesa
+    DEPENDS += wayland waylandpp wayland-protocols webos-wayland-extensions webos-userland
+    EXCLUDED_DEPENDS += dbus libcec pipewire mesa
+    #WAYLANDPP_DEPS += webos-userland
   endif
 endif
 
