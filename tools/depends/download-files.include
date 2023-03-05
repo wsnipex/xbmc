@@ -25,12 +25,12 @@ ifeq ($(HASH_TOOL),)
 endif
 
 HASH_SUM = $($(shell echo $(HASH_TYPE) | tr  '[:lower:]' '[:upper:]'))
+FULL_URL ?= $(BASE_URL)/$(ARCHIVE)
 
 .PHONY: $(TARBALLS_LOCATION)/$(ARCHIVE).$(HASH_TYPE)
 all: $(TARBALLS_LOCATION)/$(ARCHIVE).$(HASH_TYPE)
 
-$(TARBALLS_LOCATION)/$(ARCHIVE):
-	cd $(TARBALLS_LOCATION); $(RETRIEVE_TOOL) $(RETRIEVE_TOOL_FLAGS) $(BASE_URL)/$(ARCHIVE)
+download: $(TARBALLS_LOCATION)/$(ARCHIVE).$(HASH_TYPE)
 
 $(TARBALLS_LOCATION)/$(ARCHIVE).$(HASH_TYPE): $(TARBALLS_LOCATION)/$(ARCHIVE)
 ifeq ($(HASH_FOUND),no)
@@ -44,14 +44,20 @@ ifeq ($(HASH_FOUND),yes)
 # if we fail 3 times, cleanup anything downloaded (eg bad tar)
 	@cd $(TARBALLS_LOCATION); echo "$(HASH_SUM)  $(ARCHIVE)" > $(ARCHIVE).$(HASH_TYPE) && $(HASH_TOOL) $(HASH_TOOL_FLAGS) $(ARCHIVE).$(HASH_TYPE) \
           || {\
-            echo "Error: failed to verify hash sum of $(ARCHIVE), expected type: $(HASH_TYPE) value $(HASH_SUM), retrying.." ;\
+            echo "Error: failed to verify hash sum of $(ARCHIVE)" ;\
+            echo "Expected type : $(HASH_TYPE)" ;\
+            echo "Expected value: $(HASH_SUM)" ;\
+            echo "Actual value  : $$($(HASH_TOOL) $(ARCHIVE) | cut -f 1 -d " ")" ;\
             tries=1 ;\
             while [ $$tries -le 3 ]; do \
               echo "download $(ARCHIVE) retry $$tries" ;\
               rm $(TARBALLS_LOCATION)/$(ARCHIVE) ;\
               sleep 3 ;\
-              $(RETRIEVE_TOOL) $(RETRIEVE_TOOL_FLAGS) -v $(BASE_URL)/$(ARCHIVE) ;\
-              $(HASH_TOOL) $(HASH_TOOL_FLAGS) $(ARCHIVE).$(HASH_TYPE) && exit 0 || tries=$$((tries + 1)) ;\
+              $(RETRIEVE_TOOL) $(RETRIEVE_TOOL_FLAGS) -o $(TARBALLS_LOCATION)/$(ARCHIVE) $(FULL_URL) ;\
+              $(HASH_TOOL) $(HASH_TOOL_FLAGS) $(ARCHIVE).$(HASH_TYPE) && exit 0 || {\
+                echo "Retried value : $$($(HASH_TOOL) $(ARCHIVE) | cut -f 1 -d " ")" ;\
+                tries=$$((tries + 1)) ;\
+              } ;\
             done ;\
             rm $(TARBALLS_LOCATION)/$(ARCHIVE) ;\
             exit 1 ;\
