@@ -362,6 +362,21 @@ case $host in
     #android builds are always cross
     cross_compiling="yes"
   ;;
+  arm-webos-linux-gnueabi|arm-starfish-linux-gnueabi)
+    meson_cpu="arm"
+    if test "x$use_cpu" = "xauto"; then
+      use_cpu="armeabi-v7a"
+    fi
+    use_toolchain="${use_toolchain:-/usr}"
+    platform_cflags="-fPIC -DPIC -march=armv7-a -mtune=cortex-a9 -mfloat-abi=softfp -mfpu=neon"
+    platform_cxxflags="$platform_cflags -static-libstdc++"
+    optimize_flags="-Os"
+    platform_ldflags="-Wl,-rpath-link=$prefix/$deps_dir/lib"
+    platform_os="linux"
+    meson_system="linux"
+    target_platform="webos"
+    app_rendersystem="gles"
+  ;;
   arm*-*-linux-gnu*|arm*-*-linux-uclibc*|aarch64*-*-linux-gnu*|aarch*-*-linux-be*)
     case $host in
       arm*-*-linux-gnu*|arm*-*-linux-uclibc*)
@@ -381,9 +396,6 @@ case $host in
     platform_cxxflags="$platform_cflags"
     platform_os="linux"
     meson_system="linux"
-    if test "$use_platform" = "webos"; then
-      target_platform=webos
-    fi
   ;;
   *i686*-linux-gnu*|i*86*-*-linux-uclibc*|x86_64*-linux-gnu*|x86_64-*-linux-uclibc*)
     case $host in
@@ -526,7 +538,7 @@ case $build in
     fi
 esac
 
-if test "$platform_os" = "android" || test "$use_platform" = "webos"; then
+if test "$platform_os" = "android" || test "$target_platform" = "webos"; then
   need_libiconv=1
 else
   AC_SEARCH_LIBS([iconv_open],iconv, link_iconv=$ac_cv_search_iconv_open, link_iconv=-liconv; AC_MSG_WARN("No iconv support in toolchain. Will build libiconv."); need_libiconv=1)
