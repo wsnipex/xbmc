@@ -49,10 +49,10 @@ if(KODI_DEPENDSBUILD)
   endif()
 
   find_library(WAYLANDC_CLIENT_LIBRARY NAMES wayland-client
-                                       PATHS ${WAYLAND_SEARCH_PATH}
+                                       PATHS ${PC_WAYLANDC_LIBRARY_DIRS}
                                        REQUIRED)
   find_library(WAYLANDC_CURSOR_LIBRARY NAMES wayland-cursor
-                                       PATHS ${WAYLAND_SEARCH_PATH}
+                                       PATHS ${PC_WAYLANDC_LIBRARY_DIRS}
                                        REQUIRED)
   find_library(WAYLANDC_EGL_LIBRARY NAMES wayland-egl
                                     PATHS ${WAYLAND_SEARCH_PATH}
