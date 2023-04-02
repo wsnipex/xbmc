@@ -10,7 +10,12 @@ SHA512=c5051aab5ff078b368c196ecfedb33ccd961265bb914845d7ed81de361bb86ae18299575b
 include ../../download-files.include
 
 # configuration settings
-CONFIGURE=./configure --prefix=$(PREFIX) --with-host-scanner --disable-documentation --disable-dtd-validation
+CONFIGURE=./configure --prefix=$(PREFIX) \
+                      --with-host-scanner \
+                      --disable-documentation \
+                      --disable-dtd-validation \
+                      --enable-static=yes \
+                      --enable-shared=no
 
 all: .installed-$(PLATFORM)
 
