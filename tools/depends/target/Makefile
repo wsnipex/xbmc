@@ -143,8 +143,11 @@ DEPENDS := $(filter-out $(EXCLUDED_DEPENDS),$(DEPENDS))
 
 all: .installed-$(PLATFORM)
 
+EXCLUDE := linux-system-gl-libs linux-system-x11-libs
+DOWNLOAD_DEPS := $(filter-out $(EXCLUDE:%=%), $(DEPENDS))
+
 download:
-	@for d in $(DEPENDS); do $(MAKE) -C $$d download; done
+	@for d in $(DOWNLOAD_DEPS); do $(MAKE) -C $$d download; done
 
 crossguid: $(LIBUUID)
 curl: openssl nghttp2
