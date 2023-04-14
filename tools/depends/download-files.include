@@ -17,13 +17,22 @@ endif
 
 all: download
 
-download: $(TARBALLS_LOCATION)/$(ARCHIVE).$(HASH_TYPE)
-
 FULL_URL ?= $(BASE_URL)/$(ARCHIVE)
 
-$(TARBALLS_LOCATION)/$(ARCHIVE).$(HASH_TYPE):
+$(TARBALLS_LOCATION)/$(ARCHIVE).$(HASH_TYPE): download
+
+download:
 	@{\
           cd $(TARBALLS_LOCATION) ;\
+          if [ -f "$(ARCHIVE)" ]; then \
+            HASH_SUM="$$($(HASH_TOOL) $(ARCHIVE) | cut -f 1 -d " ")" ;\
+            if [ "$${HASH_SUM}" = "$(SHA512)" ]; then \
+              $(HASH_TOOL) $(ARCHIVE) > $(ARCHIVE).$(HASH_TYPE) ;\
+              exit 0 ;\
+            else \
+              echo "corrupt archive found $(ARCHIVE) - redownloading" ;\
+            fi ;\
+          fi ;\
           ATTEMPTS=1 ;\
           while [ "$${ATTEMPTS}" -le 3 ]; do \
             echo "download $(ARCHIVE) attempt $$ATTEMPTS" ;\
