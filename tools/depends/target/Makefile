@@ -139,15 +139,18 @@ ifeq ($(OS),linux)
 endif
 DEPENDS := $(filter-out $(EXCLUDED_DEPENDS),$(DEPENDS))
 
-.PHONY: $(DEPENDS) download
+.PHONY: $(DEPENDS) download $(DOWNLOAD_TARGETS)
 
 all: .installed-$(PLATFORM)
 
 EXCLUDE := linux-system-gl-libs linux-system-x11-libs
 DOWNLOAD_DEPS := $(filter-out $(EXCLUDE:%=%), $(DEPENDS))
+DOWNLOAD_TARGETS := $(addprefix download/, $(DOWNLOAD_DEPS))
 
-download:
-	@for d in $(DOWNLOAD_DEPS); do $(MAKE) -C $$d download; done
+$(DOWNLOAD_TARGETS):
+	$(MAKE) -C $(notdir $@) download
+
+download: $(DOWNLOAD_TARGETS)
 
 crossguid: $(LIBUUID)
 curl: openssl nghttp2
