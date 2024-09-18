@@ -201,6 +201,10 @@ if(ENABLE_EVENTCLIENTS)
   find_package(PythonInterpreter REQUIRED)
   execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "from sysconfig import get_path; print(get_path('platlib', scheme='posix_prefix'))"
                   OUTPUT_VARIABLE PYTHON_LIB_PATH OUTPUT_STRIP_TRAILING_WHITESPACE)
+  if(APP_PACKAGE STREQUAL "tv.kodi.Kodi")
+    string(REPLACE "/usr" "/app" PYTHON_LIB_PATH ${PYTHON_LIB_PATH})
+  endif()
+
   # Install kodi-eventclients-common BT python files
   install(PROGRAMS ${CMAKE_SOURCE_DIR}/tools/EventClients/lib/python/bt/__init__.py
                    ${CMAKE_SOURCE_DIR}/tools/EventClients/lib/python/bt/bt.py
